@@ -6,6 +6,7 @@ import { WaveManager } from '../managers/WaveManager';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { checkCollision } from '../utils/gameUtils';
+import { spriteManager } from '../utils/spriteManager';
 import GameUI from './GameUI';
 import PowerUpSelection from './PowerUpSelection';
 import GameOver from './GameOver';
