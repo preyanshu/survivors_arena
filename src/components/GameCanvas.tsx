@@ -252,26 +252,44 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       ctx.save();
       ctx.translate(-cameraOffsetX, -cameraOffsetY);
 
-      // Infinite background grid
-      ctx.fillStyle = '#1a1a2e';
-      ctx.fillRect(
-        newPlayerPos.x - CANVAS_WIDTH,
-        newPlayerPos.y - CANVAS_HEIGHT,
-        CANVAS_WIDTH * 3,
-        CANVAS_HEIGHT * 3
-      );
+      // Draw background image or fallback grid
+      const backgroundSprite = spriteManager.getSprite('background');
+      if (backgroundSprite && spritesLoadedRef.current) {
+        // Draw tiled background image
+        const bgWidth = backgroundSprite.width || 50;
+        const bgHeight = backgroundSprite.height || 50;
+        const startX = Math.floor((newPlayerPos.x - CANVAS_WIDTH) / bgWidth) * bgWidth;
+        const startY = Math.floor((newPlayerPos.y - CANVAS_HEIGHT) / bgHeight) * bgHeight;
+        const endX = newPlayerPos.x + CANVAS_WIDTH;
+        const endY = newPlayerPos.y + CANVAS_HEIGHT;
 
-      ctx.fillStyle = '#16213e';
-      const gridSize = 50;
-      const gridStartX = Math.floor((newPlayerPos.x - CANVAS_WIDTH) / gridSize) * gridSize;
-      const gridStartY = Math.floor((newPlayerPos.y - CANVAS_HEIGHT) / gridSize) * gridSize;
-      const gridEndX = newPlayerPos.x + CANVAS_WIDTH;
-      const gridEndY = newPlayerPos.y + CANVAS_HEIGHT;
+        for (let x = startX; x < endX; x += bgWidth) {
+          for (let y = startY; y < endY; y += bgHeight) {
+            ctx.drawImage(backgroundSprite, x, y, bgWidth, bgHeight);
+          }
+        }
+      } else {
+        // Fallback to grid if background image not loaded
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(
+          newPlayerPos.x - CANVAS_WIDTH,
+          newPlayerPos.y - CANVAS_HEIGHT,
+          CANVAS_WIDTH * 3,
+          CANVAS_HEIGHT * 3
+        );
 
-      for (let x = gridStartX; x < gridEndX; x += gridSize) {
-        for (let y = gridStartY; y < gridEndY; y += gridSize) {
-          if ((Math.floor(x / gridSize) + Math.floor(y / gridSize)) % 2 === 0) {
-            ctx.fillRect(x, y, gridSize, gridSize);
+        ctx.fillStyle = '#16213e';
+        const gridSize = 50;
+        const gridStartX = Math.floor((newPlayerPos.x - CANVAS_WIDTH) / gridSize) * gridSize;
+        const gridStartY = Math.floor((newPlayerPos.y - CANVAS_HEIGHT) / gridSize) * gridSize;
+        const gridEndX = newPlayerPos.x + CANVAS_WIDTH;
+        const gridEndY = newPlayerPos.y + CANVAS_HEIGHT;
+
+        for (let x = gridStartX; x < gridEndX; x += gridSize) {
+          for (let y = gridStartY; y < gridEndY; y += gridSize) {
+            if ((Math.floor(x / gridSize) + Math.floor(y / gridSize)) % 2 === 0) {
+              ctx.fillRect(x, y, gridSize, gridSize);
+            }
           }
         }
       }

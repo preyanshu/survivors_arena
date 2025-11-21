@@ -13,6 +13,23 @@ export class SpriteManager {
       background: '/assets/sprites/background.png',
     };
 
+    // Background should be loaded first and can fail silently (use fallback)
+    const backgroundPath = spritePaths.background;
+    const loadBackground = (): Promise<void> => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          this.sprites.set('background', img);
+          resolve();
+        };
+        img.onerror = () => {
+          // Background can fail, we'll use fallback grid
+          resolve();
+        };
+        img.src = backgroundPath;
+      });
+    };
+
     const loadImage = (name: string, path: string): Promise<void> => {
       return new Promise((resolve, reject) => {
         const img = new Image();
@@ -30,9 +47,13 @@ export class SpriteManager {
       });
     };
 
-    this.loadPromises = Object.entries(spritePaths).map(([name, path]) =>
-      loadImage(name, path)
-    );
+    // Load background first, then other sprites
+    this.loadPromises = [
+      loadBackground(),
+      ...Object.entries(spritePaths)
+        .filter(([name]) => name !== 'background')
+        .map(([name, path]) => loadImage(name, path))
+    ];
 
     await Promise.all(this.loadPromises);
     this.loaded = true;
