@@ -18,7 +18,7 @@ interface GameCanvasProps {
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
-const PLAYER_SIZE = 30;
+const PLAYER_SIZE = 90; // Tripled from 30 to 90
 
 const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
