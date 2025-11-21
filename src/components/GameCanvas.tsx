@@ -148,7 +148,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       setPlayerPos(newPlayerPos);
       playerPosRef.current = newPlayerPos;
 
-      enemyManager.updateEnemies(newPlayerPos, deltaTime);
+      enemyManager.updateEnemies(newPlayerPos, deltaTime, waveManager.isWaveInProgress());
 
       projectilesRef.current.forEach((proj) => {
         proj.position.x += proj.velocity.x;

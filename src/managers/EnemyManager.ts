@@ -5,7 +5,13 @@ export class EnemyManager {
   private enemies: Enemy[] = [];
   private canvasWidth: number;
   private canvasHeight: number;
-  private lastSpawnedWave: number = 0; // Track which wave we last spawned
+  private spawnedEnemiesThisWave: number = 0;
+  private targetEnemyCount: number = 0;
+  private currentWave: number = 0;
+  private lastSpawnTime: number = 0;
+  private waveBaseHealth: number = 0;
+  private waveBaseSpeed: number = 0;
+  private waveBaseDamage: number = 0;
 
   constructor(canvasWidth: number, canvasHeight: number) {
     this.canvasWidth = canvasWidth;
@@ -13,35 +19,68 @@ export class EnemyManager {
   }
 
   spawnWave(wave: number, playerPos?: Position): void {
-    // Only spawn if this is a new wave (prevent spawning between waves)
-    if (wave === this.lastSpawnedWave) {
-      return; // Already spawned this wave
-    }
-
-    this.lastSpawnedWave = wave;
-
+    // Reset counter for new wave
+    this.spawnedEnemiesThisWave = 0;
+    this.currentWave = wave;
+    this.lastSpawnTime = Date.now();
+    
     // Much harder difficulty: more enemies, stronger stats
-    const enemyCount = Math.min(12 + wave * 6, 80);
-    const baseHealth = 40 + wave * 10;
-    const baseSpeed = 2.0 + wave * 0.25; // Much faster enemies
-    const baseDamage = 15 + wave * 5; // Much more damage
+    this.targetEnemyCount = Math.min(12 + wave * 6, 80);
+    this.waveBaseHealth = 40 + wave * 10;
+    this.waveBaseSpeed = 2.0 + wave * 0.25; // Much faster enemies
+    this.waveBaseDamage = 15 + wave * 5; // Much more damage
+  }
 
-    for (let i = 0; i < enemyCount; i++) {
-      this.spawnEnemy(baseHealth, baseSpeed, baseDamage, playerPos);
+  updateSpawning(playerPos?: Position, isWaveInProgress?: boolean): void {
+    // Only spawn if wave is in progress
+    if (!isWaveInProgress) return;
+
+    // Spawn enemies gradually during the wave until we reach target count
+    const currentTime = Date.now();
+    const spawnInterval = 600; // Spawn one enemy every 600ms
+
+    if (
+      this.spawnedEnemiesThisWave < this.targetEnemyCount &&
+      currentTime - this.lastSpawnTime >= spawnInterval
+    ) {
+      this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos);
+      this.lastSpawnTime = currentTime;
     }
   }
 
   private spawnEnemy(health: number, speed: number, damage: number, playerPos?: Position): void {
-    // Spawn enemies closer to player for more pressure
-    const spawnDistance = 500; // Closer spawn distance
+    // Spawn enemies outside visible frame from different directions
+    const spawnDistance = 700; // Distance outside visible area
     let x: number, y: number;
 
     if (playerPos) {
-      // Spawn in a circle around the player
-      const angle = Math.random() * Math.PI * 2;
-      const distance = spawnDistance + Math.random() * 200;
-      x = playerPos.x + Math.cos(angle) * distance;
-      y = playerPos.y + Math.sin(angle) * distance;
+      // Calculate visible area bounds (camera view)
+      const viewLeft = playerPos.x - this.canvasWidth / 2;
+      const viewRight = playerPos.x + this.canvasWidth / 2;
+      const viewTop = playerPos.y - this.canvasHeight / 2;
+      const viewBottom = playerPos.y + this.canvasHeight / 2;
+
+      // Spawn from one of four directions (north, south, east, west)
+      const direction = Math.floor(Math.random() * 4);
+      
+      switch (direction) {
+        case 0: // North (top)
+          x = viewLeft + Math.random() * this.canvasWidth;
+          y = viewTop - spawnDistance - Math.random() * 100;
+          break;
+        case 1: // South (bottom)
+          x = viewLeft + Math.random() * this.canvasWidth;
+          y = viewBottom + spawnDistance + Math.random() * 100;
+          break;
+        case 2: // East (right)
+          x = viewRight + spawnDistance + Math.random() * 100;
+          y = viewTop + Math.random() * this.canvasHeight;
+          break;
+        default: // West (left)
+          x = viewLeft - spawnDistance - Math.random() * 100;
+          y = viewTop + Math.random() * this.canvasHeight;
+          break;
+      }
     } else {
       // Fallback to old method if no player position (shouldn't happen)
       const side = Math.floor(Math.random() * 4);
@@ -64,6 +103,8 @@ export class EnemyManager {
       }
     }
 
+    this.spawnedEnemiesThisWave++;
+
     const size = randomInRange(20, 30);
 
     this.enemies.push({
@@ -77,7 +118,10 @@ export class EnemyManager {
     });
   }
 
-  updateEnemies(playerPos: Position, deltaTime: number): void {
+  updateEnemies(playerPos: Position, deltaTime: number, isWaveInProgress?: boolean): void {
+    // Spawn new enemies during the wave
+    this.updateSpawning(playerPos, isWaveInProgress);
+
     this.enemies.forEach((enemy) => {
       const direction = normalize({
         x: playerPos.x - enemy.position.x,
@@ -132,7 +176,10 @@ export class EnemyManager {
 
   clear(): void {
     this.enemies = [];
-    this.lastSpawnedWave = 0; // Reset wave tracking
+    this.spawnedEnemiesThisWave = 0;
+    this.targetEnemyCount = 0;
+    this.currentWave = 0;
+    this.lastSpawnTime = 0;
   }
 
   isEmpty(): boolean {
