@@ -76,9 +76,17 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const handleMouseDown = useCallback(() => {
     if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection()) return;
 
+    // Convert screen mouse position to world coordinates
+    const cameraOffsetX = playerPosRef.current.x - CANVAS_WIDTH / 2;
+    const cameraOffsetY = playerPosRef.current.y - CANVAS_HEIGHT / 2;
+    const worldMousePos = {
+      x: mousePos.x + cameraOffsetX,
+      y: mousePos.y + cameraOffsetY,
+    };
+
     const newProjectiles = weaponManagerRef.current.attack(
       playerPosRef.current,
-      mousePos,
+      worldMousePos,
       playerStatsRef.current,
       Date.now()
     );
