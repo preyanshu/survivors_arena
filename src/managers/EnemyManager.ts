@@ -55,7 +55,7 @@ export class EnemyManager {
   }
 
   private spawnEnemy(health: number, speed: number, damage: number, playerPos?: Position): void {
-    // Spawn enemies outside visible frame from different directions
+    // Spawn enemies outside visible frame from all directions around the player
     const spawnDistance = 700; // Distance outside visible area
     let x: number, y: number;
 
@@ -66,25 +66,43 @@ export class EnemyManager {
       const viewTop = playerPos.y - this.canvasHeight / 2;
       const viewBottom = playerPos.y + this.canvasHeight / 2;
 
-      // Spawn from one of four directions (north, south, east, west)
-      const direction = Math.floor(Math.random() * 4);
+      // Spawn from all directions (8 directions for better distribution)
+      // This includes behind player, sides, corners, etc.
+      const direction = Math.floor(Math.random() * 8);
+      const randomOffset = Math.random() * 200;
       
       switch (direction) {
         case 0: // North (top)
           x = viewLeft + Math.random() * this.canvasWidth;
-          y = viewTop - spawnDistance - Math.random() * 100;
+          y = viewTop - spawnDistance - randomOffset;
           break;
         case 1: // South (bottom)
           x = viewLeft + Math.random() * this.canvasWidth;
-          y = viewBottom + spawnDistance + Math.random() * 100;
+          y = viewBottom + spawnDistance + randomOffset;
           break;
         case 2: // East (right)
-          x = viewRight + spawnDistance + Math.random() * 100;
+          x = viewRight + spawnDistance + randomOffset;
           y = viewTop + Math.random() * this.canvasHeight;
           break;
-        default: // West (left)
-          x = viewLeft - spawnDistance - Math.random() * 100;
+        case 3: // West (left)
+          x = viewLeft - spawnDistance - randomOffset;
           y = viewTop + Math.random() * this.canvasHeight;
+          break;
+        case 4: // Northeast (top-right corner)
+          x = viewRight + spawnDistance + randomOffset;
+          y = viewTop - spawnDistance - randomOffset;
+          break;
+        case 5: // Northwest (top-left corner)
+          x = viewLeft - spawnDistance - randomOffset;
+          y = viewTop - spawnDistance - randomOffset;
+          break;
+        case 6: // Southeast (bottom-right corner)
+          x = viewRight + spawnDistance + randomOffset;
+          y = viewBottom + spawnDistance + randomOffset;
+          break;
+        default: // Southwest (bottom-left corner)
+          x = viewLeft - spawnDistance - randomOffset;
+          y = viewBottom + spawnDistance + randomOffset;
           break;
       }
     } else {
@@ -199,5 +217,13 @@ export class EnemyManager {
 
   getCount(): number {
     return this.enemies.length;
+  }
+
+  getTargetCount(): number {
+    return this.targetEnemyCount;
+  }
+
+  getKilledCount(): number {
+    return this.spawnedEnemiesThisWave - this.enemies.length;
   }
 }

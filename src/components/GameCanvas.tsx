@@ -336,6 +336,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         playerStats={playerStats}
         wave={waveManagerRef.current.getCurrentWave()}
         enemiesRemaining={enemyManagerRef.current.getCount()}
+        enemiesKilled={enemyManagerRef.current.getKilledCount()}
+        targetEnemies={enemyManagerRef.current.getTargetCount()}
       />
 
       {availablePowerUps.length > 0 && (

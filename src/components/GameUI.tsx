@@ -5,9 +5,11 @@ interface GameUIProps {
   playerStats: PlayerStats;
   wave: number;
   enemiesRemaining: number;
+  enemiesKilled: number;
+  targetEnemies: number;
 }
 
-const GameUI = ({ playerStats, wave, enemiesRemaining }: GameUIProps) => {
+const GameUI = ({ playerStats, wave, enemiesRemaining, enemiesKilled, targetEnemies }: GameUIProps) => {
   const healthPercentage = (playerStats.health / playerStats.maxHealth) * 100;
 
   return (
@@ -30,9 +32,14 @@ const GameUI = ({ playerStats, wave, enemiesRemaining }: GameUIProps) => {
 
         <div className="bg-gray-900 bg-opacity-80 rounded-lg p-4 border-2 border-gray-700 text-center">
           <div className="text-yellow-400 font-bold text-2xl mb-1">Wave {wave}</div>
-          <div className="flex items-center gap-2 justify-center text-gray-300">
-            <Skull className="w-4 h-4" />
-            <span className="text-sm">{enemiesRemaining} enemies</span>
+          <div className="flex flex-col gap-1 text-gray-300">
+            <div className="flex items-center gap-2 justify-center">
+              <Skull className="w-4 h-4" />
+              <span className="text-sm">{enemiesRemaining} remaining</span>
+            </div>
+            <div className="text-xs text-gray-400">
+              {enemiesKilled} / {targetEnemies} killed
+            </div>
           </div>
         </div>
       </div>
