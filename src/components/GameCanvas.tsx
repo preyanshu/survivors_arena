@@ -459,23 +459,26 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         0 // No rotation for player
       );
 
-      // Draw gun sprite that rotates with mouse aim
-      // Offset gun slightly to the right to look like player is holding it
+      // Draw weapon sprite that rotates with mouse aim
+      // Offset weapon slightly to the right to look like player is holding it
       const gunAngle = Math.atan2(worldMouseY - newPlayerPos.y, worldMouseX - newPlayerPos.x);
-      const gunSize = PLAYER_SIZE * 0.7; // Gun is 70% of player size (increased)
-      const gunOffsetX = Math.cos(gunAngle) * (PLAYER_SIZE * 0.1); // Offset along gun direction
+      const gunSize = PLAYER_SIZE * 0.7; // Weapon is 70% of player size (increased)
+      const gunOffsetX = Math.cos(gunAngle) * (PLAYER_SIZE * 0.1); // Offset along weapon direction
       const gunOffsetY = Math.sin(gunAngle) * (PLAYER_SIZE * 0.1);
       const gunX = newPlayerPos.x + gunOffsetX + (PLAYER_SIZE * 0.03); // Very small right offset
       const gunY = newPlayerPos.y + gunOffsetY;
       
+      // Get weapon-specific sprite name based on current weapon type
+      const weaponSpriteName = `weapon_${weapon.type}`;
+      
       spriteManager.drawSprite(
         ctx,
-        'gun',
+        weaponSpriteName,
         gunX,
         gunY,
         gunSize,
         gunSize,
-        gunAngle // Gun rotates to face mouse
+        gunAngle // Weapon rotates to face mouse
       );
       ctx.restore(); // Restore camera transform
     },

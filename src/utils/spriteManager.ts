@@ -99,7 +99,7 @@ export class SpriteManager {
         break;
 
       case 'gun':
-        // Create a simple gun sprite
+        // Create a simple gun sprite (fallback)
         ctx.fillStyle = '#654321';
         // Gun body
         ctx.fillRect(20, 28, 24, 8);
@@ -110,6 +110,71 @@ export class SpriteManager {
         // Gun details
         ctx.fillStyle = '#333333';
         ctx.fillRect(20, 28, 24, 2);
+        break;
+      case 'weapon_pistol':
+        // Create a pistol shape
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(20, 28, 20, 6);
+        // Barrel
+        ctx.fillRect(40, 30, 8, 2);
+        // Handle
+        ctx.fillRect(22, 34, 5, 8);
+        break;
+      case 'weapon_shotgun':
+        // Create a shotgun shape (wider barrel)
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(20, 26, 24, 10);
+        // Wide barrel
+        ctx.fillRect(44, 28, 10, 6);
+        // Handle
+        ctx.fillRect(22, 36, 6, 10);
+        break;
+      case 'weapon_sword':
+        // Create a sword shape
+        ctx.fillStyle = '#C0C0C0';
+        // Blade
+        ctx.fillRect(30, 10, 4, 30);
+        // Hilt
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(28, 8, 8, 6);
+        // Handle
+        ctx.fillRect(30, 40, 4, 8);
+        break;
+      case 'weapon_knife':
+        // Create a knife shape
+        ctx.fillStyle = '#C0C0C0';
+        // Blade (triangle)
+        ctx.beginPath();
+        ctx.moveTo(30, 15);
+        ctx.lineTo(34, 15);
+        ctx.lineTo(32, 40);
+        ctx.closePath();
+        ctx.fill();
+        // Handle
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(30, 38, 4, 6);
+        break;
+      case 'weapon_assault_rifle':
+        // Create an assault rifle shape
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(18, 28, 28, 6);
+        // Barrel
+        ctx.fillRect(46, 29, 8, 4);
+        // Stock
+        ctx.fillRect(18, 34, 10, 6);
+        // Handle
+        ctx.fillRect(22, 34, 4, 8);
+        break;
+      case 'weapon_rifle':
+        // Create a rifle shape (longer)
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(16, 28, 32, 6);
+        // Long barrel
+        ctx.fillRect(48, 29, 12, 4);
+        // Stock
+        ctx.fillRect(16, 34, 12, 6);
+        // Handle
+        ctx.fillRect(22, 34, 4, 8);
         break;
 
       case 'enemy':
