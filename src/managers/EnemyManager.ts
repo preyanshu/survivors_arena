@@ -41,14 +41,21 @@ export class EnemyManager {
     // Only spawn if wave is in progress
     if (!isWaveInProgress) return;
 
-    // Spawn enemies gradually during the wave until we reach target count
-    const currentTime = Date.now();
-    const spawnInterval = 600; // Spawn one enemy every 600ms
+    // Don't spawn if we've already spawned all enemies
+    if (this.spawnedEnemiesThisWave >= this.targetEnemyCount) return;
 
-    if (
-      this.spawnedEnemiesThisWave < this.targetEnemyCount &&
-      currentTime - this.lastSpawnTime >= spawnInterval
-    ) {
+    // Spawn enemies gradually - only spawn more when there are fewer alive enemies
+    // This creates a dynamic wave where enemies spawn as you kill them
+    const maxAliveEnemies = Math.max(8, Math.floor(this.targetEnemyCount * 0.4)); // Max 40% of target alive at once, minimum 8
+    const currentAlive = this.enemies.length;
+    
+    // Only spawn if we have room for more enemies (player has killed some)
+    if (currentAlive >= maxAliveEnemies) return;
+
+    const currentTime = Date.now();
+    const spawnInterval = 800; // Spawn one enemy every 800ms when conditions are met
+
+    if (currentTime - this.lastSpawnTime >= spawnInterval) {
       this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos);
       this.lastSpawnTime = currentTime;
     }
