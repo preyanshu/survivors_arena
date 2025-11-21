@@ -118,7 +118,11 @@ export class EnemyManager {
     }
   }
 
-  private spawnEnemy(health: number, speed: number, damage: number, playerPos?: Position, mouseDirection?: Position): void {
+  private spawnEnemy(baseHealth: number, baseSpeed: number, baseDamage: number, playerPos?: Position, mouseDirection?: Position): void {
+    // Determine enemy type and stats first
+    const enemyType = this.getEnemyType(this.currentWave);
+    const stats = this.getEnemyStats(enemyType, baseHealth, baseSpeed, baseDamage);
+
     // Spawn enemies outside visible frame from all directions around the player
     // Prioritize spawning behind the player (opposite of mouse direction)
     const spawnDistance = 700; // Distance outside visible area
