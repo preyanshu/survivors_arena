@@ -8,7 +8,13 @@ export class SpriteManager {
   async loadSprites(): Promise<void> {
     const spritePaths = {
       player: '/assets/sprites/player.png',
-      gun: '/assets/sprites/gun.png',
+      gun: '/assets/sprites/gun.png', // Fallback for old code
+      weapon_pistol: '/assets/sprites/weapon_pistol.png',
+      weapon_shotgun: '/assets/sprites/weapon_shotgun.png',
+      weapon_sword: '/assets/sprites/weapon_sword.png',
+      weapon_knife: '/assets/sprites/weapon_knife.png',
+      weapon_assault_rifle: '/assets/sprites/weapon_assault_rifle.png',
+      weapon_rifle: '/assets/sprites/weapon_rifle.png',
       enemy: '/assets/sprites/enemy.png',
       enemy_weak: '/assets/sprites/enemy_weak.png',
       enemy_normal: '/assets/sprites/enemy_normal.png',
