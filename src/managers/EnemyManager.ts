@@ -68,28 +68,28 @@ export class EnemyManager {
           health: Math.floor(baseHealth * 0.6), // 60% of base health
           speed: baseSpeed * 1.1, // Slightly faster
           damage: Math.floor(baseDamage * 0.7), // 70% of base damage
-          size: 40, // Increased from 20 to 40
+          size: 80, // Increased for bigger enemies
         };
       case EnemyType.NORMAL:
         return {
           health: baseHealth, // Base stats
           speed: baseSpeed,
           damage: baseDamage,
-          size: 50, // Increased from 25 to 50
+          size: 100, // Increased for bigger enemies
         };
       case EnemyType.STRONG:
         return {
           health: Math.floor(baseHealth * 1.8), // 180% of base health
           speed: baseSpeed * 0.85, // Slightly slower
           damage: Math.floor(baseDamage * 1.5), // 150% of base damage
-          size: 70, // Increased from 35 to 70
+          size: 140, // Increased for bigger enemies
         };
       default:
         return {
           health: baseHealth,
           speed: baseSpeed,
           damage: baseDamage,
-          size: 25,
+          size: 100,
         };
     }
   }
