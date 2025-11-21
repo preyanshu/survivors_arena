@@ -241,12 +241,18 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
         enemyManager.getEnemies().forEach((enemy) => {
           if (checkCollision(proj.position, proj.size, enemy.position, enemy.size)) {
-            enemyManager.damageEnemy(
+            const result = enemyManager.damageEnemy(
               enemy.id,
               proj.damage,
               playerStatsRef.current.knockback,
               newPlayerPos
             );
+            
+            // Create blood effect if enemy was killed
+            if (result.killed && result.position) {
+              createBloodEffect(result.position, enemy.size);
+            }
+            
             if (!proj.piercing) {
               hit = true;
             }
