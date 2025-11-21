@@ -29,8 +29,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   });
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
-    maxHealth: 100,
-    health: 100,
+    maxHealth: 80, // Reduced starting health
+    health: 80,
     movementSpeed: 3,
     damage: 1,
     attackSpeed: 1,
@@ -195,11 +195,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       projectilesRef.current = remainingProjectiles;
 
       const currentTime = Date.now();
-      if (currentTime - lastDamageTimeRef.current > 400) {
+      if (currentTime - lastDamageTimeRef.current > 300) {
         const damage = enemyManager.checkPlayerCollision(newPlayerPos, PLAYER_SIZE);
         if (damage > 0) {
           setPlayerStats((prev) => {
-            const newHealth = prev.health - damage * 0.15; // Increased damage from 10% to 15%
+            const newHealth = prev.health - damage * 0.25; // Much more damage - 25% of enemy damage
             if (newHealth <= 0) {
               setIsGameOver(true);
               return { ...prev, health: 0 };

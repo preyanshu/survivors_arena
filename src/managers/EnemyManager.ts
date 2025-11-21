@@ -12,11 +12,11 @@ export class EnemyManager {
   }
 
   spawnWave(wave: number, playerPos?: Position): void {
-    // Increased difficulty: more enemies, stronger stats
-    const enemyCount = Math.min(8 + wave * 4, 60);
-    const baseHealth = 30 + wave * 8;
-    const baseSpeed = 1.2 + wave * 0.15;
-    const baseDamage = 8 + wave * 3;
+    // Much harder difficulty: more enemies, stronger stats
+    const enemyCount = Math.min(12 + wave * 6, 80);
+    const baseHealth = 40 + wave * 10;
+    const baseSpeed = 2.0 + wave * 0.25; // Much faster enemies
+    const baseDamage = 15 + wave * 5; // Much more damage
 
     for (let i = 0; i < enemyCount; i++) {
       this.spawnEnemy(baseHealth, baseSpeed, baseDamage, playerPos);
@@ -24,8 +24,8 @@ export class EnemyManager {
   }
 
   private spawnEnemy(health: number, speed: number, damage: number, playerPos?: Position): void {
-    // Spawn enemies at a distance from player (infinite world)
-    const spawnDistance = 600; // Distance from player to spawn enemies
+    // Spawn enemies closer to player for more pressure
+    const spawnDistance = 500; // Closer spawn distance
     let x: number, y: number;
 
     if (playerPos) {
