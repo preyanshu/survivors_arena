@@ -380,12 +380,6 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       // Draw enemies with sprites
       enemyManager.getEnemies().forEach((enemy) => {
-        // Calculate angle enemy is facing (towards player)
-        const angle = Math.atan2(
-          newPlayerPos.y - enemy.position.y,
-          newPlayerPos.x - enemy.position.x
-        );
-
         // Get sprite name based on enemy type
         let spriteName = 'enemy';
         switch (enemy.type) {
@@ -400,6 +394,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             break;
         }
 
+        // Draw enemy sprite without rotation (angle = 0 to keep sprite straight)
         spriteManager.drawSprite(
           ctx,
           spriteName,
@@ -407,7 +402,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           enemy.position.y,
           enemy.size,
           enemy.size,
-          angle
+          0 // No rotation - sprite stays straight
         );
 
         // Draw health bar
