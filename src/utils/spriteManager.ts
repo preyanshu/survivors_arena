@@ -8,6 +8,7 @@ export class SpriteManager {
   async loadSprites(): Promise<void> {
     const spritePaths = {
       player: '/assets/sprites/player.png',
+      gun: '/assets/sprites/gun.png',
       enemy: '/assets/sprites/enemy.png',
       enemy_weak: '/assets/sprites/enemy_weak.png',
       enemy_normal: '/assets/sprites/enemy_normal.png',
@@ -75,17 +76,34 @@ export class SpriteManager {
 
     switch (name) {
       case 'player':
-        // Create a blue triangle sprite
+        // Create a blue circle sprite (player body, no rotation)
         ctx.fillStyle = '#3498db';
         ctx.beginPath();
-        ctx.moveTo(32, 8);
-        ctx.lineTo(56, 56);
-        ctx.lineTo(8, 56);
-        ctx.closePath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#2980b9';
         ctx.lineWidth = 3;
         ctx.stroke();
+        // Add simple face/features
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(24, 24, 4, 0, Math.PI * 2); // Left eye
+        ctx.arc(40, 24, 4, 0, Math.PI * 2); // Right eye
+        ctx.fill();
+        break;
+
+      case 'gun':
+        // Create a simple gun sprite
+        ctx.fillStyle = '#654321';
+        // Gun body
+        ctx.fillRect(20, 28, 24, 8);
+        // Gun barrel
+        ctx.fillRect(44, 30, 12, 4);
+        // Gun handle
+        ctx.fillRect(22, 36, 6, 10);
+        // Gun details
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(20, 28, 24, 2);
         break;
 
       case 'enemy':

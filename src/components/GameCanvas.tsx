@@ -366,8 +366,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       const worldMouseX = mousePos.x + cameraOffsetX;
       const worldMouseY = mousePos.y + cameraOffsetY;
 
-      // Draw player with sprite
-      const playerAngle = Math.atan2(worldMouseY - newPlayerPos.y, worldMouseX - newPlayerPos.x);
+      // Draw player sprite (no rotation - always facing same direction)
       spriteManager.drawSprite(
         ctx,
         'player',
@@ -375,7 +374,20 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         newPlayerPos.y,
         PLAYER_SIZE,
         PLAYER_SIZE,
-        playerAngle + Math.PI / 2
+        0 // No rotation for player
+      );
+
+      // Draw gun sprite that rotates with mouse aim
+      const gunAngle = Math.atan2(worldMouseY - newPlayerPos.y, worldMouseX - newPlayerPos.x);
+      const gunSize = PLAYER_SIZE * 0.6; // Gun is 60% of player size
+      spriteManager.drawSprite(
+        ctx,
+        'gun',
+        newPlayerPos.x,
+        newPlayerPos.y,
+        gunSize,
+        gunSize,
+        gunAngle // Gun rotates to face mouse
       );
       ctx.restore(); // Restore camera transform
     },
