@@ -70,7 +70,7 @@ export class WeaponManager {
         position: { ...position },
         velocity: { x: direction.x * speed, y: direction.y * speed },
         damage,
-        size: 16 * playerStats.projectileSize, // Increased from 8 to 16
+        size: 20 * playerStats.projectileSize, // Increased for better visibility
       },
     ];
   }
@@ -94,7 +94,7 @@ export class WeaponManager {
         position: { ...position },
         velocity: { x: dir.x * speed, y: dir.y * speed },
         damage: damage * 0.7,
-        size: 14 * playerStats.projectileSize, // Increased from 6 to 14
+        size: 18 * playerStats.projectileSize, // Increased for better visibility
       });
     }
 
@@ -157,7 +157,7 @@ export class WeaponManager {
         position: { ...position },
         velocity: { x: dir.x * speed, y: dir.y * speed },
         damage,
-        size: 15 * playerStats.projectileSize, // Increased from 7 to 15
+        size: 20 * playerStats.projectileSize, // Increased for better visibility
       },
     ];
   }
@@ -176,7 +176,7 @@ export class WeaponManager {
         position: { ...position },
         velocity: { x: direction.x * speed, y: direction.y * speed },
         damage,
-        size: 18 * playerStats.projectileSize, // Increased from 10 to 18
+        size: 24 * playerStats.projectileSize, // Increased for better visibility
         piercing: true, // Rifle bullets pierce through enemies
       },
     ];
