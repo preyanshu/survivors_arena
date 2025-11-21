@@ -149,6 +149,22 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     playerStatsRef.current = playerStats;
   }, [playerStats]);
 
+  // Handle E key press to continue to power-up selection
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'e' || e.key === 'E') {
+        const waveManager = waveManagerRef.current;
+        if (waveManager.isWaveCompleted() && !waveManager.isShowingPowerUpSelection()) {
+          waveManager.showPowerUpSelection();
+          setAvailablePowerUps(waveManager.getRandomPowerUps(3));
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   const gameLoop = useCallback(
     (deltaTime: number) => {
       if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection()) return;
@@ -241,7 +257,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       if (enemyManager.isEmpty() && waveManager.isWaveInProgress()) {
         waveManager.completeWave();
-        setAvailablePowerUps(waveManager.getRandomPowerUps(3));
+        // Don't show power-ups yet - wait for E press
       }
 
       const canvas = canvasRef.current;

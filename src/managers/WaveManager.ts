@@ -4,15 +4,23 @@ import { POWER_UPS } from '../data/powerups';
 export class WaveManager {
   private currentWave: number = 1;
   private waveInProgress: boolean = false;
+  private waveCompleted: boolean = false; // Wave cleared, waiting for E press
   private showingPowerUpSelection: boolean = false;
 
   startWave(): void {
     this.waveInProgress = true;
+    this.waveCompleted = false;
     this.showingPowerUpSelection = false;
   }
 
   completeWave(): void {
     this.waveInProgress = false;
+    this.waveCompleted = true; // Show "Press E" screen
+    this.showingPowerUpSelection = false;
+  }
+
+  showPowerUpSelection(): void {
+    this.waveCompleted = false;
     this.showingPowerUpSelection = true;
   }
 
@@ -33,6 +41,10 @@ export class WaveManager {
     return this.showingPowerUpSelection;
   }
 
+  isWaveCompleted(): boolean {
+    return this.waveCompleted;
+  }
+
   getRandomPowerUps(count: number = 3): PowerUp[] {
     const shuffled = [...POWER_UPS].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
@@ -41,6 +53,7 @@ export class WaveManager {
   reset(): void {
     this.currentWave = 1;
     this.waveInProgress = false;
+    this.waveCompleted = false;
     this.showingPowerUpSelection = false;
   }
 }
