@@ -271,6 +271,24 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       projectilesRef.current = remainingProjectiles;
 
+      // Update and remove expired blood particles
+      const deltaTimeSeconds = deltaTime / 1000;
+      bloodParticlesRef.current = bloodParticlesRef.current
+        .map((particle) => {
+          // Update position
+          particle.position.x += particle.velocity.x * deltaTimeSeconds * 60;
+          particle.position.y += particle.velocity.y * deltaTimeSeconds * 60;
+          
+          // Apply gravity
+          particle.velocity.y += 0.3 * deltaTimeSeconds * 60;
+          
+          // Fade out
+          particle.life -= deltaTimeSeconds * 2;
+          
+          return particle;
+        })
+        .filter((particle) => particle.life > 0);
+
       const currentTime = Date.now();
       if (currentTime - lastDamageTimeRef.current > 300) {
         const damage = enemyManager.checkPlayerCollision(newPlayerPos, PLAYER_SIZE);
