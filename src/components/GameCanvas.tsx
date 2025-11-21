@@ -167,7 +167,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
   const gameLoop = useCallback(
     (deltaTime: number) => {
-      if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection()) return;
+      if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection() || waveManagerRef.current.isWaveCompleted()) return;
 
       const enemyManager = enemyManagerRef.current;
       const waveManager = waveManagerRef.current;
