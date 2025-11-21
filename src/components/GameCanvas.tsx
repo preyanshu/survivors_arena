@@ -53,8 +53,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const lastDamageTimeRef = useRef<number>(0);
   const playerPosRef = useRef<Position>(playerPos);
   const playerStatsRef = useRef<PlayerStats>(playerStats);
+  const spritesLoadedRef = useRef<boolean>(false);
 
   useEffect(() => {
+    // Load sprites on mount
+    spriteManager.loadSprites().then(() => {
+      spritesLoadedRef.current = true;
+    });
+
     const waveManager = waveManagerRef.current;
     const enemyManager = enemyManagerRef.current;
 
@@ -269,27 +275,39 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         }
       }
 
+      // Draw projectiles with sprites
       projectilesRef.current.forEach((proj) => {
-        ctx.fillStyle = '#f39c12';
-        ctx.beginPath();
-        ctx.arc(proj.position.x, proj.position.y, proj.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = '#e67e22';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        const angle = Math.atan2(proj.velocity.y, proj.velocity.x);
+        spriteManager.drawSprite(
+          ctx,
+          'projectile',
+          proj.position.x,
+          proj.position.y,
+          proj.size,
+          proj.size,
+          angle
+        );
       });
 
+      // Draw enemies with sprites
       enemyManager.getEnemies().forEach((enemy) => {
-        ctx.fillStyle = '#e74c3c';
-        ctx.beginPath();
-        ctx.arc(enemy.position.x, enemy.position.y, enemy.size / 2, 0, Math.PI * 2);
-        ctx.fill();
+        // Calculate angle enemy is facing (towards player)
+        const angle = Math.atan2(
+          newPlayerPos.y - enemy.position.y,
+          newPlayerPos.x - enemy.position.x
+        );
 
-        ctx.strokeStyle = '#c0392b';
-        ctx.lineWidth = 3;
-        ctx.stroke();
+        spriteManager.drawSprite(
+          ctx,
+          'enemy',
+          enemy.position.x,
+          enemy.position.y,
+          enemy.size,
+          enemy.size,
+          angle
+        );
 
+        // Draw health bar
         const healthBarWidth = enemy.size;
         const healthBarHeight = 4;
         const healthPercentage = enemy.health / enemy.maxHealth;
@@ -315,26 +333,17 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       const worldMouseX = mousePos.x + cameraOffsetX;
       const worldMouseY = mousePos.y + cameraOffsetY;
 
-      ctx.save();
-      ctx.translate(newPlayerPos.x, newPlayerPos.y);
-
-      const angle = Math.atan2(worldMouseY - newPlayerPos.y, worldMouseX - newPlayerPos.x);
-      ctx.rotate(angle + Math.PI / 2);
-
-      ctx.fillStyle = '#3498db';
-      ctx.beginPath();
-      ctx.moveTo(0, -PLAYER_SIZE / 2);
-      ctx.lineTo(PLAYER_SIZE / 2, PLAYER_SIZE / 2);
-      ctx.lineTo(0, PLAYER_SIZE / 4);
-      ctx.lineTo(-PLAYER_SIZE / 2, PLAYER_SIZE / 2);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.strokeStyle = '#2980b9';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      ctx.restore();
+      // Draw player with sprite
+      const playerAngle = Math.atan2(worldMouseY - newPlayerPos.y, worldMouseX - newPlayerPos.x);
+      spriteManager.drawSprite(
+        ctx,
+        'player',
+        newPlayerPos.x,
+        newPlayerPos.y,
+        PLAYER_SIZE,
+        PLAYER_SIZE,
+        playerAngle + Math.PI / 2
+      );
       ctx.restore(); // Restore camera transform
     },
     [keys, mousePos, isGameOver]
