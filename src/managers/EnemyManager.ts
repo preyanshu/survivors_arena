@@ -29,6 +29,12 @@ export class EnemyManager {
     this.waveBaseHealth = 40 + wave * 10;
     this.waveBaseSpeed = 2.0 + wave * 0.25; // Much faster enemies
     this.waveBaseDamage = 15 + wave * 5; // Much more damage
+
+    // Spawn first few enemies immediately to start the wave
+    const initialSpawn = Math.min(3, this.targetEnemyCount);
+    for (let i = 0; i < initialSpawn; i++) {
+      this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos);
+    }
   }
 
   updateSpawning(playerPos?: Position, isWaveInProgress?: boolean): void {
@@ -183,7 +189,12 @@ export class EnemyManager {
   }
 
   isEmpty(): boolean {
-    return this.enemies.length === 0;
+    // Wave is complete only if all enemies are spawned AND all are defeated
+    return this.enemies.length === 0 && this.spawnedEnemiesThisWave >= this.targetEnemyCount;
+  }
+
+  hasFinishedSpawning(): boolean {
+    return this.spawnedEnemiesThisWave >= this.targetEnemyCount;
   }
 
   getCount(): number {
