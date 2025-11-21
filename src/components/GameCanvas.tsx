@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Weapon, PlayerStats, Projectile, PowerUp, Position } from '../types/game';
+import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle } from '../types/game';
 import { WeaponManager } from '../managers/WeaponManager';
 import { EnemyManager } from '../managers/EnemyManager';
 import { WaveManager } from '../managers/WaveManager';
@@ -51,6 +51,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const waveManagerRef = useRef<WaveManager>(new WaveManager());
 
   const projectilesRef = useRef<Projectile[]>([]);
+  const bloodParticlesRef = useRef<BloodParticle[]>([]);
   const lastDamageTimeRef = useRef<number>(0);
   const playerPosRef = useRef<Position>(playerPos);
   const playerStatsRef = useRef<PlayerStats>(playerStats);
@@ -148,6 +149,31 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   useEffect(() => {
     playerStatsRef.current = playerStats;
   }, [playerStats]);
+
+  // Create blood particle effect when enemy is killed
+  const createBloodEffect = useCallback((position: Position, enemySize: number) => {
+    const particleCount = Math.floor(enemySize / 3); // More particles for larger enemies
+    
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5;
+      const speed = 2 + Math.random() * 3;
+      
+      bloodParticlesRef.current.push({
+        id: `${Date.now()}-${Math.random()}`,
+        position: { 
+          x: position.x + (Math.random() - 0.5) * enemySize * 0.5,
+          y: position.y + (Math.random() - 0.5) * enemySize * 0.5
+        },
+        velocity: {
+          x: Math.cos(angle) * speed,
+          y: Math.sin(angle) * speed,
+        },
+        size: 3 + Math.random() * 4,
+        life: 1.0,
+        maxLife: 1.0,
+      });
+    }
+  }, []);
 
   // Handle E key press to continue to power-up selection
   useEffect(() => {
@@ -376,6 +402,23 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           healthBarWidth * healthPercentage,
           healthBarHeight
         );
+      });
+
+      // Draw blood particles
+      bloodParticlesRef.current.forEach((particle) => {
+        const alpha = particle.life / particle.maxLife;
+        ctx.fillStyle = `rgba(139, 0, 0, ${alpha})`; // Dark red with fade
+        ctx.beginPath();
+        ctx.arc(particle.position.x, particle.position.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add some brighter red particles
+        if (Math.random() > 0.7) {
+          ctx.fillStyle = `rgba(220, 20, 60, ${alpha * 0.8})`; // Crimson
+          ctx.beginPath();
+          ctx.arc(particle.position.x, particle.position.y, particle.size * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
       });
 
       // Calculate mouse position in world coordinates

@@ -65,3 +65,12 @@ export interface PowerUp {
   description: string;
   effect: (stats: PlayerStats) => PlayerStats;
 }
+
+export interface BloodParticle {
+  id: string;
+  position: Position;
+  velocity: Position;
+  size: number;
+  life: number;
+  maxLife: number;
+}

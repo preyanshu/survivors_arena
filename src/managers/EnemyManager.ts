@@ -240,9 +240,9 @@ export class EnemyManager {
     });
   }
 
-  damageEnemy(enemyId: string, damage: number, knockback: number, playerPos: Position): boolean {
+  damageEnemy(enemyId: string, damage: number, knockback: number, playerPos: Position): { killed: boolean; position?: Position } {
     const enemy = this.enemies.find((e) => e.id === enemyId);
-    if (!enemy) return false;
+    if (!enemy) return { killed: false };
 
     enemy.health -= damage;
 
@@ -255,11 +255,12 @@ export class EnemyManager {
     enemy.position.y += direction.y * knockback;
 
     if (enemy.health <= 0) {
+      const deathPosition = { ...enemy.position };
       this.enemies = this.enemies.filter((e) => e.id !== enemyId);
-      return true;
+      return { killed: true, position: deathPosition };
     }
 
-    return false;
+    return { killed: false };
   }
 
   getEnemies(): Enemy[] {
