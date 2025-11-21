@@ -150,19 +150,19 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     playerStatsRef.current = playerStats;
   }, [playerStats]);
 
-  // Create blood particle effect when enemy is killed
-  const createBloodEffect = useCallback((position: Position, enemySize: number) => {
-    const particleCount = Math.floor(enemySize / 3); // More particles for larger enemies
+  // Create blood particle effect
+  const createBloodEffect = useCallback((position: Position, size: number, intensity: number = 1) => {
+    const particleCount = Math.floor(size / 3 * intensity); // More particles for larger sizes and higher intensity
     
     for (let i = 0; i < particleCount; i++) {
       const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5;
-      const speed = 2 + Math.random() * 3;
+      const speed = (2 + Math.random() * 3) * intensity;
       
       bloodParticlesRef.current.push({
         id: `${Date.now()}-${Math.random()}`,
         position: { 
-          x: position.x + (Math.random() - 0.5) * enemySize * 0.5,
-          y: position.y + (Math.random() - 0.5) * enemySize * 0.5
+          x: position.x + (Math.random() - 0.5) * size * 0.5,
+          y: position.y + (Math.random() - 0.5) * size * 0.5
         },
         velocity: {
           x: Math.cos(angle) * speed,
@@ -250,7 +250,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             
             // Create blood effect if enemy was killed
             if (result.killed && result.position) {
-              createBloodEffect(result.position, enemy.size);
+              createBloodEffect(result.position, enemy.size, 1);
             }
             
             if (!proj.piercing) {
@@ -296,9 +296,13 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           setPlayerStats((prev) => {
             const newHealth = prev.health - damage * 0.25; // Much more damage - 25% of enemy damage
             if (newHealth <= 0) {
+              // Large blood effect on death
+              createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
               setIsGameOver(true);
               return { ...prev, health: 0 };
             }
+            // Small blood effect when taking damage
+            createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.5, 0.6);
             return { ...prev, health: newHealth };
           });
           lastDamageTimeRef.current = currentTime;
