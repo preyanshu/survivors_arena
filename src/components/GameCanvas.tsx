@@ -241,10 +241,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       const ctx = canvas?.getContext('2d');
       if (!ctx || !canvas) return;
 
-      // Camera offset to center player on screen
-      const cameraOffsetX = newPlayerPos.x - CANVAS_WIDTH / 2;
-      const cameraOffsetY = newPlayerPos.y - CANVAS_HEIGHT / 2;
-
+      // Reuse camera offset already calculated above
       ctx.save();
       ctx.translate(-cameraOffsetX, -cameraOffsetY);
 
