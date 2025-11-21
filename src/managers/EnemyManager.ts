@@ -18,7 +18,7 @@ export class EnemyManager {
     this.canvasHeight = canvasHeight;
   }
 
-  spawnWave(wave: number, playerPos?: Position): void {
+  spawnWave(wave: number, playerPos?: Position, mousePos?: Position): void {
     // Reset counter for new wave
     this.spawnedEnemiesThisWave = 0;
     this.currentWave = wave;
@@ -33,11 +33,11 @@ export class EnemyManager {
     // Spawn first few enemies immediately to start the wave
     const initialSpawn = Math.min(3, this.targetEnemyCount);
     for (let i = 0; i < initialSpawn; i++) {
-      this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos);
+      this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos, mousePos);
     }
   }
 
-  updateSpawning(playerPos?: Position, isWaveInProgress?: boolean): void {
+  updateSpawning(playerPos?: Position, isWaveInProgress?: boolean, mousePos?: Position): void {
     // Only spawn if wave is in progress
     if (!isWaveInProgress) return;
 
@@ -56,13 +56,14 @@ export class EnemyManager {
     const spawnInterval = 800; // Spawn one enemy every 800ms when conditions are met
 
     if (currentTime - this.lastSpawnTime >= spawnInterval) {
-      this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos);
+      this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos, mousePos);
       this.lastSpawnTime = currentTime;
     }
   }
 
-  private spawnEnemy(health: number, speed: number, damage: number, playerPos?: Position): void {
+  private spawnEnemy(health: number, speed: number, damage: number, playerPos?: Position, mouseDirection?: Position): void {
     // Spawn enemies outside visible frame from all directions around the player
+    // Prioritize spawning behind the player (opposite of mouse direction)
     const spawnDistance = 700; // Distance outside visible area
     let x: number, y: number;
 
@@ -73,9 +74,23 @@ export class EnemyManager {
       const viewTop = playerPos.y - this.canvasHeight / 2;
       const viewBottom = playerPos.y + this.canvasHeight / 2;
 
-      // Spawn from all directions (8 directions for better distribution)
-      // This includes behind player, sides, corners, etc.
-      const direction = Math.floor(Math.random() * 8);
+      // Determine spawn direction - 40% chance to spawn behind player if mouse direction is known
+      let direction: number;
+      if (mouseDirection && Math.random() < 0.4) {
+        // Spawn behind player (opposite of where player is facing)
+        // Mouse direction indicates where player is facing
+        const angle = Math.atan2(mouseDirection.y - playerPos.y, mouseDirection.x - playerPos.x);
+        const behindAngle = angle + Math.PI; // 180 degrees opposite
+        
+        // Convert angle to one of 8 directions, prioritizing the one closest to behind
+        const normalizedAngle = ((behindAngle % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+        const directionAngle = normalizedAngle / (Math.PI * 2) * 8;
+        direction = Math.floor(directionAngle) % 8;
+      } else {
+        // Spawn from random direction (60% chance, or if no mouse direction)
+        direction = Math.floor(Math.random() * 8);
+      }
+
       const randomOffset = Math.random() * 200;
       
       switch (direction) {
@@ -149,9 +164,9 @@ export class EnemyManager {
     });
   }
 
-  updateEnemies(playerPos: Position, deltaTime: number, isWaveInProgress?: boolean): void {
+  updateEnemies(playerPos: Position, deltaTime: number, isWaveInProgress?: boolean, mousePos?: Position): void {
     // Spawn new enemies during the wave
-    this.updateSpawning(playerPos, isWaveInProgress);
+    this.updateSpawning(playerPos, isWaveInProgress, mousePos);
 
     this.enemies.forEach((enemy) => {
       const direction = normalize({
@@ -231,6 +246,8 @@ export class EnemyManager {
   }
 
   getKilledCount(): number {
-    return this.spawnedEnemiesThisWave - this.enemies.length;
+    // Ensure we never return negative (safety check)
+    const killed = this.spawnedEnemiesThisWave - this.enemies.length;
+    return Math.max(0, killed);
   }
 }

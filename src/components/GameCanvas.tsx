@@ -58,8 +58,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     const waveManager = waveManagerRef.current;
     const enemyManager = enemyManagerRef.current;
 
+    // Calculate initial world mouse position (center of screen)
+    const initialWorldMouse = {
+      x: playerPos.x,
+      y: playerPos.y + 100, // Default to below player
+    };
+
     waveManager.startWave();
-    enemyManager.spawnWave(1, playerPos);
+    enemyManager.spawnWave(1, playerPos, initialWorldMouse);
   }, []);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -116,8 +122,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     const waveManager = waveManagerRef.current;
     const enemyManager = enemyManagerRef.current;
 
+    // Calculate world mouse position for enemy spawning direction
+    const cameraOffsetX = playerPosRef.current.x - CANVAS_WIDTH / 2;
+    const cameraOffsetY = playerPosRef.current.y - CANVAS_HEIGHT / 2;
+    const worldMousePos = {
+      x: mousePos.x + cameraOffsetX,
+      y: mousePos.y + cameraOffsetY,
+    };
+
     waveManager.nextWave();
-    enemyManager.spawnWave(waveManager.getCurrentWave(), playerPosRef.current);
+    enemyManager.spawnWave(waveManager.getCurrentWave(), playerPosRef.current, worldMousePos);
   };
 
   useEffect(() => {
@@ -148,7 +162,15 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       setPlayerPos(newPlayerPos);
       playerPosRef.current = newPlayerPos;
 
-      enemyManager.updateEnemies(newPlayerPos, deltaTime, waveManager.isWaveInProgress());
+      // Calculate world mouse position for enemy spawning direction
+      const cameraOffsetX = newPlayerPos.x - CANVAS_WIDTH / 2;
+      const cameraOffsetY = newPlayerPos.y - CANVAS_HEIGHT / 2;
+      const worldMousePos = {
+        x: mousePos.x + cameraOffsetX,
+        y: mousePos.y + cameraOffsetY,
+      };
+
+      enemyManager.updateEnemies(newPlayerPos, deltaTime, waveManager.isWaveInProgress(), worldMousePos);
 
       projectilesRef.current.forEach((proj) => {
         proj.position.x += proj.velocity.x;
