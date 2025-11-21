@@ -14,6 +14,12 @@ export interface PlayerStats {
   cooldownReduction: number;
 }
 
+export enum EnemyType {
+  WEAK = 'weak',
+  NORMAL = 'normal',
+  STRONG = 'strong',
+}
+
 export interface Enemy {
   id: string;
   position: Position;
@@ -22,6 +28,7 @@ export interface Enemy {
   speed: number;
   damage: number;
   size: number;
+  type: EnemyType;
 }
 
 export interface Projectile {

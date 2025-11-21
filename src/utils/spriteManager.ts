@@ -9,6 +9,9 @@ export class SpriteManager {
     const spritePaths = {
       player: '/assets/sprites/player.png',
       enemy: '/assets/sprites/enemy.png',
+      enemy_weak: '/assets/sprites/enemy_weak.png',
+      enemy_normal: '/assets/sprites/enemy_normal.png',
+      enemy_strong: '/assets/sprites/enemy_strong.png',
       projectile: '/assets/sprites/projectile.png',
       background: '/assets/sprites/background.png',
     };
@@ -86,7 +89,8 @@ export class SpriteManager {
         break;
 
       case 'enemy':
-        // Create a red circle with spikes
+      case 'enemy_normal':
+        // Create a red circle with spikes (normal enemy)
         ctx.fillStyle = '#e74c3c';
         ctx.beginPath();
         ctx.arc(32, 32, 24, 0, Math.PI * 2);
@@ -106,6 +110,46 @@ export class SpriteManager {
           ctx.lineTo(x2, y2);
           ctx.stroke();
         }
+        break;
+
+      case 'enemy_weak':
+        // Create a smaller orange circle (weak enemy)
+        ctx.fillStyle = '#f39c12';
+        ctx.beginPath();
+        ctx.arc(32, 32, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#e67e22';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Simpler design - just a circle
+        break;
+
+      case 'enemy_strong':
+        // Create a larger dark red circle with more spikes (strong enemy)
+        ctx.fillStyle = '#8b0000';
+        ctx.beginPath();
+        ctx.arc(32, 32, 28, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#5a0000';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        // Add more spikes
+        for (let i = 0; i < 12; i++) {
+          const angle = (i / 12) * Math.PI * 2;
+          const x1 = 32 + Math.cos(angle) * 28;
+          const y1 = 32 + Math.sin(angle) * 28;
+          const x2 = 32 + Math.cos(angle) * 36;
+          const y2 = 32 + Math.sin(angle) * 36;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+        // Add inner circle for extra detail
+        ctx.fillStyle = '#a00000';
+        ctx.beginPath();
+        ctx.arc(32, 32, 16, 0, Math.PI * 2);
+        ctx.fill();
         break;
 
       case 'projectile':

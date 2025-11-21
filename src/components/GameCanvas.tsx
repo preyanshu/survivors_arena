@@ -316,9 +316,23 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           newPlayerPos.x - enemy.position.x
         );
 
+        // Get sprite name based on enemy type
+        let spriteName = 'enemy';
+        switch (enemy.type) {
+          case 'weak':
+            spriteName = 'enemy_weak';
+            break;
+          case 'normal':
+            spriteName = 'enemy_normal';
+            break;
+          case 'strong':
+            spriteName = 'enemy_strong';
+            break;
+        }
+
         spriteManager.drawSprite(
           ctx,
-          'enemy',
+          spriteName,
           enemy.position.x,
           enemy.position.y,
           enemy.size,

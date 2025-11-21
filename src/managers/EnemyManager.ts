@@ -1,4 +1,4 @@
-import { Enemy, Position } from '../types/game';
+import { Enemy, Position, EnemyType } from '../types/game';
 import { generateId, normalize, distance, randomInRange } from '../utils/gameUtils';
 
 export class EnemyManager {
@@ -34,6 +34,63 @@ export class EnemyManager {
     const initialSpawn = Math.min(3, this.targetEnemyCount);
     for (let i = 0; i < initialSpawn; i++) {
       this.spawnEnemy(this.waveBaseHealth, this.waveBaseSpeed, this.waveBaseDamage, playerPos, mousePos);
+    }
+  }
+
+  private getEnemyType(wave: number): EnemyType {
+    // Distribute enemy types based on wave
+    // Early waves: more weak enemies
+    // Later waves: more strong enemies
+    const rand = Math.random();
+    
+    if (wave <= 3) {
+      // Waves 1-3: 50% weak, 40% normal, 10% strong
+      if (rand < 0.5) return EnemyType.WEAK;
+      if (rand < 0.9) return EnemyType.NORMAL;
+      return EnemyType.STRONG;
+    } else if (wave <= 6) {
+      // Waves 4-6: 30% weak, 50% normal, 20% strong
+      if (rand < 0.3) return EnemyType.WEAK;
+      if (rand < 0.8) return EnemyType.NORMAL;
+      return EnemyType.STRONG;
+    } else {
+      // Waves 7+: 20% weak, 40% normal, 40% strong
+      if (rand < 0.2) return EnemyType.WEAK;
+      if (rand < 0.6) return EnemyType.NORMAL;
+      return EnemyType.STRONG;
+    }
+  }
+
+  private getEnemyStats(type: EnemyType, baseHealth: number, baseSpeed: number, baseDamage: number) {
+    switch (type) {
+      case EnemyType.WEAK:
+        return {
+          health: Math.floor(baseHealth * 0.6), // 60% of base health
+          speed: baseSpeed * 1.1, // Slightly faster
+          damage: Math.floor(baseDamage * 0.7), // 70% of base damage
+          size: 20, // Smaller
+        };
+      case EnemyType.NORMAL:
+        return {
+          health: baseHealth, // Base stats
+          speed: baseSpeed,
+          damage: baseDamage,
+          size: 25,
+        };
+      case EnemyType.STRONG:
+        return {
+          health: Math.floor(baseHealth * 1.8), // 180% of base health
+          speed: baseSpeed * 0.85, // Slightly slower
+          damage: Math.floor(baseDamage * 1.5), // 150% of base damage
+          size: 35, // Larger
+        };
+      default:
+        return {
+          health: baseHealth,
+          speed: baseSpeed,
+          damage: baseDamage,
+          size: 25,
+        };
     }
   }
 
@@ -151,16 +208,15 @@ export class EnemyManager {
 
     this.spawnedEnemiesThisWave++;
 
-    const size = randomInRange(20, 30);
-
     this.enemies.push({
       id: generateId(),
       position: { x, y },
-      health,
-      maxHealth: health,
-      speed,
-      damage,
-      size,
+      health: stats.health,
+      maxHealth: stats.health,
+      speed: stats.speed,
+      damage: stats.damage,
+      size: stats.size,
+      type: enemyType,
     });
   }
 
