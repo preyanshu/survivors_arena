@@ -204,7 +204,7 @@ export class SpriteManager {
     return this.loaded;
   }
 
-  // Draw sprite with rotation and scaling
+  // Draw sprite with rotation and scaling, maintaining aspect ratio
   drawSprite(
     ctx: CanvasRenderingContext2D,
     spriteName: string,
@@ -217,10 +217,26 @@ export class SpriteManager {
     const sprite = this.getSprite(spriteName);
     if (!sprite) return;
 
+    // Calculate aspect ratio
+    const spriteAspect = sprite.width / sprite.height;
+    const targetAspect = width / height;
+
+    let drawWidth = width;
+    let drawHeight = height;
+
+    // Maintain aspect ratio - fit within the target size
+    if (spriteAspect > targetAspect) {
+      // Sprite is wider - fit to width
+      drawHeight = width / spriteAspect;
+    } else {
+      // Sprite is taller - fit to height
+      drawWidth = height * spriteAspect;
+    }
+
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
-    ctx.drawImage(sprite, -width / 2, -height / 2, width, height);
+    ctx.drawImage(sprite, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
     ctx.restore();
   }
 }
