@@ -87,7 +87,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   }, []);
 
   const handleMouseDown = useCallback(() => {
-    if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection()) return;
+    if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection() || waveManagerRef.current.isWaveCompleted()) return;
 
     // Convert screen mouse position to world coordinates
     const cameraOffsetX = playerPosRef.current.x - CANVAS_WIDTH / 2;
