@@ -5,6 +5,7 @@ export class EnemyManager {
   private enemies: Enemy[] = [];
   private canvasWidth: number;
   private canvasHeight: number;
+  private lastSpawnedWave: number = 0; // Track which wave we last spawned
 
   constructor(canvasWidth: number, canvasHeight: number) {
     this.canvasWidth = canvasWidth;
@@ -12,6 +13,13 @@ export class EnemyManager {
   }
 
   spawnWave(wave: number, playerPos?: Position): void {
+    // Only spawn if this is a new wave (prevent spawning between waves)
+    if (wave === this.lastSpawnedWave) {
+      return; // Already spawned this wave
+    }
+
+    this.lastSpawnedWave = wave;
+
     // Much harder difficulty: more enemies, stronger stats
     const enemyCount = Math.min(12 + wave * 6, 80);
     const baseHealth = 40 + wave * 10;
@@ -124,6 +132,7 @@ export class EnemyManager {
 
   clear(): void {
     this.enemies = [];
+    this.lastSpawnedWave = 0; // Reset wave tracking
   }
 
   isEmpty(): boolean {
