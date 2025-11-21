@@ -435,6 +435,21 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         targetEnemies={enemyManagerRef.current.getTargetCount()}
       />
 
+      {/* Show "Press E to continue" screen when wave is completed */}
+      {waveManagerRef.current.isWaveCompleted() && (
+        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 pointer-events-auto">
+          <div className="text-white text-center">
+            <h2 className="text-6xl font-bold mb-6 text-green-400 drop-shadow-2xl">
+              Wave {waveManagerRef.current.getCurrentWave()} Complete!
+            </h2>
+            <div className="text-4xl mb-4 text-gray-200">
+              Press <span className="text-green-400 font-bold text-5xl px-3 py-1 bg-gray-800 rounded-lg border-2 border-green-400">E</span> to continue
+            </div>
+            <p className="text-xl text-gray-400 mt-4">to the next wave</p>
+          </div>
+        </div>
+      )}
+
       {availablePowerUps.length > 0 && (
         <PowerUpSelection
           powerUps={availablePowerUps}
