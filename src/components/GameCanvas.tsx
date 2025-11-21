@@ -383,7 +383,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       const gunSize = PLAYER_SIZE * 0.6; // Gun is 60% of player size
       const gunOffsetX = Math.cos(gunAngle) * (PLAYER_SIZE * 0.1); // Offset along gun direction
       const gunOffsetY = Math.sin(gunAngle) * (PLAYER_SIZE * 0.1);
-      const gunX = newPlayerPos.x + gunOffsetX + (PLAYER_SIZE * 0.08); // Small right offset
+      const gunX = newPlayerPos.x + gunOffsetX + (PLAYER_SIZE * 0.03); // Very small right offset
       const gunY = newPlayerPos.y + gunOffsetY;
       
       spriteManager.drawSprite(
