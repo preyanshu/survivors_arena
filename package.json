@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@hackernoon/pixel-icon-library": "^1.0.6",
     "@supabase/supabase-js": "^2.57.4",
     "gifler": "^0.1.0",
     "lucide-react": "^0.344.0",

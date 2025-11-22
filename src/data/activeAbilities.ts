@@ -7,7 +7,7 @@ export const ACTIVE_ABILITIES: ActiveAbility[] = [
     description: 'Absorb all damage for 30 seconds',
     duration: 30000, // 30 seconds
     cooldown: 60000, // 60 seconds cooldown
-    icon: '🛡️',
+    icon: 'lock-alt',
   },
   {
     type: ActiveAbilityType.FIRE_RING,
@@ -15,7 +15,7 @@ export const ACTIVE_ABILITIES: ActiveAbility[] = [
     description: 'Burning ring damages nearby enemies for 20 seconds',
     duration: 20000, // 20 seconds
     cooldown: 45000, // 45 seconds cooldown
-    icon: '🔥',
+    icon: 'fire',
   },
   {
     type: ActiveAbilityType.SPEED_BOOST,
@@ -23,7 +23,7 @@ export const ACTIVE_ABILITIES: ActiveAbility[] = [
     description: 'Double movement speed for 15 seconds',
     duration: 15000, // 15 seconds
     cooldown: 30000, // 30 seconds cooldown
-    icon: '⚡',
+    icon: 'bolt',
   },
   {
     type: ActiveAbilityType.DAMAGE_BOOST,
@@ -31,7 +31,7 @@ export const ACTIVE_ABILITIES: ActiveAbility[] = [
     description: 'Triple damage for 10 seconds',
     duration: 10000, // 10 seconds
     cooldown: 40000, // 40 seconds cooldown
-    icon: '💥',
+    icon: 'star',
   },
   {
     type: ActiveAbilityType.FREEZE,
@@ -39,7 +39,7 @@ export const ACTIVE_ABILITIES: ActiveAbility[] = [
     description: 'Slow all enemies by 50% for 12 seconds',
     duration: 12000, // 12 seconds
     cooldown: 50000, // 50 seconds cooldown
-    icon: '❄️',
+    icon: 'circle-notch',
   },
 ];
 

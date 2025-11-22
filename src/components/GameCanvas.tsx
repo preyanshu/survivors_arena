@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation, HealthPickup, ActiveAbilityType, ActiveAbilityState } from '../types/game';
 import { getAbilityByType } from '../data/activeAbilities';
+import { PixelIcon } from '../utils/pixelIcons';
 import { WeaponManager } from '../managers/WeaponManager';
 import { EnemyManager } from '../managers/EnemyManager';
 import { WaveManager } from '../managers/WaveManager';
@@ -1227,7 +1228,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               }}
             >
               <div className="text-center">
-                <div className="text-4xl mb-2">{abilityData.icon}</div>
+                <div className="mb-2 flex justify-center items-center" style={{ minHeight: '32px' }}>
+                  <PixelIcon name={abilityData.icon} size={32} />
+                </div>
                 <div className="text-white font-bold mb-2" style={{ fontSize: '16px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
                   [{index + 1}]
                 </div>

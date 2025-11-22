@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { PowerUp } from '../types/game';
+import { PixelIcon } from '../utils/pixelIcons';
 
 interface PowerUpSelectionProps {
   powerUps: PowerUp[];
@@ -26,22 +27,22 @@ const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionP
 
   const getPowerUpIcon = (id: string) => {
     const icons: { [key: string]: string } = {
-      speed: '🏃',
-      attack_speed: '💥',
-      damage: '⚔️',
-      max_health: '❤️',
-      projectile_size: '📈',
-      knockback: '🛡️',
-      cooldown: '🔄',
-      health_regen: '💚',
+      speed: 'bolt',
+      attack_speed: 'bolt',
+      damage: 'star',
+      max_health: 'heart',
+      projectile_size: 'arrow-circle-up',
+      knockback: 'arrow-up',
+      cooldown: 'refresh',
+      health_regen: 'heart',
       // Ability icons
-      ability_shield: '🛡️',
-      ability_fire_ring: '🔥',
-      ability_speed_boost: '⚡',
-      ability_damage_boost: '💥',
-      ability_freeze: '❄️',
+      ability_shield: 'lock-alt',
+      ability_fire_ring: 'fire',
+      ability_speed_boost: 'bolt',
+      ability_damage_boost: 'star',
+      ability_freeze: 'circle-notch',
     };
-    return icons[id] || '⚡';
+    return icons[id] || 'bolt';
   };
 
   return (
@@ -72,7 +73,9 @@ const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionP
               }}
             >
               <div className="text-center mb-3">
-                <div className="text-5xl mb-2">{getPowerUpIcon(powerUp.id)}</div>
+                <div className="mb-2 flex justify-center items-center" style={{ minHeight: '48px' }}>
+                  <PixelIcon name={getPowerUpIcon(powerUp.id)} size={48} />
+                </div>
                 <div className="text-yellow-300 font-bold mb-2" style={{ fontSize: '28px' }}>
                   [{index + 1}]
                 </div>
