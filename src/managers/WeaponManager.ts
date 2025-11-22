@@ -82,7 +82,7 @@ export class WeaponManager {
     playerStats: PlayerStats
   ): Projectile[] {
     const speed = 7;
-    const spreadAngle = Math.PI / 8;
+    const spreadAngle = Math.PI / 12; // Reduced spread (was Math.PI / 8)
     const projectiles: Projectile[] = [];
 
     for (let i = -1; i <= 1; i++) {
