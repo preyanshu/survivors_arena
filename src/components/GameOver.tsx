@@ -5,7 +5,7 @@ interface GameOverProps {
 
 const GameOver = ({ wave, onReturnToMenu }: GameOverProps) => {
   return (
-    <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 pointer-events-auto" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+    <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
       <div className="bg-purple-900 border-4 border-white p-8 text-center" style={{ imageRendering: 'pixelated' }}>
         <h2 className="text-white mb-6" style={{ fontSize: '24px' }}>GAME OVER</h2>
         <p className="text-gray-300 mb-8" style={{ fontSize: '10px' }}>

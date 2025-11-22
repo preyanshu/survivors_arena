@@ -679,7 +679,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       {/* Show "Press E to continue" screen when wave is completed */}
       {waveManagerRef.current.isWaveCompleted() && (
-        <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-40 pointer-events-auto" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+        <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-40 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
           <div className="bg-purple-900 border-4 border-white p-8 text-center" style={{ imageRendering: 'pixelated' }}>
             <h2 className="text-white mb-6" style={{ fontSize: '20px' }}>
               WAVE {waveManagerRef.current.getCurrentWave()} COMPLETE!

@@ -7,7 +7,7 @@ interface WeaponSelectionProps {
 
 const WeaponSelection = ({ onSelectWeapon }: WeaponSelectionProps) => {
   return (
-    <div className="text-white text-center" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+    <div className="text-white text-center" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
       <h1 className="mb-6 text-red-500" style={{ fontSize: '24px' }}>SURVIVAL ARENA</h1>
       <p className="mb-8 text-gray-300" style={{ fontSize: '12px' }}>CHOOSE YOUR WEAPON</p>
 

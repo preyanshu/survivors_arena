@@ -2,16 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
 
 * {
-  font-family: 'Press Start 2P', monospace;
+  font-family: 'Pixelify Sans', sans-serif;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
 }
 
 body {
-  font-family: 'Press Start 2P', monospace;
+  font-family: 'Pixelify Sans', sans-serif;
   font-size: 8px;
 }

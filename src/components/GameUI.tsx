@@ -12,7 +12,7 @@ const GameUI = ({ playerStats, wave, enemiesRemaining, enemiesKilled, targetEnem
   const healthPercentage = (playerStats.health / playerStats.maxHealth) * 100;
 
   return (
-    <div className="fixed top-0 left-0 right-0 p-2 pointer-events-none z-10" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+    <div className="fixed top-0 left-0 right-0 p-2 pointer-events-none z-10" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
       <div className="max-w-6xl mx-auto flex justify-between items-start">
         <div className="bg-purple-900 bg-opacity-95 p-3 border-4 border-white" style={{ imageRendering: 'pixelated' }}>
           <div className="text-white text-xs mb-2" style={{ fontSize: '10px' }}>
