@@ -141,7 +141,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const slashAngle = Math.atan2(worldMousePos.y - playerPosRef.current.y, worldMousePos.x - playerPosRef.current.x);
         
         // Calculate sword position (same as in rendering)
-        const swordSize = PLAYER_SIZE * 0.7;
+        const swordSize = PLAYER_SIZE * 0.85; // Match the rendering size
         const swordOffsetX = Math.cos(slashAngle) * (PLAYER_SIZE * 0.1);
         const swordOffsetY = Math.sin(slashAngle) * (PLAYER_SIZE * 0.1);
         const swordX = playerPosRef.current.x + swordOffsetX + (PLAYER_SIZE * 0.03);
@@ -630,6 +630,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         gunSize = PLAYER_SIZE * 0.9; // Rifle is 90% of player size (bigger)
       } else if (weapon.type === 'pistol') {
         gunSize = PLAYER_SIZE * 0.45; // Pistol is 55% of player size (smaller)
+      } else if (weapon.type === 'sword') {
+        gunSize = PLAYER_SIZE * 0.85; // Sword is 85% of player size (bigger)
       } else {
         gunSize = PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
       }
