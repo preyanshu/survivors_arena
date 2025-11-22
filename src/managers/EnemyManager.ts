@@ -1,8 +1,9 @@
-import { Enemy, Position, EnemyType } from '../types/game';
+import { Enemy, Position, EnemyType, Projectile } from '../types/game';
 import { generateId, normalize, distance, randomInRange } from '../utils/gameUtils';
 
 export class EnemyManager {
   private enemies: Enemy[] = [];
+  private enemyProjectiles: Projectile[] = [];
   private canvasWidth: number;
   private canvasHeight: number;
   private spawnedEnemiesThisWave: number = 0;
@@ -27,7 +28,7 @@ export class EnemyManager {
     // Much harder difficulty: more enemies, stronger stats
     this.targetEnemyCount = Math.min(12 + wave * 6, 80);
     this.waveBaseHealth = 40 + wave * 10;
-    this.waveBaseSpeed = 2.3 + wave * 0.25; // Much faster enemies (increased base speed)
+    this.waveBaseSpeed = 3.2 + wave * 0.3; // Reduced enemy speed for easier gameplay
     this.waveBaseDamage = 15 + wave * 5; // Much more damage
 
     // Spawn first few enemies immediately to start the wave
@@ -66,7 +67,7 @@ export class EnemyManager {
       case EnemyType.WEAK:
         return {
           health: Math.floor(baseHealth * 0.6), // 60% of base health
-          speed: baseSpeed * 1.1, // Slightly faster
+          speed: baseSpeed * 1.0, // Same as base speed (reduced from 1.1)
           damage: Math.floor(baseDamage * 0.7), // 70% of base damage
           size: 80, // Increased for bigger enemies
         };
@@ -221,12 +222,20 @@ export class EnemyManager {
       damage: stats.damage,
       size: stats.size,
       type: enemyType,
+      lastAttackTime: 0, // Initialize attack timer
     });
   }
 
-  updateEnemies(playerPos: Position, deltaTime: number, isWaveInProgress?: boolean, mousePos?: Position): void {
+  updateEnemies(playerPos: Position, deltaTime: number, isWaveInProgress?: boolean, mousePos?: Position, freezeActive: boolean = false): void {
     // Spawn new enemies during the wave
     this.updateSpawning(playerPos, isWaveInProgress, mousePos);
+
+    const currentTime = Date.now();
+    const attackRange = 600; // Normal enemies attack when within this range
+    const attackCooldown = 1500; // Attack every 1.5 seconds
+
+    // Apply freeze effect - slow enemies by 50%
+    const speedMultiplier = freezeActive ? 0.5 : 1.0;
 
     this.enemies.forEach((enemy) => {
       const direction = normalize({
@@ -234,10 +243,88 @@ export class EnemyManager {
         y: playerPos.y - enemy.position.y,
       });
 
-      const moveSpeed = enemy.speed * (deltaTime / 16);
+      const moveSpeed = enemy.speed * speedMultiplier * (deltaTime / 16);
       enemy.position.x += direction.x * moveSpeed;
       enemy.position.y += direction.y * moveSpeed;
+
+      // Normal enemies shoot projectiles at the player
+      if (enemy.type === EnemyType.NORMAL) {
+        const distToPlayer = distance(enemy.position, playerPos);
+        
+        // Attack if within range and cooldown is ready
+        if (distToPlayer <= attackRange && 
+            (!enemy.lastAttackTime || currentTime - enemy.lastAttackTime >= attackCooldown)) {
+          this.shootAtPlayer(enemy, playerPos, this.currentWave);
+          enemy.lastAttackTime = currentTime;
+        }
+      }
     });
+
+    // Update enemy projectiles
+    this.updateEnemyProjectiles(deltaTime, playerPos);
+  }
+
+  private shootAtPlayer(enemy: Enemy, playerPos: Position, wave: number): void {
+    // Reduce projectile count for early waves
+    // Wave 1: 1 projectile, Wave 2-3: 1-2 projectiles, Wave 4+: 2-3 projectiles
+    let projectileCount: number;
+    if (wave <= 1) {
+      projectileCount = 1; // Only 1 projectile in wave 1
+    } else if (wave <= 3) {
+      projectileCount = 1 + Math.floor(Math.random() * 2); // 1 or 2 projectiles
+    } else {
+      projectileCount = 2 + Math.floor(Math.random() * 2); // 2 or 3 projectiles
+    }
+    
+    const spreadAngle = Math.PI / 6; // 30 degree spread
+    
+    const baseAngle = Math.atan2(
+      playerPos.y - enemy.position.y,
+      playerPos.x - enemy.position.x
+    );
+
+    for (let i = 0; i < projectileCount; i++) {
+      // For single projectile, no spread
+      const angleOffset = projectileCount > 1 
+        ? (i - (projectileCount - 1) / 2) * spreadAngle / (projectileCount - 1)
+        : 0;
+      const angle = baseAngle + angleOffset;
+      const speed = 6; // Projectile speed
+      
+      this.enemyProjectiles.push({
+        id: generateId(),
+        position: { ...enemy.position },
+        velocity: {
+          x: Math.cos(angle) * speed,
+          y: Math.sin(angle) * speed,
+        },
+        damage: enemy.damage * 0.6, // Projectiles do 60% of melee damage
+        size: 20,
+      });
+    }
+  }
+
+  private updateEnemyProjectiles(deltaTime: number, playerPos: Position): void {
+    // Move projectiles
+    this.enemyProjectiles.forEach((proj) => {
+      proj.position.x += proj.velocity.x * (deltaTime / 16);
+      proj.position.y += proj.velocity.y * (deltaTime / 16);
+    });
+
+    // Remove projectiles that are too far from player
+    const maxDistance = 800;
+    this.enemyProjectiles = this.enemyProjectiles.filter((proj) => {
+      const dist = distance(proj.position, playerPos);
+      return dist < maxDistance;
+    });
+  }
+
+  getEnemyProjectiles(): Projectile[] {
+    return this.enemyProjectiles;
+  }
+
+  removeEnemyProjectile(projectileId: string): void {
+    this.enemyProjectiles = this.enemyProjectiles.filter((p) => p.id !== projectileId);
   }
 
   damageEnemy(enemyId: string, damage: number, knockback: number, playerPos: Position): { killed: boolean; position?: Position } {
@@ -283,6 +370,7 @@ export class EnemyManager {
 
   clear(): void {
     this.enemies = [];
+    this.enemyProjectiles = [];
     this.spawnedEnemiesThisWave = 0;
     this.targetEnemyCount = 0;
     this.currentWave = 0;

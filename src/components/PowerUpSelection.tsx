@@ -24,35 +24,69 @@ const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionP
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [powerUps, onSelectPowerUp]);
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-      <div className="bg-purple-900 border-4 border-white p-8 max-w-5xl" style={{ imageRendering: 'pixelated' }}>
-        <h2 className="text-white text-center mb-6" style={{ fontSize: '20px' }}>LEVEL UP!</h2>
-        <p className="text-white text-center mb-6" style={{ fontSize: '10px' }}>WAVE {wave} COMPLETE</p>
+  const getPowerUpIcon = (id: string) => {
+    const icons: { [key: string]: string } = {
+      speed: '🏃',
+      attack_speed: '💥',
+      damage: '⚔️',
+      max_health: '❤️',
+      projectile_size: '📈',
+      knockback: '🛡️',
+      cooldown: '🔄',
+      health_regen: '💚',
+      // Ability icons
+      ability_shield: '🛡️',
+      ability_fire_ring: '🔥',
+      ability_speed_boost: '⚡',
+      ability_damage_boost: '💥',
+      ability_freeze: '❄️',
+    };
+    return icons[id] || '⚡';
+  };
 
-        <div className="flex gap-4 justify-center flex-wrap">
+  return (
+    <>
+      <style>{`
+        .powerup-card {
+          background-color: #5a0000;
+        }
+        .powerup-card:hover {
+          background-color: #7a0000;
+        }
+      `}</style>
+      <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+      <div className="border-4 border-white p-12 max-w-6xl shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated' }}>
+        <div className="text-center mb-8">
+          <h2 className="text-white mb-4 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>LEVEL UP!</h2>
+          <p className="text-yellow-300 font-bold" style={{ fontSize: '24px' }}>WAVE {wave} COMPLETE</p>
+        </div>
+
+        <div className="flex gap-6 justify-center flex-wrap">
           {powerUps.map((powerUp, index) => (
             <button
               key={powerUp.id}
               onClick={() => onSelectPowerUp(powerUp)}
-              className="bg-purple-800 hover:bg-purple-700 border-4 border-white p-4 w-56 transition-all"
+              className="border-4 border-white p-6 w-72 transition-all shadow-lg hover:shadow-xl hover:scale-105 powerup-card"
               style={{ 
-                imageRendering: 'pixelated',
-                fontSize: '8px'
+                imageRendering: 'pixelated'
               }}
             >
-              <div className="text-white mb-2" style={{ fontSize: '10px' }}>
-                [{index + 1}]
+              <div className="text-center mb-3">
+                <div className="text-5xl mb-2">{getPowerUpIcon(powerUp.id)}</div>
+                <div className="text-yellow-300 font-bold mb-2" style={{ fontSize: '28px' }}>
+                  [{index + 1}]
+                </div>
               </div>
-              <h3 className="text-white mb-3" style={{ fontSize: '10px' }}>{powerUp.name.toUpperCase()}</h3>
-              <p className="text-gray-300" style={{ fontSize: '8px', lineHeight: '1.4' }}>{powerUp.description.toUpperCase()}</p>
+              <h3 className="text-white mb-4 font-bold text-center" style={{ fontSize: '18px' }}>{powerUp.name.toUpperCase()}</h3>
+              <p className="text-cyan-300 font-bold text-center" style={{ fontSize: '14px', lineHeight: '1.5' }}>{powerUp.description.toUpperCase()}</p>
             </button>
           ))}
         </div>
 
-        <p className="text-white text-center mt-6" style={{ fontSize: '8px' }}>PRESS 1, 2, OR 3 TO SELECT</p>
+        <p className="text-white text-center mt-8 font-bold" style={{ fontSize: '20px' }}>PRESS <span className="text-yellow-300">1</span>, <span className="text-yellow-300">2</span>, OR <span className="text-yellow-300">3</span> TO SELECT</p>
       </div>
     </div>
+    </>
   );
 };
 

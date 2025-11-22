@@ -6,9 +6,10 @@ import WeaponModal from './WeaponModal';
 
 interface WeaponSelectionProps {
   onSelectWeapon: (weapon: Weapon) => void;
+  onBack?: () => void;
 }
 
-const WeaponSelection = ({ onSelectWeapon }: WeaponSelectionProps) => {
+const WeaponSelection = ({ onSelectWeapon, onBack }: WeaponSelectionProps) => {
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(null);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
 
@@ -33,12 +34,49 @@ const WeaponSelection = ({ onSelectWeapon }: WeaponSelectionProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-      <div className="text-center pt-24 pb-8">
+    <>
+      <style>{`
+        .weapon-card {
+          background-color: #5a0000;
+        }
+        .weapon-card:hover {
+          background-color: #7a0000;
+        }
+        .back-button {
+          background-color: #5a0000;
+        }
+        .back-button:hover {
+          background-color: #7a0000;
+        }
+      `}</style>
+      <div className="min-h-screen w-screen bg-black text-white flex flex-col relative" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+      {/* Background image */}
+      <img
+        src="/assets/sprites/image copy 3.png"
+        alt="Background"
+        className="absolute inset-0 w-screen h-screen object-cover pointer-events-none"
+        style={{ imageRendering: 'pixelated', zIndex: 0 }}
+      />
+      
+      {/* Back button */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-6 left-6 border-4 border-white py-3 px-8 text-white font-bold back-button"
+          style={{ 
+            fontSize: '18px',
+            imageRendering: 'pixelated',
+            zIndex: 20
+          }}
+        >
+          ← BACK
+        </button>
+      )}
+      <div className="text-center pt-24 pb-8 relative" style={{ zIndex: 10 }}>
         <h1 className="mb-4 text-white" style={{ fontSize: '40px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
       </div>
 
-      <div className="flex flex-wrap gap-6 justify-center max-w-6xl mx-auto px-4 flex-grow items-start">
+      <div className="flex flex-wrap gap-6 justify-center max-w-6xl mx-auto px-4 flex-grow items-start relative" style={{ zIndex: 10 }}>
         {WEAPONS.map((weapon) => (
           <WeaponCard
             key={weapon.type}
@@ -55,6 +93,7 @@ const WeaponSelection = ({ onSelectWeapon }: WeaponSelectionProps) => {
         onClose={handleCloseModal}
       />
     </div>
+    </>
   );
 };
 
@@ -104,7 +143,7 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
   return (
     <button
       onClick={onClick}
-      className="bg-purple-900 hover:bg-purple-800 border-4 border-white p-6 w-64 h-64 transition-all flex flex-col items-center justify-center"
+      className="border-4 border-white p-6 w-64 h-64 transition-all flex flex-col items-center justify-center weapon-card"
       style={{ 
         imageRendering: 'pixelated'
       }}

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation } from '../types/game';
+import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation, HealthPickup, ActiveAbilityType, ActiveAbilityState } from '../types/game';
+import { getAbilityByType } from '../data/activeAbilities';
 import { WeaponManager } from '../managers/WeaponManager';
 import { EnemyManager } from '../managers/EnemyManager';
 import { WaveManager } from '../managers/WaveManager';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { useKeyboard } from '../hooks/useKeyboard';
-import { checkCollision } from '../utils/gameUtils';
+import { checkCollision, generateId, distance } from '../utils/gameUtils';
 import { spriteManager } from '../utils/spriteManager';
 import GameUI from './GameUI';
 import PowerUpSelection from './PowerUpSelection';
@@ -16,23 +17,25 @@ interface GameCanvasProps {
   onReturnToMenu: () => void;
 }
 
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 800;
 const PLAYER_SIZE = 120; // Increased from 90 to 120
 
 const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keys = useKeyboard();
 
+  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const canvasWidth = canvasSize.width;
+  const canvasHeight = canvasSize.height;
+
   const [playerPos, setPlayerPos] = useState<Position>({
-    x: CANVAS_WIDTH / 2,
-    y: CANVAS_HEIGHT / 2,
+    x: canvasWidth / 2,
+    y: canvasHeight / 2,
   });
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     maxHealth: 80, // Reduced starting health
     health: 80,
-    movementSpeed: 3,
+    movementSpeed: 7, // Increased for faster-paced gameplay
     damage: 1,
     attackSpeed: 1,
     projectileSize: 1,
@@ -43,22 +46,55 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
   const [isGameOver, setIsGameOver] = useState(false);
   const [availablePowerUps, setAvailablePowerUps] = useState<PowerUp[]>([]);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  // Active abilities - start empty, obtained from power-ups
+  const [activeAbilities, setActiveAbilities] = useState<ActiveAbilityState[]>([]);
 
   const weaponManagerRef = useRef<WeaponManager>(new WeaponManager(weapon));
   const enemyManagerRef = useRef<EnemyManager>(
-    new EnemyManager(CANVAS_WIDTH, CANVAS_HEIGHT)
+    new EnemyManager(canvasWidth, canvasHeight)
   );
   const waveManagerRef = useRef<WaveManager>(new WaveManager());
 
   const projectilesRef = useRef<Projectile[]>([]);
   const bloodParticlesRef = useRef<BloodParticle[]>([]);
   const slashAnimationsRef = useRef<SlashAnimation[]>([]);
+  const healthPickupsRef = useRef<HealthPickup[]>([]);
   const swordAttackAngleRef = useRef<number | null>(null);
   const swordAttackTimeRef = useRef<number>(0);
   const lastDamageTimeRef = useRef<number>(0);
+  const lastHealthPickupSpawnRef = useRef<number>(0);
+  const lastFireRingDamageRef = useRef<number>(0);
+  const fireRingAnimationRef = useRef<number>(0);
   const playerPosRef = useRef<Position>(playerPos);
   const playerStatsRef = useRef<PlayerStats>(playerStats);
   const spritesLoadedRef = useRef<boolean>(false);
+
+  // Update canvas size on window resize
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      setCanvasSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    window.addEventListener('resize', updateCanvasSize);
+    updateCanvasSize();
+
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
+
+  // Update canvas element dimensions
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+    }
+  }, [canvasWidth, canvasHeight]);
+
+  // Recreate EnemyManager when canvas size changes
+  useEffect(() => {
+    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight);
+  }, [canvasWidth, canvasHeight]);
 
   useEffect(() => {
     // Load sprites on mount
@@ -94,8 +130,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection() || waveManagerRef.current.isWaveCompleted()) return;
 
     // Convert screen mouse position to world coordinates
-    const cameraOffsetX = playerPosRef.current.x - CANVAS_WIDTH / 2;
-    const cameraOffsetY = playerPosRef.current.y - CANVAS_HEIGHT / 2;
+    const cameraOffsetX = playerPosRef.current.x - canvasWidth / 2;
+    const cameraOffsetY = playerPosRef.current.y - canvasHeight / 2;
     const worldMousePos = {
       x: mousePos.x + cameraOffsetX,
       y: mousePos.y + cameraOffsetY,
@@ -110,6 +146,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       gunSize = PLAYER_SIZE * 0.9; // Rifle is 90% of player size (bigger)
     } else if (weapon.type === 'pistol') {
       gunSize = PLAYER_SIZE * 0.55; // Pistol is 55% of player size (smaller)
+    } else if (weapon.type === 'shotgun') {
+      gunSize = PLAYER_SIZE * 0.8; // Shotgun is 80% of player size
     } else {
       gunSize = PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
     }
@@ -175,7 +213,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         swordAttackTimeRef.current = Date.now();
       }
     }
-  }, [isGameOver, mousePos]);
+  }, [isGameOver, mousePos, canvasWidth, canvasHeight, weapon.type]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -191,15 +229,31 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   }, [handleMouseMove, handleMouseDown]);
 
   const handlePowerUpSelect = (powerUp: PowerUp) => {
-    setPlayerStats((prev) => powerUp.effect(prev));
+    // Check if this is an ability power-up
+    if (powerUp.abilityType) {
+      // Add ability to player's abilities if not already owned
+      setActiveAbilities((prev) => {
+        const alreadyHasAbility = prev.some(a => a.type === powerUp.abilityType);
+        if (alreadyHasAbility) {
+          // Already have this ability, just apply stat effect if any
+          return prev;
+        }
+        // Add new ability
+        return [...prev, { type: powerUp.abilityType!, endTime: 0, cooldownEndTime: 0 }];
+      });
+    } else {
+      // Regular stat power-up
+      setPlayerStats((prev) => powerUp.effect(prev));
+    }
+    
     setAvailablePowerUps([]);
 
     const waveManager = waveManagerRef.current;
     const enemyManager = enemyManagerRef.current;
 
     // Calculate world mouse position for enemy spawning direction
-    const cameraOffsetX = playerPosRef.current.x - CANVAS_WIDTH / 2;
-    const cameraOffsetY = playerPosRef.current.y - CANVAS_HEIGHT / 2;
+    const cameraOffsetX = playerPosRef.current.x - canvasWidth / 2;
+    const cameraOffsetY = playerPosRef.current.y - canvasHeight / 2;
     const worldMousePos = {
       x: mousePos.x + cameraOffsetX,
       y: mousePos.y + cameraOffsetY,
@@ -242,15 +296,51 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     }
   }, []);
 
-  // Handle E key press to continue to power-up selection
+  // Handle E key press to continue to power-up selection or activate abilities
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'e' || e.key === 'E') {
         const waveManager = waveManagerRef.current;
+        
+        // First check if wave is completed (priority)
         if (waveManager.isWaveCompleted() && !waveManager.isShowingPowerUpSelection()) {
           waveManager.showPowerUpSelection();
           setAvailablePowerUps(waveManager.getRandomPowerUps(3));
+          return;
         }
+        
+        // Otherwise, try to activate abilities (1 for first, 2 for second)
+        // We'll use number keys 1 and 2 for abilities
+      }
+      
+      // Number keys 1-5 activate abilities (if player has them)
+      if (e.key >= '1' && e.key <= '5') {
+        const abilityIndex = parseInt(e.key) - 1;
+        const currentTime = Date.now();
+        
+        setActiveAbilities((prev) => {
+          if (prev[abilityIndex]) {
+            const ability = prev[abilityIndex];
+            const abilityData = getAbilityByType(ability.type);
+            
+            if (!abilityData) return prev;
+            
+            // Check if on cooldown
+            if (currentTime < ability.cooldownEndTime) {
+              return prev; // Still on cooldown
+            }
+            
+            // Activate ability
+            const newAbilities = [...prev];
+            newAbilities[abilityIndex] = {
+              ...ability,
+              endTime: currentTime + abilityData.duration,
+              cooldownEndTime: currentTime + abilityData.duration + abilityData.cooldown,
+            };
+            return newAbilities;
+          }
+          return prev;
+        });
       }
     };
 
@@ -265,8 +355,19 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       const enemyManager = enemyManagerRef.current;
       const waveManager = waveManagerRef.current;
 
+      // Check active abilities
+      const currentTime = Date.now();
+      const isShieldActive = activeAbilities.some(a => a.type === ActiveAbilityType.SHIELD && currentTime < a.endTime);
+      const isFireRingActive = activeAbilities.some(a => a.type === ActiveAbilityType.FIRE_RING && currentTime < a.endTime);
+      const isSpeedBoostActive = activeAbilities.some(a => a.type === ActiveAbilityType.SPEED_BOOST && currentTime < a.endTime);
+      const isDamageBoostActive = activeAbilities.some(a => a.type === ActiveAbilityType.DAMAGE_BOOST && currentTime < a.endTime);
+      const isFreezeActive = activeAbilities.some(a => a.type === ActiveAbilityType.FREEZE && currentTime < a.endTime);
+
       let newPlayerPos = { ...playerPosRef.current };
-      const speed = playerStatsRef.current.movementSpeed * (deltaTime / 16);
+      // Apply speed boost if active
+      const baseSpeed = playerStatsRef.current.movementSpeed;
+      const effectiveSpeed = isSpeedBoostActive ? baseSpeed * 2 : baseSpeed;
+      const speed = effectiveSpeed * (deltaTime / 16);
 
       if (keys['w'] || keys['arrowup']) newPlayerPos.y -= speed;
       if (keys['s'] || keys['arrowdown']) newPlayerPos.y += speed;
@@ -279,14 +380,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       playerPosRef.current = newPlayerPos;
 
       // Calculate world mouse position for enemy spawning direction
-      const cameraOffsetX = newPlayerPos.x - CANVAS_WIDTH / 2;
-      const cameraOffsetY = newPlayerPos.y - CANVAS_HEIGHT / 2;
+      const cameraOffsetX = newPlayerPos.x - canvasWidth / 2;
+      const cameraOffsetY = newPlayerPos.y - canvasHeight / 2;
       const worldMousePos = {
         x: mousePos.x + cameraOffsetX,
         y: mousePos.y + cameraOffsetY,
       };
 
-      enemyManager.updateEnemies(newPlayerPos, deltaTime, waveManager.isWaveInProgress(), worldMousePos);
+      enemyManager.updateEnemies(newPlayerPos, deltaTime, waveManager.isWaveInProgress(), worldMousePos, isFreezeActive);
 
       projectilesRef.current.forEach((proj) => {
         proj.position.x += proj.velocity.x;
@@ -303,28 +404,50 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       });
 
       const remainingProjectiles: Projectile[] = [];
+      const enemyProjectiles = enemyManager.getEnemyProjectiles();
+      
       projectilesRef.current.forEach((proj) => {
         let hit = false;
 
-        enemyManager.getEnemies().forEach((enemy) => {
-          if (checkCollision(proj.position, proj.size, enemy.position, enemy.size)) {
-            const result = enemyManager.damageEnemy(
-              enemy.id,
-              proj.damage,
-              playerStatsRef.current.knockback,
-              newPlayerPos
-            );
-            
-            // Create blood effect if enemy was killed
-            if (result.killed && result.position) {
-              createBloodEffect(result.position, enemy.size, 1);
-            }
-            
+        // Check collision with enemy projectiles first
+        enemyProjectiles.forEach((enemyProj) => {
+          if (checkCollision(proj.position, proj.size, enemyProj.position, enemyProj.size)) {
+            // Player bullet destroys enemy projectile
+            enemyManager.removeEnemyProjectile(enemyProj.id);
+            // Create small explosion effect
+            createBloodEffect(enemyProj.position, 15, 0.5);
+            // Player projectile is destroyed unless it's piercing
             if (!proj.piercing) {
               hit = true;
             }
           }
         });
+
+        // Only check enemy collision if projectile hasn't been destroyed
+        if (!hit) {
+          enemyManager.getEnemies().forEach((enemy) => {
+            if (checkCollision(proj.position, proj.size, enemy.position, enemy.size)) {
+              // Apply damage boost if active
+              const effectiveDamage = isDamageBoostActive ? proj.damage * 3 : proj.damage;
+              
+              const result = enemyManager.damageEnemy(
+                enemy.id,
+                effectiveDamage,
+                playerStatsRef.current.knockback,
+                newPlayerPos
+              );
+              
+              // Create blood effect if enemy was killed
+              if (result.killed && result.position) {
+                createBloodEffect(result.position, enemy.size, 1);
+              }
+              
+              if (!proj.piercing) {
+                hit = true;
+              }
+            }
+          });
+        }
 
         // Instant melee attacks disappear immediately after collision check
         if (proj.isInstant) {
@@ -369,23 +492,130 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         swordAttackAngleRef.current = null;
       }
 
-      const currentTime = Date.now();
+      // Spawn health pickups periodically
+      const healthPickupSpawnTime = Date.now();
+      const healthPickupSpawnInterval = 8000; // Spawn every 8 seconds
+      if (healthPickupSpawnTime - lastHealthPickupSpawnRef.current >= healthPickupSpawnInterval) {
+        // Spawn health pickup at random position near player but not too close
+        const spawnDistance = 300 + Math.random() * 400; // 300-700 units away
+        const angle = Math.random() * Math.PI * 2;
+        const healthPickup: HealthPickup = {
+          id: generateId(),
+          position: {
+            x: newPlayerPos.x + Math.cos(angle) * spawnDistance,
+            y: newPlayerPos.y + Math.sin(angle) * spawnDistance,
+          },
+          healAmount: 20, // Heal 20 HP
+          size: 30,
+          life: 0, // For pulsing animation
+        };
+        healthPickupsRef.current.push(healthPickup);
+        lastHealthPickupSpawnRef.current = healthPickupSpawnTime;
+      }
+
+      // Update health pickups animation and check collision with player
+      healthPickupsRef.current = healthPickupsRef.current.filter((pickup) => {
+        // Update pulsing animation
+        pickup.life += deltaTime / 1000 * 3; // Pulse speed
+        
+        // Check collision with player
+        if (checkCollision(pickup.position, pickup.size, newPlayerPos, PLAYER_SIZE)) {
+          // Player collected health pickup
+          setPlayerStats((prev) => {
+            const newHealth = Math.min(prev.maxHealth, prev.health + pickup.healAmount);
+            return { ...prev, health: newHealth };
+          });
+          return false; // Remove pickup
+        }
+        
+        // Remove pickups that are too far from player
+        const dist = distance(pickup.position, newPlayerPos);
+        return dist < 1000; // Keep within 1000 units
+      });
+
+      // Fire ring damages nearby enemies (with damage tick rate)
+      if (isFireRingActive) {
+        const fireRingRadius = 150;
+        const fireRingDamage = 15; // Damage per tick
+        const fireRingTickRate = 500; // Damage every 500ms
+        
+        if (currentTime - lastFireRingDamageRef.current >= fireRingTickRate) {
+          enemyManager.getEnemies().forEach((enemy) => {
+            const dist = distance(newPlayerPos, enemy.position);
+            if (dist < fireRingRadius) {
+              const result = enemyManager.damageEnemy(
+                enemy.id,
+                fireRingDamage,
+                0,
+                newPlayerPos
+              );
+              if (result.killed && result.position) {
+                createBloodEffect(result.position, enemy.size, 1);
+              }
+            }
+          });
+          lastFireRingDamageRef.current = currentTime;
+        }
+        // Update fire ring animation
+        fireRingAnimationRef.current += deltaTime / 1000 * 2;
+      } else {
+        fireRingAnimationRef.current = 0;
+      }
+
+      // Check collision with enemy projectiles (player getting hit)
+      // Get fresh copy since some may have been destroyed by player bullets
+      const remainingEnemyProjectiles = enemyManager.getEnemyProjectiles();
+      remainingEnemyProjectiles.forEach((proj) => {
+        if (checkCollision(proj.position, proj.size, newPlayerPos, PLAYER_SIZE)) {
+          // Shield blocks all damage
+          if (isShieldActive) {
+            // Just remove projectile, no damage
+            enemyManager.removeEnemyProjectile(proj.id);
+            return;
+          }
+          
+          // Player hit by enemy projectile
+          if (currentTime - lastDamageTimeRef.current > 300) {
+            setPlayerStats((prev) => {
+              const newHealth = prev.health - proj.damage * 0.3; // Projectiles do 30% of their damage
+              if (newHealth <= 0) {
+                // Large blood effect on death
+                createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                setIsGameOver(true);
+                return { ...prev, health: 0 };
+              }
+              // Small blood effect when taking damage
+              createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.5, 0.6);
+              return { ...prev, health: newHealth };
+            });
+            lastDamageTimeRef.current = currentTime;
+          }
+          // Remove projectile after hitting player
+          enemyManager.removeEnemyProjectile(proj.id);
+        }
+      });
+
       if (currentTime - lastDamageTimeRef.current > 300) {
         const damage = enemyManager.checkPlayerCollision(newPlayerPos, PLAYER_SIZE);
         if (damage > 0) {
-          setPlayerStats((prev) => {
-            const newHealth = prev.health - damage * 0.25; // Much more damage - 25% of enemy damage
-            if (newHealth <= 0) {
-              // Large blood effect on death
-              createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
-              setIsGameOver(true);
-              return { ...prev, health: 0 };
-            }
-            // Small blood effect when taking damage
-            createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.5, 0.6);
-            return { ...prev, health: newHealth };
-          });
-          lastDamageTimeRef.current = currentTime;
+          // Shield blocks all damage
+          if (isShieldActive) {
+            // No damage taken
+          } else {
+            setPlayerStats((prev) => {
+              const newHealth = prev.health - damage * 0.25; // Much more damage - 25% of enemy damage
+              if (newHealth <= 0) {
+                // Large blood effect on death
+                createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                setIsGameOver(true);
+                return { ...prev, health: 0 };
+              }
+              // Small blood effect when taking damage
+              createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.5, 0.6);
+              return { ...prev, health: newHealth };
+            });
+            lastDamageTimeRef.current = currentTime;
+          }
         }
       }
 
@@ -408,10 +638,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         // Draw tiled background image
         const bgWidth = backgroundSprite.width || 50;
         const bgHeight = backgroundSprite.height || 50;
-        const startX = Math.floor((newPlayerPos.x - CANVAS_WIDTH) / bgWidth) * bgWidth;
-        const startY = Math.floor((newPlayerPos.y - CANVAS_HEIGHT) / bgHeight) * bgHeight;
-        const endX = newPlayerPos.x + CANVAS_WIDTH;
-        const endY = newPlayerPos.y + CANVAS_HEIGHT;
+        const startX = Math.floor((newPlayerPos.x - canvasWidth) / bgWidth) * bgWidth;
+        const startY = Math.floor((newPlayerPos.y - canvasHeight) / bgHeight) * bgHeight;
+        const endX = newPlayerPos.x + canvasWidth;
+        const endY = newPlayerPos.y + canvasHeight;
 
         for (let x = startX; x < endX; x += bgWidth) {
           for (let y = startY; y < endY; y += bgHeight) {
@@ -422,18 +652,18 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         // Fallback to grid if background image not loaded
         ctx.fillStyle = '#1a1a2e';
         ctx.fillRect(
-          newPlayerPos.x - CANVAS_WIDTH,
-          newPlayerPos.y - CANVAS_HEIGHT,
-          CANVAS_WIDTH * 3,
-          CANVAS_HEIGHT * 3
+          newPlayerPos.x - canvasWidth,
+          newPlayerPos.y - canvasHeight,
+          canvasWidth * 3,
+          canvasHeight * 3
         );
 
         ctx.fillStyle = '#16213e';
         const gridSize = 50;
-        const gridStartX = Math.floor((newPlayerPos.x - CANVAS_WIDTH) / gridSize) * gridSize;
-        const gridStartY = Math.floor((newPlayerPos.y - CANVAS_HEIGHT) / gridSize) * gridSize;
-        const gridEndX = newPlayerPos.x + CANVAS_WIDTH;
-        const gridEndY = newPlayerPos.y + CANVAS_HEIGHT;
+        const gridStartX = Math.floor((newPlayerPos.x - canvasWidth) / gridSize) * gridSize;
+        const gridStartY = Math.floor((newPlayerPos.y - canvasHeight) / gridSize) * gridSize;
+        const gridEndX = newPlayerPos.x + canvasWidth;
+        const gridEndY = newPlayerPos.y + canvasHeight;
 
         for (let x = gridStartX; x < gridEndX; x += gridSize) {
           for (let y = gridStartY; y < gridEndY; y += gridSize) {
@@ -444,7 +674,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         }
       }
 
-      // Draw projectiles with sprites
+      // Draw player projectiles with sprites
       projectilesRef.current.forEach((proj) => {
         const angle = Math.atan2(proj.velocity.y, proj.velocity.x);
         spriteManager.drawSprite(
@@ -456,6 +686,30 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           proj.size,
           angle
         );
+      });
+
+      // Draw enemy projectiles (red/orange colored balls)
+      enemyManager.getEnemyProjectiles().forEach((proj) => {
+        const angle = Math.atan2(proj.velocity.y, proj.velocity.x);
+        ctx.save();
+        ctx.translate(proj.position.x, proj.position.y);
+        ctx.rotate(angle);
+        
+        // Draw red/orange projectile
+        ctx.fillStyle = '#ff4500'; // Orange-red color
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(0, 0, proj.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add inner glow
+        ctx.fillStyle = '#ff6b35';
+        ctx.beginPath();
+        ctx.arc(0, 0, proj.size / 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
       });
 
       // Draw enemies with sprites
@@ -605,9 +859,99 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         }
       });
 
+      // Draw health pickups with pulsing animation
+      healthPickupsRef.current.forEach((pickup) => {
+        const pulse = Math.sin(pickup.life) * 0.3 + 1; // Pulse between 0.7 and 1.3
+        const size = pickup.size * pulse;
+        
+        ctx.save();
+        ctx.translate(pickup.position.x, pickup.position.y);
+        
+        // Outer glow
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00ff00';
+        ctx.fillStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Inner cross/plus symbol
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 0;
+        const crossSize = size * 0.3;
+        const crossWidth = size * 0.15;
+        
+        // Horizontal line
+        ctx.fillRect(-crossSize / 2, -crossWidth / 2, crossSize, crossWidth);
+        // Vertical line
+        ctx.fillRect(-crossWidth / 2, -crossSize / 2, crossWidth, crossSize);
+        
+        ctx.restore();
+      });
+
       // Calculate mouse position in world coordinates
       const worldMouseX = mousePos.x + cameraOffsetX;
       const worldMouseY = mousePos.y + cameraOffsetY;
+
+      // Draw shield effect if active
+      if (isShieldActive) {
+        const shieldPulse = Math.sin(Date.now() / 200) * 0.2 + 1; // Pulse animation
+        const shieldSize = PLAYER_SIZE * 1.3 * shieldPulse;
+        
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 8;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#00ffff';
+        ctx.beginPath();
+        ctx.arc(newPlayerPos.x, newPlayerPos.y, shieldSize / 2, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Inner ring
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(newPlayerPos.x, newPlayerPos.y, shieldSize / 2.2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw fire ring effect if active
+      if (isFireRingActive) {
+        const fireRingRadius = 150;
+        const ringRotation = fireRingAnimationRef.current;
+        
+        ctx.save();
+        ctx.translate(newPlayerPos.x, newPlayerPos.y);
+        ctx.rotate(ringRotation);
+        
+        // Outer fire ring
+        const gradient = ctx.createRadialGradient(0, 0, fireRingRadius * 0.7, 0, 0, fireRingRadius);
+        gradient.addColorStop(0, 'rgba(255, 100, 0, 0.8)');
+        gradient.addColorStop(0.5, 'rgba(255, 200, 0, 0.6)');
+        gradient.addColorStop(1, 'rgba(255, 0, 0, 0.3)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, fireRingRadius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Fire particles around the ring
+        for (let i = 0; i < 12; i++) {
+          const angle = (i / 12) * Math.PI * 2 + ringRotation;
+          const particleDist = fireRingRadius * 0.9;
+          const particleX = Math.cos(angle) * particleDist;
+          const particleY = Math.sin(angle) * particleDist;
+          
+          ctx.fillStyle = `rgba(255, ${100 + Math.sin(ringRotation + i) * 50}, 0, 0.9)`;
+          ctx.beginPath();
+          ctx.arc(particleX, particleY, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        ctx.restore();
+      }
 
       // Draw player sprite (no rotation - always facing same direction)
       spriteManager.drawSprite(
@@ -632,6 +976,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         gunSize = PLAYER_SIZE * 0.45; // Pistol is 55% of player size (smaller)
       } else if (weapon.type === 'sword') {
         gunSize = PLAYER_SIZE * 0.85; // Sword is 85% of player size (bigger)
+      } else if (weapon.type === 'shotgun') {
+        gunSize = PLAYER_SIZE * 0.8; // Shotgun is 80% of player size
       } else {
         gunSize = PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
       }
@@ -655,19 +1001,86 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       );
       ctx.restore(); // Restore camera transform
     },
-    [keys, mousePos, isGameOver]
+    [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities]
   );
 
   useGameLoop(gameLoop, !isGameOver);
 
   return (
-    <div className="relative">
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        className="cursor-crosshair"
-      />
+    <>
+      <style>{`
+        .exit-button {
+          background-color: #5a0000;
+        }
+        .exit-button:hover {
+          background-color: #7a0000;
+        }
+        .exit-confirm-no {
+          background-color: #5a0000;
+        }
+        .exit-confirm-no:hover {
+          background-color: #7a0000;
+        }
+        .exit-confirm-yes {
+          background-color: #8b0000;
+        }
+        .exit-confirm-yes:hover {
+          background-color: #aa0000;
+        }
+      `}</style>
+      <div className="relative w-screen h-screen">
+        <canvas
+          ref={canvasRef}
+          className="cursor-crosshair w-full h-full"
+        />
+
+        {/* Exit to main menu button */}
+        <button
+          onClick={() => setShowExitConfirm(true)}
+          className="absolute top-4 right-4 border-4 border-white py-3 px-6 text-white font-bold exit-button z-20"
+          style={{ 
+            fontSize: '18px',
+            imageRendering: 'pixelated'
+          }}
+        >
+          EXIT
+        </button>
+
+        {/* Exit confirmation modal */}
+        {showExitConfirm && (
+          <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+            <div className="border-4 border-white p-12 text-center shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', minWidth: '500px' }}>
+              <h2 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>
+                EXIT TO MAIN MENU?
+              </h2>
+              <p className="text-gray-300 mb-10 font-bold" style={{ fontSize: '20px' }}>
+                YOUR PROGRESS WILL BE LOST
+              </p>
+              <div className="flex gap-6 justify-center">
+                <button
+                  onClick={() => setShowExitConfirm(false)}
+                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-no"
+                  style={{ 
+                    fontSize: '18px',
+                    imageRendering: 'pixelated'
+                  }}
+                >
+                  NO
+                </button>
+                <button
+                  onClick={onReturnToMenu}
+                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-yes"
+                  style={{ 
+                    fontSize: '18px',
+                    imageRendering: 'pixelated'
+                  }}
+                >
+                  YES
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       <GameUI
         playerStats={playerStats}
@@ -680,14 +1093,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       {/* Show "Press E to continue" screen when wave is completed */}
       {waveManagerRef.current.isWaveCompleted() && (
         <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-40 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-          <div className="bg-purple-900 border-4 border-white p-8 text-center" style={{ imageRendering: 'pixelated' }}>
-            <h2 className="text-white mb-6" style={{ fontSize: '20px' }}>
+          <div className="border-4 border-white p-12 text-center shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', minWidth: '500px' }}>
+            <h2 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>
               WAVE {waveManagerRef.current.getCurrentWave()} COMPLETE!
             </h2>
-            <div className="text-white mb-4" style={{ fontSize: '12px' }}>
-              PRESS <span className="text-yellow-300 px-2 py-1 bg-purple-800 border-2 border-yellow-300" style={{ fontSize: '16px' }}>E</span> TO CONTINUE
+            <div className="text-white mb-6 font-bold" style={{ fontSize: '24px' }}>
+              PRESS <span className="text-yellow-300 px-4 py-2 border-4 border-yellow-300 inline-block mx-2" style={{ backgroundColor: '#5a0000', fontSize: '32px' }}>E</span> TO CONTINUE
             </div>
-            <p className="text-gray-300 mt-4" style={{ fontSize: '8px' }}>TO THE NEXT WAVE</p>
+            <p className="text-gray-300 mt-6 font-bold" style={{ fontSize: '18px' }}>TO THE NEXT WAVE</p>
           </div>
         </div>
       )}
@@ -706,7 +1119,68 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           onReturnToMenu={onReturnToMenu}
         />
       )}
-    </div>
+
+      {/* Active Abilities UI */}
+      <div className="absolute bottom-4 left-4 flex gap-4 z-20 pointer-events-none" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+        {activeAbilities.map((ability, index) => {
+          const abilityData = getAbilityByType(ability.type);
+          if (!abilityData) return null;
+          
+          const currentTime = Date.now();
+          const isActive = currentTime < ability.endTime;
+          const isOnCooldown = currentTime < ability.cooldownEndTime;
+          const cooldownRemaining = Math.max(0, ability.cooldownEndTime - currentTime);
+          const cooldownPercent = isOnCooldown ? (cooldownRemaining / abilityData.cooldown) * 100 : 0;
+          const durationRemaining = isActive ? Math.max(0, ability.endTime - currentTime) : 0;
+          const durationPercent = isActive ? (durationRemaining / abilityData.duration) * 100 : 0;
+          
+          return (
+            <div
+              key={ability.type}
+              className="border-4 border-white p-3 relative"
+              style={{
+                backgroundColor: isActive ? '#3a0000' : isOnCooldown ? '#1a0000' : '#5a0000',
+                imageRendering: 'pixelated',
+                opacity: isOnCooldown && !isActive ? 0.5 : 1,
+              }}
+            >
+              <div className="text-center">
+                <div className="text-3xl mb-1">{abilityData.icon}</div>
+                <div className="text-white font-bold text-xs mb-1" style={{ fontSize: '10px' }}>
+                  [{index + 1}]
+                </div>
+                <div className="text-yellow-300 font-bold text-xs" style={{ fontSize: '10px' }}>
+                  {abilityData.name.toUpperCase()}
+                </div>
+              </div>
+              
+              {/* Cooldown overlay */}
+              {isOnCooldown && !isActive && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 flex items-center justify-center"
+                  style={{ height: `${cooldownPercent}%` }}
+                >
+                  <span className="text-white font-bold text-xs">
+                    {Math.ceil(cooldownRemaining / 1000)}s
+                  </span>
+                </div>
+              )}
+              
+              {/* Active duration indicator */}
+              {isActive && (
+                <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-400" style={{ height: '4px' }}>
+                  <div
+                    className="h-full bg-yellow-400 transition-all"
+                    style={{ width: `${durationPercent}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      </div>
+    </>
   );
 };
 

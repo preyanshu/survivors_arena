@@ -54,8 +54,8 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
       onClick={onClose}
     >
       <div 
-        className="bg-purple-900 border-4 border-white p-8 max-w-lg"
-        style={{ imageRendering: 'pixelated' }}
+        className="border-4 border-white p-8 max-w-lg"
+        style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated' }}
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-white text-center mb-6" style={{ fontSize: '32px' }}>
@@ -76,7 +76,7 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
             <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300 ml-2">{weapon.baseDamage}</span>
           </div>
           <div className="mb-3">
-            <span className="text-gray-300">COOLDOWN:</span> <span className="text-yellow-300 ml-2">{weapon.cooldown}MS</span>
+            <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2">{weapon.cooldown}</span>
           </div>
           {weapon.range && (
             <div className="mb-3">

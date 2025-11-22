@@ -29,6 +29,7 @@ export interface Enemy {
   damage: number;
   size: number;
   type: EnemyType;
+  lastAttackTime?: number; // For ranged attacks
 }
 
 export interface Projectile {
@@ -64,6 +65,7 @@ export interface PowerUp {
   name: string;
   description: string;
   effect: (stats: PlayerStats) => PlayerStats;
+  abilityType?: ActiveAbilityType; // If set, this power-up grants an ability instead of modifying stats
 }
 
 export interface BloodParticle {
@@ -82,4 +84,35 @@ export interface SlashAnimation {
   life: number;
   maxLife: number;
   size: number;
+}
+
+export interface HealthPickup {
+  id: string;
+  position: Position;
+  healAmount: number;
+  size: number;
+  life: number; // For animation/pulsing effect
+}
+
+export enum ActiveAbilityType {
+  SHIELD = 'shield',
+  FIRE_RING = 'fire_ring',
+  SPEED_BOOST = 'speed_boost',
+  DAMAGE_BOOST = 'damage_boost',
+  FREEZE = 'freeze',
+}
+
+export interface ActiveAbility {
+  type: ActiveAbilityType;
+  name: string;
+  description: string;
+  duration: number; // Duration in milliseconds
+  cooldown: number; // Cooldown in milliseconds
+  icon: string;
+}
+
+export interface ActiveAbilityState {
+  type: ActiveAbilityType;
+  endTime: number; // When the ability ends
+  cooldownEndTime: number; // When cooldown ends
 }
