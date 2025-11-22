@@ -147,13 +147,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const swordX = playerPosRef.current.x + swordOffsetX + (PLAYER_SIZE * 0.03);
         const swordY = playerPosRef.current.y + swordOffsetY;
         
-        // Calculate sword tip position (at the end of the sword sprite)
-        // The sprite is drawn centered, so tip is at half the sword size forward
-        const swordTipDistance = swordSize * 0.5;
+        // Calculate sword tip position
+        // The sword PNG is diagonal (45 degrees), so we need to account for that
+        // The sprite extends diagonally, so the tip is further along the angle
+        // Since the sword sprite is diagonal, the tip extends at the sword angle + the diagonal offset
+        const swordTipDistance = swordSize * 0.6; // Slightly more to account for diagonal sprite
         const swordTipX = swordX + Math.cos(slashAngle) * swordTipDistance;
         const swordTipY = swordY + Math.sin(slashAngle) * swordTipDistance;
         
         // Add distance between sword tip and slash animation (gap for visual effect)
+        // The slash should be straight along the sword's direction
         const gapDistance = 60; // Distance between sword tip and animation
         const slashX = swordTipX + Math.cos(slashAngle) * gapDistance;
         const slashY = swordTipY + Math.sin(slashAngle) * gapDistance;
