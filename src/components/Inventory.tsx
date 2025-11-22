@@ -120,7 +120,7 @@ const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
               
               return (
                 <button
-                  key={`${weapon.type}-${weapon.rarity}`}
+                  key={weapon.id || `${weapon.type}-${weapon.rarity}-${Math.random()}`}
                   onClick={() => setSelectedWeapon(weapon)}
                   className={`border-4 p-4 text-left transition-all weapon-list-item ${
                     isSelected ? 'selected' : ''
@@ -144,9 +144,22 @@ const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
         <div className="w-2/3 p-6 pt-20 flex flex-col items-center justify-start overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
           {selectedWeapon ? (
             <>
-              <h2 className="text-white mb-4 font-bold text-center" style={{ fontSize: '32px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+              <h2 className="text-white mb-2 font-bold text-center" style={{ fontSize: '32px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
                 {selectedWeapon.name.toUpperCase()}
               </h2>
+              
+              <div className="mb-4 mx-auto max-w-full px-4 text-center">
+                <div className="inline-block bg-black/60 border-2 border-yellow-500/50 px-4 py-2 rounded max-w-full overflow-hidden">
+                  <div className="text-yellow-300 text-xs font-bold font-mono whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ textShadow: '1px 1px 0px rgba(0,0,0,0.8)' }}>
+                    {selectedWeapon.id?.startsWith('default-') 
+                      ? '[DEFAULT WEAPON]' 
+                      : selectedWeapon.id 
+                        ? `NFT ID: ${selectedWeapon.id}`
+                        : ''}
+                  </div>
+                </div>
+              </div>
+
               <div className="mb-2 text-center">
                 <span 
                   className="font-bold px-4 py-2 border-2 inline-block"

@@ -69,6 +69,7 @@ export enum WeaponRarity {
 }
 
 export interface Weapon {
+  id?: string; // On-chain Object ID
   type: WeaponType;
   rarity: WeaponRarity;
   name: string;
