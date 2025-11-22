@@ -1,5 +1,3 @@
-import { Skull } from 'lucide-react';
-
 interface GameOverProps {
   wave: number;
   onReturnToMenu: () => void;
@@ -7,16 +5,22 @@ interface GameOverProps {
 
 const GameOver = ({ wave, onReturnToMenu }: GameOverProps) => {
   return (
-    <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 pointer-events-auto">
-      <div className="text-white text-center">
-        <h2 className="text-6xl font-bold mb-4 text-red-500 drop-shadow-lg">GAME OVER</h2>
-        <p className="text-xl mb-8 text-gray-200">You survived {wave} wave{wave !== 1 ? 's' : ''}</p>
+    <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 pointer-events-auto" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+      <div className="bg-purple-900 border-4 border-white p-8 text-center" style={{ imageRendering: 'pixelated' }}>
+        <h2 className="text-white mb-6" style={{ fontSize: '24px' }}>GAME OVER</h2>
+        <p className="text-gray-300 mb-8" style={{ fontSize: '10px' }}>
+          YOU SURVIVED {wave} WAVE{wave !== 1 ? 'S' : ''}
+        </p>
 
         <button
           onClick={onReturnToMenu}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:scale-105"
+          className="bg-red-700 hover:bg-red-600 text-white border-4 border-white py-3 px-6 transition-all"
+          style={{ 
+            fontSize: '10px',
+            imageRendering: 'pixelated'
+          }}
         >
-          Return to Menu
+          RETURN TO MENU
         </button>
       </div>
     </div>

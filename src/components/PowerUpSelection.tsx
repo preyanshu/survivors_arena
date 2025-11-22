@@ -8,25 +8,32 @@ interface PowerUpSelectionProps {
 
 const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionProps) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-      <div className="text-white text-center max-w-4xl">
-        <h2 className="text-4xl font-bold mb-2 text-green-400">Wave {wave} Complete!</h2>
-        <p className="text-xl mb-8 text-gray-300">Choose a Power-Up</p>
+    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+      <div className="bg-purple-900 border-4 border-white p-8 max-w-5xl" style={{ imageRendering: 'pixelated' }}>
+        <h2 className="text-white text-center mb-6" style={{ fontSize: '20px' }}>LEVEL UP!</h2>
+        <p className="text-white text-center mb-6" style={{ fontSize: '10px' }}>WAVE {wave} COMPLETE</p>
 
-        <div className="flex gap-6 justify-center">
-          {powerUps.map((powerUp) => (
+        <div className="flex gap-4 justify-center flex-wrap">
+          {powerUps.map((powerUp, index) => (
             <button
               key={powerUp.id}
               onClick={() => onSelectPowerUp(powerUp)}
-              className="bg-gray-800 hover:bg-gray-700 border-2 border-gray-600 hover:border-green-500 rounded-lg p-6 w-64 transition-all transform hover:scale-105"
+              className="bg-purple-800 hover:bg-purple-700 border-4 border-white p-4 w-56 transition-all"
+              style={{ 
+                imageRendering: 'pixelated',
+                fontSize: '8px'
+              }}
             >
-              <h3 className="text-xl font-bold mb-3 text-green-400">{powerUp.name}</h3>
-              <p className="text-gray-400 text-sm">{powerUp.description}</p>
+              <div className="text-white mb-2" style={{ fontSize: '10px' }}>
+                [{index + 1}]
+              </div>
+              <h3 className="text-white mb-3" style={{ fontSize: '10px' }}>{powerUp.name.toUpperCase()}</h3>
+              <p className="text-gray-300" style={{ fontSize: '8px', lineHeight: '1.4' }}>{powerUp.description.toUpperCase()}</p>
             </button>
           ))}
         </div>
 
-        <p className="mt-8 text-gray-500">Select a power-up to continue</p>
+        <p className="text-white text-center mt-6" style={{ fontSize: '8px' }}>PRESS 1, 2, OR 3 TO SELECT</p>
       </div>
     </div>
   );

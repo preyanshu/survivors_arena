@@ -1,4 +1,3 @@
-import { Crosshair, Zap, Sword, Target, Gauge } from 'lucide-react';
 import { Weapon } from '../types/game';
 import { WEAPONS } from '../data/weapons';
 
@@ -7,50 +6,34 @@ interface WeaponSelectionProps {
 }
 
 const WeaponSelection = ({ onSelectWeapon }: WeaponSelectionProps) => {
-  const getWeaponIcon = (weaponType: string) => {
-    switch (weaponType) {
-      case 'pistol':
-        return <Crosshair className="w-16 h-16" />;
-      case 'shotgun':
-        return <Zap className="w-16 h-16" />;
-      case 'sword':
-        return <Sword className="w-16 h-16" />;
-      case 'assault_rifle':
-        return <Target className="w-16 h-16" />;
-      case 'rifle':
-        return <Gauge className="w-16 h-16" />;
-      default:
-        return <Crosshair className="w-16 h-16" />;
-    }
-  };
-
   return (
-    <div className="text-white text-center">
-      <h1 className="text-5xl font-bold mb-4 text-red-500">SURVIVAL ARENA</h1>
-      <p className="text-xl mb-12 text-gray-300">Choose Your Weapon</p>
+    <div className="text-white text-center" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+      <h1 className="mb-6 text-red-500" style={{ fontSize: '24px' }}>SURVIVAL ARENA</h1>
+      <p className="mb-8 text-gray-300" style={{ fontSize: '12px' }}>CHOOSE YOUR WEAPON</p>
 
-      <div className="flex flex-wrap gap-8 justify-center max-w-7xl mx-auto">
+      <div className="flex flex-wrap gap-6 justify-center max-w-7xl mx-auto">
         {WEAPONS.map((weapon) => (
           <button
             key={weapon.type}
             onClick={() => onSelectWeapon(weapon)}
-            className="bg-gray-800 hover:bg-gray-700 border-2 border-gray-600 hover:border-red-500 rounded-lg p-8 w-64 transition-all transform hover:scale-105"
+            className="bg-purple-900 hover:bg-purple-800 border-4 border-white p-6 w-64 transition-all"
+            style={{ 
+              imageRendering: 'pixelated',
+              fontSize: '8px'
+            }}
           >
-            <div className="flex justify-center mb-4 text-red-400">
-              {getWeaponIcon(weapon.type)}
-            </div>
-            <h3 className="text-2xl font-bold mb-2">{weapon.name}</h3>
-            <p className="text-gray-400 mb-4">{weapon.description}</p>
-            <div className="text-sm text-gray-500">
-              <p>Damage: {weapon.baseDamage}</p>
-              <p>Cooldown: {weapon.cooldown}ms</p>
-              {weapon.range && <p>Range: {weapon.range}</p>}
+            <h3 className="text-white mb-3" style={{ fontSize: '12px' }}>{weapon.name.toUpperCase()}</h3>
+            <p className="text-gray-300 mb-4" style={{ fontSize: '8px', lineHeight: '1.4' }}>{weapon.description.toUpperCase()}</p>
+            <div className="text-gray-400" style={{ fontSize: '8px' }}>
+              <p>DMG: {weapon.baseDamage}</p>
+              <p>CD: {weapon.cooldown}MS</p>
+              {weapon.range && <p>RNG: {weapon.range}</p>}
             </div>
           </button>
         ))}
       </div>
 
-      <p className="mt-12 text-gray-500">Use WASD to move • Survive the waves • Get stronger</p>
+      <p className="mt-8 text-gray-500" style={{ fontSize: '8px' }}>USE WASD TO MOVE • SURVIVE THE WAVES</p>
     </div>
   );
 };

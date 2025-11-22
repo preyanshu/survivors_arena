@@ -679,15 +679,15 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       {/* Show "Press E to continue" screen when wave is completed */}
       {waveManagerRef.current.isWaveCompleted() && (
-        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40 pointer-events-auto">
-          <div className="text-white text-center">
-            <h2 className="text-6xl font-bold mb-6 text-green-400 drop-shadow-2xl">
-              Wave {waveManagerRef.current.getCurrentWave()} Complete!
+        <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-40 pointer-events-auto" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+          <div className="bg-purple-900 border-4 border-white p-8 text-center" style={{ imageRendering: 'pixelated' }}>
+            <h2 className="text-white mb-6" style={{ fontSize: '20px' }}>
+              WAVE {waveManagerRef.current.getCurrentWave()} COMPLETE!
             </h2>
-            <div className="text-4xl mb-4 text-gray-200">
-              Press <span className="text-green-400 font-bold text-5xl px-3 py-1 bg-gray-800 rounded-lg border-2 border-green-400">E</span> to continue
+            <div className="text-white mb-4" style={{ fontSize: '12px' }}>
+              PRESS <span className="text-yellow-300 px-2 py-1 bg-purple-800 border-2 border-yellow-300" style={{ fontSize: '16px' }}>E</span> TO CONTINUE
             </div>
-            <p className="text-xl text-gray-400 mt-4">to the next wave</p>
+            <p className="text-gray-300 mt-4" style={{ fontSize: '8px' }}>TO THE NEXT WAVE</p>
           </div>
         </div>
       )}
