@@ -10,6 +10,8 @@ import { spriteManager } from '../utils/spriteManager';
 import GameUI from './GameUI';
 import PowerUpSelection from './PowerUpSelection';
 import GameOver from './GameOver';
+// @ts-ignore - gifler doesn't have types
+import gifler from 'gifler';
 
 interface GameCanvasProps {
   weapon: Weapon;
