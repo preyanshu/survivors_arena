@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { PowerUp } from '../types/game';
 
 interface PowerUpSelectionProps {
@@ -7,6 +8,22 @@ interface PowerUpSelectionProps {
 }
 
 const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionProps) => {
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const key = e.key;
+      if (key === '1' && powerUps[0]) {
+        onSelectPowerUp(powerUps[0]);
+      } else if (key === '2' && powerUps[1]) {
+        onSelectPowerUp(powerUps[1]);
+      } else if (key === '3' && powerUps[2]) {
+        onSelectPowerUp(powerUps[2]);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [powerUps, onSelectPowerUp]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50" style={{ fontFamily: "'Press Start 2P', monospace" }}>
       <div className="bg-purple-900 border-4 border-white p-8 max-w-5xl" style={{ imageRendering: 'pixelated' }}>
