@@ -135,6 +135,25 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
     if (newProjectiles.length > 0) {
       projectilesRef.current.push(...newProjectiles);
+      
+      // If sword attack, create slash animation
+      if (weapon.type === 'sword' && newProjectiles.length > 0) {
+        const slashProj = newProjectiles[0];
+        const slashAngle = Math.atan2(worldMousePos.y - playerPosRef.current.y, worldMousePos.x - playerPosRef.current.x);
+        
+        slashAnimationsRef.current.push({
+          id: `slash-${Date.now()}-${Math.random()}`,
+          position: slashProj.position,
+          angle: slashAngle,
+          life: 1.0,
+          maxLife: 1.0,
+          size: slashProj.size,
+        });
+        
+        // Track sword attack for animation
+        swordAttackAngleRef.current = slashAngle;
+        swordAttackTimeRef.current = Date.now();
+      }
     }
   }, [isGameOver, mousePos]);
 
