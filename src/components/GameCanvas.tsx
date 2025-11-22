@@ -52,6 +52,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
   const projectilesRef = useRef<Projectile[]>([]);
   const bloodParticlesRef = useRef<BloodParticle[]>([]);
+  const slashAnimationsRef = useRef<SlashAnimation[]>([]);
+  const swordAttackAngleRef = useRef<number | null>(null);
+  const swordAttackTimeRef = useRef<number>(0);
   const lastDamageTimeRef = useRef<number>(0);
   const playerPosRef = useRef<Position>(playerPos);
   const playerStatsRef = useRef<PlayerStats>(playerStats);
@@ -314,6 +317,19 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         })
         .filter((particle) => particle.life > 0);
 
+      // Update slash animations
+      slashAnimationsRef.current = slashAnimationsRef.current
+        .map((slash) => {
+          slash.life -= deltaTimeSeconds * 5; // Fade out quickly (200ms total)
+          return slash;
+        })
+        .filter((slash) => slash.life > 0);
+
+      // Reset sword attack animation after 200ms
+      if (swordAttackAngleRef.current !== null && Date.now() - swordAttackTimeRef.current > 200) {
+        swordAttackAngleRef.current = null;
+      }
+
       const currentTime = Date.now();
       if (currentTime - lastDamageTimeRef.current > 300) {
         const damage = enemyManager.checkPlayerCollision(newPlayerPos, PLAYER_SIZE);
@@ -481,6 +497,40 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           healthBarWidth * healthPercentage,
           healthBarHeight
         );
+      });
+
+      // Draw slash animations
+      slashAnimationsRef.current.forEach((slash) => {
+        const alpha = slash.life / slash.maxLife;
+        const progress = 1 - slash.life;
+        
+        ctx.save();
+        ctx.translate(slash.position.x, slash.position.y);
+        ctx.rotate(slash.angle);
+        
+        // Draw slash arc
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+        ctx.lineWidth = 8 * alpha;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+        
+        // Draw curved slash line
+        ctx.beginPath();
+        const arcStart = -Math.PI / 3;
+        const arcEnd = Math.PI / 3;
+        const arcRadius = slash.size * 0.6;
+        ctx.arc(0, 0, arcRadius, arcStart, arcEnd, false);
+        ctx.stroke();
+        
+        // Draw inner bright line
+        ctx.strokeStyle = `rgba(255, 255, 200, ${alpha})`;
+        ctx.lineWidth = 4 * alpha;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(0, 0, arcRadius * 0.8, arcStart, arcEnd, false);
+        ctx.stroke();
+        
+        ctx.restore();
       });
 
       // Draw blood particles

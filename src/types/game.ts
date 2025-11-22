@@ -74,3 +74,12 @@ export interface BloodParticle {
   life: number;
   maxLife: number;
 }
+
+export interface SlashAnimation {
+  id: string;
+  position: Position;
+  angle: number;
+  life: number;
+  maxLife: number;
+  size: number;
+}
