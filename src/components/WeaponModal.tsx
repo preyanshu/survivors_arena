@@ -102,8 +102,12 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
               <span className="text-gray-300">RANGE:</span> <span className="text-yellow-300 ml-2">{weapon.range}</span>
             </div>
           )}
-          <div className="mt-6 text-cyan-300 font-bold" style={{ fontSize: '16px', lineHeight: '1.6' }}>
-            {weapon.description.toUpperCase()}
+          <div className="mt-6 text-yellow-300 font-bold text-center" style={{ fontSize: '14px', fontFamily: 'monospace' }}>
+            {weapon.id?.startsWith('default-') 
+              ? '[DEFAULT WEAPON]' 
+              : weapon.id 
+                ? `NFT: ${weapon.id.slice(0, 6)}...${weapon.id.slice(-4)}`
+                : ''}
           </div>
         </div>
 

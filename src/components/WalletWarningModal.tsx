@@ -21,7 +21,7 @@ const WalletWarningModal = ({ isOpen, onClose, onConnect }: WalletWarningModalPr
           className="text-white text-2xl font-bold mb-4 text-center"
           style={{ imageRendering: 'pixelated' }}
         >
-          ⚠️ WALLET REQUIRED
+          WALLET REQUIRED
         </h2>
         
         <p className="text-white text-lg mb-6 text-center">

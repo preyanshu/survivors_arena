@@ -21,6 +21,8 @@ export class SpriteManager {
       projectile: '/assets/sprites/projectile.png',
       background: '/assets/sprites/background.png',
       slash_effect: '/assets/sprites/slash.png',
+      chest_closed: '/assets/sprites/chest_closed.png',
+      chest_open: '/assets/sprites/chest_open.png',
     };
 
     // Background should be loaded first and can fail silently (use fallback)

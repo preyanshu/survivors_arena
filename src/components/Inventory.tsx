@@ -148,12 +148,6 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
         {/* Left side - Weapon list */}
         <div className="w-1/3 p-8 pt-20 border-r-4 border-white overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
           <h1 className="text-white mb-8 text-center font-bold" style={{ fontSize: '32px' }}>INVENTORY</h1>
-          
-          {loading && (
-            <div className="text-yellow-300 text-center mb-4 font-bold text-xl animate-pulse">
-              LOADING INVENTORY...
-            </div>
-          )}
 
           <div className="flex flex-col gap-4">
             {playerInventory.map((weapon) => {
@@ -181,6 +175,12 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
               );
             })}
           </div>
+          
+          {loading && (
+            <div className="text-yellow-300 text-center mt-4 font-bold text-xl animate-pulse">
+              LOADING INVENTORY...
+            </div>
+          )}
         </div>
 
         {/* Right side - Weapon details */}

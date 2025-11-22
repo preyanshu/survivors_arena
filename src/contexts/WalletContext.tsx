@@ -5,6 +5,8 @@ interface WalletState {
   connected: boolean;
   address: string | null;
   client: SuiClient | null;
+  chainId: string | null;
+  isCorrectChain: boolean;
 }
 
 interface WalletContextType extends WalletState {
@@ -14,6 +16,7 @@ interface WalletContextType extends WalletState {
   isWalletInstalled: () => boolean;
   signTransaction: (input: { transaction: string }) => Promise<{ signature: string }>;
   executeTransaction: (transactionBlock: any) => Promise<any>;
+  checkChain: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -80,8 +83,14 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     connected: persistedState.connected,
     address: persistedState.address,
     client: null,
+    chainId: null,
+    isCorrectChain: false,
   });
   const [walletAvailable, setWalletAvailable] = useState(false);
+
+  // OneChain Testnet chain identifier
+  const ONECHAIN_TESTNET_CHAIN = 'onechain:testnet'; // Common identifier for OneChain Testnet
+  const ONECHAIN_TESTNET_RPC = 'https://rpc-testnet.onelabs.cc';
 
   // Initialize client
   useEffect(() => {
@@ -175,6 +184,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
             setWalletState(prev => ({ ...prev, connected: true, address: addressStr }));
             localStorage.setItem(WALLET_STORAGE_KEY, 'true');
             localStorage.setItem(WALLET_ADDRESS_KEY, addressStr);
+            // Check chain after connecting
+            await checkChain();
         }
       }
     } catch (error) {
@@ -223,6 +234,88 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     throw new Error('Execute transaction not supported');
   };
 
+  const checkChain = async () => {
+    try {
+      const wallet = getWallet();
+      if (!wallet) {
+        setWalletState((prev) => ({ ...prev, chainId: null, isCorrectChain: false }));
+        return;
+      }
+
+      const suiProvider = getSuiProvider(wallet);
+      if (!suiProvider) {
+        setWalletState((prev) => ({ ...prev, chainId: null, isCorrectChain: false }));
+        return;
+      }
+
+      // Try to get chain info from provider
+      let chainId: string | null = null;
+      let isCorrectChain = false;
+
+      // Method 1: Try getChain() method
+      if (typeof suiProvider.getChain === 'function') {
+        try {
+          chainId = await suiProvider.getChain();
+        } catch (e) {
+          console.log('getChain() not available:', e);
+        }
+      }
+
+      // Method 2: Try chain property
+      if (!chainId && suiProvider.chain) {
+        chainId = suiProvider.chain;
+      }
+
+      // Method 3: Check RPC URL if available
+      if (!chainId && suiProvider.rpcUrl) {
+        const rpcUrl = suiProvider.rpcUrl;
+        if (rpcUrl.includes('testnet.onelabs.cc') || rpcUrl.includes('onelabs.cc')) {
+          chainId = ONECHAIN_TESTNET_CHAIN;
+        }
+      }
+
+      // Method 4: Check if client can connect to testnet (fallback)
+      if (!chainId && walletState.client) {
+        try {
+          // Try to get chain info from RPC
+          const chainInfo = await walletState.client.getChainIdentifier();
+          if (chainInfo) {
+            chainId = chainInfo;
+          }
+        } catch (e) {
+          console.log('Could not get chain from client:', e);
+        }
+      }
+
+      // Determine if correct chain
+      // OneChain Testnet should be identified as "testnet"
+      if (chainId) {
+        const chainLower = chainId.toLowerCase().trim();
+        // Check if chain is exactly "testnet" or contains "testnet" (case-insensitive)
+        isCorrectChain = chainLower === 'testnet' || chainLower.includes('testnet');
+      } else {
+        // If we can't determine chain, assume it might be correct if connected
+        // This is a fallback - ideally wallet should provide chain info
+        isCorrectChain = walletState.connected;
+      }
+
+      setWalletState((prev) => ({ ...prev, chainId, isCorrectChain }));
+    } catch (error) {
+      console.error('Failed to check chain:', error);
+      setWalletState((prev) => ({ ...prev, chainId: null, isCorrectChain: false }));
+    }
+  };
+
+  // Check chain when wallet state changes
+  useEffect(() => {
+    if (walletState.connected && walletState.address) {
+      checkChain();
+    } else {
+      setWalletState((prev) => ({ ...prev, chainId: null, isCorrectChain: false }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletState.connected, walletState.address]);
+
   return (
     <WalletContext.Provider value={{
       ...walletState,
@@ -231,7 +324,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       installWallet,
       isWalletInstalled,
       signTransaction,
-      executeTransaction
+      executeTransaction,
+      checkChain
     }}>
       {children}
     </WalletContext.Provider>
