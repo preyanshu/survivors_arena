@@ -153,9 +153,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const swordTipX = swordX + Math.cos(slashAngle) * swordTipDistance;
         const swordTipY = swordY + Math.sin(slashAngle) * swordTipDistance;
         
-        // Position slash effect directly at sword tip (no gap)
-        const slashX = swordTipX;
-        const slashY = swordTipY;
+        // Add distance between sword tip and slash animation (gap for visual effect)
+        const gapDistance = 60; // Distance between sword tip and animation
+        const slashX = swordTipX + Math.cos(slashAngle) * gapDistance;
+        const slashY = swordTipY + Math.sin(slashAngle) * gapDistance;
         
         slashAnimationsRef.current.push({
           id: `slash-${Date.now()}-${Math.random()}`,
