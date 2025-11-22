@@ -160,32 +160,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const slashX = swordTipX + Math.cos(slashAngle) * gapDistance;
         const slashY = swordTipY + Math.sin(slashAngle) * gapDistance;
         
-        // Create canvas for animated GIF
-        const gifCanvas = document.createElement('canvas');
-        gifCanvas.width = 200;
-        gifCanvas.height = 200;
-        
-        const slashAnimation: SlashAnimation = {
+        slashAnimationsRef.current.push({
           id: `slash-${Date.now()}-${Math.random()}`,
           position: { x: slashX, y: slashY },
           angle: slashAngle, // Align with sword angle
           life: 1.0,
           maxLife: 1.0,
-          size: 120, // Size for the GIF
-          gifCanvas: gifCanvas,
-        };
-        
-        // Load and animate GIF using gifler
-        gifler('/assets/sprites/Slash_Attack_2D_Game_FX_Animation.gif').get((anim: any) => {
-          const ctx = gifCanvas.getContext('2d');
-          if (!ctx) return;
-          
-          anim.animateInCanvas(gifCanvas, () => {
-            // Animation callback - frame is drawn automatically
-          });
+          size: 120, // Size for the PNG
         });
-        
-        slashAnimationsRef.current.push(slashAnimation);
         
         // Track sword attack for animation
         swordAttackAngleRef.current = slashAngle;
@@ -555,24 +537,26 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
-      // Draw slash animations using animated GIF canvas
+      // Draw slash animations using PNG with fade in/out
       slashAnimationsRef.current.forEach((slash) => {
         const alpha = slash.life / slash.maxLife;
+        const slashSprite = spriteManager.getSprite('slash_effect');
         
-        if (slash.gifCanvas) {
-          // Draw the animated GIF canvas
+        if (slashSprite) {
+          // Draw the PNG with fade effect (appears and disappears)
           ctx.save();
-          ctx.globalAlpha = alpha;
+          ctx.globalAlpha = alpha; // Fade out as life decreases
           ctx.translate(slash.position.x, slash.position.y);
           ctx.rotate(slash.angle);
           
           // Calculate size to maintain aspect ratio
-          const drawWidth = slash.size * 1.5;
-          const drawHeight = drawWidth;
+          const spriteAspect = slashSprite.width / slashSprite.height;
+          let drawWidth = slash.size * 1.5;
+          let drawHeight = drawWidth / spriteAspect;
           
-          // Draw the animated GIF canvas
+          // Draw the PNG sprite
           ctx.drawImage(
-            slash.gifCanvas,
+            slashSprite,
             -drawWidth / 2,
             -drawHeight / 2,
             drawWidth,
@@ -581,7 +565,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           
           ctx.restore();
         } else {
-          // Fallback to canvas-drawn arc if GIF not loaded
+          // Fallback to canvas-drawn arc if PNG not loaded
           ctx.save();
           ctx.globalAlpha = alpha;
           ctx.translate(slash.position.x, slash.position.y);

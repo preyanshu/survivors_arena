@@ -82,5 +82,4 @@ export interface SlashAnimation {
   life: number;
   maxLife: number;
   size: number;
-  gifCanvas?: HTMLCanvasElement; // Canvas for animated GIF
 }

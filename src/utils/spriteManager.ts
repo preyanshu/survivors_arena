@@ -21,7 +21,7 @@ export class SpriteManager {
       enemy_strong: '/assets/sprites/enemy_strong.png',
       projectile: '/assets/sprites/projectile.png',
       background: '/assets/sprites/background.png',
-      slash_effect: '/assets/sprites/Slash_Attack_2D_Game_FX_Animation.gif',
+      slash_effect: '/assets/sprites/toppng.com-sword-slash-512x512.png',
     };
 
     // Background should be loaded first and can fail silently (use fallback)
