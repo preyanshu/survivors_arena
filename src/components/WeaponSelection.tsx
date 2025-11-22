@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Weapon } from '../types/game';
-import { WEAPONS, getRarityColor, getRarityBorderColor } from '../data/weapons';
+import { getRarityColor, getRarityBorderColor } from '../data/weapons';
 import { spriteManager } from '../utils/spriteManager';
 import WeaponModal from './WeaponModal';
 
 interface WeaponSelectionProps {
   onSelectWeapon: (weapon: Weapon) => void;
   onBack?: () => void;
+  availableWeapons: Weapon[];
 }
 
-const WeaponSelection = ({ onSelectWeapon, onBack }: WeaponSelectionProps) => {
+const WeaponSelection = ({ onSelectWeapon, onBack, availableWeapons }: WeaponSelectionProps) => {
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(null);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
 
@@ -91,9 +92,9 @@ const WeaponSelection = ({ onSelectWeapon, onBack }: WeaponSelectionProps) => {
         <h1 className="mb-4 text-white" style={{ fontSize: '40px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8 relative weapons-scrollable" style={{ zIndex: 10, minHeight: 0 }}>
-        <div className="flex flex-wrap gap-6 justify-center max-w-6xl mx-auto">
-          {WEAPONS.map((weapon) => (
+      <div className="flex-1 overflow-y-auto pb-8 relative weapons-scrollable" style={{ zIndex: 10, minHeight: 0 }}>
+        <div className="flex flex-wrap gap-6 justify-start max-w-6xl px-8">
+          {availableWeapons.map((weapon) => (
             <WeaponCard
               key={`${weapon.type}-${weapon.rarity}`}
               weapon={weapon}

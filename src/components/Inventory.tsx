@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Weapon } from '../types/game';
-import { WEAPONS, getRarityColor, getRarityBorderColor } from '../data/weapons';
+import { getRarityColor, getRarityBorderColor } from '../data/weapons';
 import { spriteManager } from '../utils/spriteManager';
 
 interface InventoryProps {
   onBack: () => void;
+  playerInventory: Weapon[];
 }
 
-const Inventory = ({ onBack }: InventoryProps) => {
-  const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(WEAPONS[0] || null);
+const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
+  const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(playerInventory[0] || null);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -112,7 +113,7 @@ const Inventory = ({ onBack }: InventoryProps) => {
         <div className="w-1/3 p-8 pt-20 border-r-4 border-white overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
           <h1 className="text-white mb-8 text-center font-bold" style={{ fontSize: '32px' }}>INVENTORY</h1>
           <div className="flex flex-col gap-4">
-            {WEAPONS.map((weapon) => {
+            {playerInventory.map((weapon) => {
               const rarityColor = getRarityColor(weapon.rarity);
               const rarityBorderColor = getRarityBorderColor(weapon.rarity);
               const isSelected = selectedWeapon?.type === weapon.type && selectedWeapon?.rarity === weapon.rarity;

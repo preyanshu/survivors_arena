@@ -4,12 +4,14 @@ import WeaponSelection from './components/WeaponSelection';
 import GameCanvas from './components/GameCanvas';
 import Inventory from './components/Inventory';
 import { Weapon } from './types/game';
+import { getDefaultPlayerInventory } from './data/weapons';
 
 type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('mainMenu');
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(null);
+  const [playerInventory] = useState<Weapon[]>(getDefaultPlayerInventory());
 
   const handlePlay = () => {
     setCurrentScreen('weaponSelection');
@@ -44,14 +46,18 @@ function App() {
       )}
       {currentScreen === 'weaponSelection' && (
         <div className="min-h-screen bg-black flex items-center justify-center">
-          <WeaponSelection onSelectWeapon={handleWeaponSelect} onBack={handleReturnToMenu} />
+          <WeaponSelection 
+            onSelectWeapon={handleWeaponSelect} 
+            onBack={handleReturnToMenu}
+            availableWeapons={playerInventory}
+          />
         </div>
       )}
       {currentScreen === 'game' && selectedWeapon && (
         <GameCanvas weapon={selectedWeapon} onReturnToMenu={handleReturnToMenu} />
       )}
       {currentScreen === 'inventory' && (
-        <Inventory onBack={handleReturnToMenu} />
+        <Inventory onBack={handleReturnToMenu} playerInventory={playerInventory} />
       )}
       {currentScreen === 'dailyChest' && (
         <div className="min-h-screen w-screen bg-black flex items-center justify-center relative" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>

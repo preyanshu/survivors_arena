@@ -114,3 +114,12 @@ export const getRarityBorderColor = (rarity: WeaponRarity): string => {
       return '#5a0000';
   }
 };
+
+// Get default player inventory (Common Sword and Common Pistol)
+export const getDefaultPlayerInventory = (): Weapon[] => {
+  return WEAPONS.filter(
+    (weapon) =>
+      (weapon.type === WeaponType.SWORD && weapon.rarity === WeaponRarity.COMMON) ||
+      (weapon.type === WeaponType.PISTOL && weapon.rarity === WeaponRarity.COMMON)
+  );
+};
