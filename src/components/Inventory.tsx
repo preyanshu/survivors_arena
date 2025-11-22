@@ -2,16 +2,52 @@ import { useState, useEffect, useRef } from 'react';
 import { Weapon } from '../types/game';
 import { getRarityColor, getRarityBorderColor, calculateFirerate } from '../data/weapons';
 import { spriteManager } from '../utils/spriteManager';
+import { useOneWallet } from '../hooks/useOneWallet';
+import { Transaction } from '@onelabs/sui/transactions';
 
 interface InventoryProps {
   onBack: () => void;
   playerInventory: Weapon[];
+  loading?: boolean;
 }
 
-const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
+const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
+  const { executeTransaction } = useOneWallet();
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(playerInventory[0] || null);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [recipientAddress, setRecipientAddress] = useState('');
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
+  const [transferSuccess, setTransferSuccess] = useState(false);
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const handleTransfer = async () => {
+    if (!selectedWeapon?.id || !recipientAddress || isTransferring) return;
+    
+    setIsTransferring(true);
+    setTransferError(null);
+    
+    try {
+      const tx = new Transaction();
+      tx.transferObjects([tx.object(selectedWeapon.id)], tx.pure.address(recipientAddress));
+      
+      await executeTransaction(tx);
+      setTransferSuccess(true);
+      setTimeout(() => {
+        setShowTransferModal(false);
+        setTransferSuccess(false);
+        // Ideally we should refetch inventory here, but we might need to trigger it from parent
+        // For now, user can go back and refresh
+      }, 2000);
+    } catch (err: any) {
+      console.error("Transfer failed:", err);
+      setTransferError(err.message || "Transfer failed");
+    } finally {
+      setIsTransferring(false);
+    }
+  };
 
   useEffect(() => {
     spriteManager.loadSprites().then(() => {
@@ -112,6 +148,13 @@ const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
         {/* Left side - Weapon list */}
         <div className="w-1/3 p-8 pt-20 border-r-4 border-white overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
           <h1 className="text-white mb-8 text-center font-bold" style={{ fontSize: '32px' }}>INVENTORY</h1>
+          
+          {loading && (
+            <div className="text-yellow-300 text-center mb-4 font-bold text-xl animate-pulse">
+              LOADING INVENTORY...
+            </div>
+          )}
+
           <div className="flex flex-col gap-4">
             {playerInventory.map((weapon) => {
               const rarityColor = getRarityColor(weapon.rarity);
@@ -160,7 +203,7 @@ const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
                 </div>
               </div>
 
-              <div className="mb-2 text-center">
+              <div className="mb-2 text-center flex justify-center items-center gap-4">
                 <span 
                   className="font-bold px-4 py-2 border-2 inline-block"
                   style={{
@@ -173,6 +216,21 @@ const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
                 >
                   {selectedWeapon.rarity.toUpperCase()}
                 </span>
+                
+                {selectedWeapon.id && !selectedWeapon.id.startsWith('default-') && (
+                  <button
+                    onClick={() => {
+                      setRecipientAddress('');
+                      setTransferError(null);
+                      setTransferSuccess(false);
+                      setShowTransferModal(true);
+                    }}
+                    className="bg-[#8b0000] hover:bg-[#a00000] text-white font-bold py-2 px-4 border-2 border-[#ff0000] shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] hover:shadow-none transition-all h-[38px] flex items-center"
+                    style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+                  >
+                    TRANSFER
+                  </button>
+                )}
               </div>
 
               <div className="flex justify-center mb-6">
@@ -210,6 +268,66 @@ const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
           )}
         </div>
       </div>
+
+      {/* Transfer Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 font-['Pixelify_Sans']">
+          <div className="bg-[#3a0000] border-4 border-white p-8 max-w-md w-full mx-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)]" style={{ imageRendering: 'pixelated' }}>
+            <h3 className="text-white text-3xl font-bold mb-6 text-center border-b-4 border-white pb-4">TRANSFER NFT</h3>
+            
+            {transferSuccess ? (
+              <div className="text-center py-4">
+                <div className="text-green-400 text-2xl mb-4 font-bold">TRANSFER SUCCESSFUL!</div>
+                <p className="text-white text-lg mb-6">The weapon has been sent to the recipient.</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-white mb-6 text-lg text-center">
+                  Enter the recipient's OneChain address below. 
+                  <br/>
+                  <span className="text-[#ff5555] font-bold mt-2 block">WARNING: THIS ACTION CANNOT BE UNDONE!</span>
+                </p>
+                
+                <div className="mb-8">
+                  <label className="block text-white text-lg font-bold mb-2">RECIPIENT ADDRESS</label>
+                  <input
+                    type="text"
+                    value={recipientAddress}
+                    onChange={(e) => setRecipientAddress(e.target.value)}
+                    placeholder="0x..."
+                    className="w-full bg-black border-4 border-white text-white p-4 focus:border-yellow-400 outline-none font-mono text-lg placeholder-gray-600"
+                  />
+                </div>
+
+                {transferError && (
+                  <div className="mb-6 text-[#ff5555] text-lg border-4 border-[#ff5555] bg-black/50 p-4 font-bold text-center">
+                    {transferError}
+                  </div>
+                )}
+
+                <div className="flex gap-6 justify-center">
+                  <button
+                    onClick={() => setShowTransferModal(false)}
+                    className="bg-[#5a0000] hover:bg-[#7a0000] text-white font-bold py-3 px-8 border-4 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-y-1 hover:shadow-none transition-all"
+                    disabled={isTransferring}
+                    style={{ fontSize: '18px' }}
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={handleTransfer}
+                    disabled={!recipientAddress || isTransferring}
+                    className="bg-green-700 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-8 border-4 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-y-1 hover:shadow-none transition-all"
+                    style={{ fontSize: '18px' }}
+                  >
+                    {isTransferring ? 'SENDING...' : 'CONFIRM'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };

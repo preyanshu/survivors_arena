@@ -8,9 +8,10 @@ interface WeaponSelectionProps {
   onSelectWeapon: (weapon: Weapon) => void;
   onBack?: () => void;
   availableWeapons: Weapon[];
+  loading?: boolean;
 }
 
-const WeaponSelection = ({ onSelectWeapon, onBack, availableWeapons }: WeaponSelectionProps) => {
+const WeaponSelection = ({ onSelectWeapon, onBack, availableWeapons, loading }: WeaponSelectionProps) => {
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(null);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
 
@@ -90,6 +91,12 @@ const WeaponSelection = ({ onSelectWeapon, onBack, availableWeapons }: WeaponSel
       )}
       <div className="text-center pt-24 pb-8 relative flex-shrink-0" style={{ zIndex: 10 }}>
         <h1 className="mb-4 text-white" style={{ fontSize: '40px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
+        
+        {loading && (
+          <div className="text-yellow-300 text-center font-bold text-2xl animate-pulse">
+            LOADING WEAPONS...
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto pb-8 relative weapons-scrollable" style={{ zIndex: 10, minHeight: 0 }}>

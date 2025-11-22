@@ -38,7 +38,7 @@ function AppContent() {
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(null);
   
   // Fetch weapons from blockchain
-  const { weapons: userWeapons, refetch: refetchWeapons } = useUserWeapons();
+  const { weapons: userWeapons, loading: weaponsLoading, refetch: refetchWeapons } = useUserWeapons();
   
   // Combine default weapons with user's NFT weapons
   const playerInventory = [...DEFAULT_WEAPONS, ...userWeapons];
@@ -88,6 +88,7 @@ function AppContent() {
             onSelectWeapon={handleWeaponSelect} 
             onBack={handleReturnToMenu}
             availableWeapons={playerInventory}
+            loading={weaponsLoading}
           />
         </div>
       )}
@@ -95,7 +96,11 @@ function AppContent() {
         <GameCanvas weapon={selectedWeapon} onReturnToMenu={handleReturnToMenu} />
       )}
       {currentScreen === 'inventory' && (
-        <Inventory onBack={handleReturnToMenu} playerInventory={playerInventory} />
+        <Inventory 
+          onBack={handleReturnToMenu} 
+          playerInventory={playerInventory} 
+          loading={weaponsLoading}
+        />
       )}
       {currentScreen === 'dailyChest' && (
         <DailyChest 

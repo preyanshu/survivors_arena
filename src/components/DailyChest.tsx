@@ -28,6 +28,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
   const [mintError, setMintError] = useState<string | null>(null);
+  const [feeRequired, setFeeRequired] = useState<number>(0);
 
   const handleBack = () => {
     setOpenedWeapon(null); // Reset opened weapon when going back
@@ -105,9 +106,32 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
             if (timeRemainingMs === 0) {
               setCanOpen(true);
               setTimeRemaining("NOW");
+              setFeeRequired(0);
             } else {
               setCanOpen(false);
               setTimeRemaining(formatTimeRemaining(timeRemainingMs));
+              
+              // Check fee if cooldown is active
+              const feeTx = new Transaction();
+              feeTx.moveCall({
+                target: `${PACKAGE_ID}::weapon_nft::get_required_fee`,
+                arguments: [
+                  feeTx.object(REGISTRY_ID),
+                  feeTx.pure.address(address),
+                  feeTx.object(CLOCK_ID)
+                ]
+              });
+              
+              const feeResult = await client.devInspectTransactionBlock({
+                transactionBlock: feeTx,
+                sender: address,
+              });
+              
+              if (feeResult.results && feeResult.results[0] && feeResult.results[0].returnValues) {
+                const feeBytes = Uint8Array.from(feeResult.results[0].returnValues[0][0]);
+                const feeMist = Number(new DataView(feeBytes.buffer).getBigUint64(0, true));
+                setFeeRequired(feeMist);
+              }
             }
           }
         }
@@ -130,8 +154,8 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
     return Array.from(new TextEncoder().encode(str));
   };
 
-  const handleOpenCrate = async () => {
-    if (!canOpen || isOpening) return;
+  const handleOpenCrate = async (payFee: boolean = false) => {
+    if ((!canOpen && !payFee) || isOpening) return;
     
     if (!connected) {
       setMintError("Please connect your OneChain wallet first!");
@@ -150,8 +174,15 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
       
       // Strategy: Split a tiny amount (or 0 if allowed, but split needs >0 usually) from gas
       // to create a dedicated payment coin. 
+      // If paying fee, split fee amount. If free, split 0 (or 1 mist as placeholder if 0 fails).
+      const amountToPay = payFee ? feeRequired : 0;
+      // Ensure at least 1 mist if amount is 0 to avoid potential issues with zero-value splits if any
+      // Although Move allows 0, splitCoins typically expects > 0 or handles 0 gracefully? 
+      // Let's pass 0 if free, but if it fails we might need 1.
+      // Actually, if free, we don't need to pay, but contract expects Coin<OCT>.
+      // Let's pass exactly what's needed.
       
-      const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure(bcs.u64().serialize(1000000))]); // 0.001 OCT placeholder
+      const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure(bcs.u64().serialize(amountToPay))]);
       
       const weaponTypeMap: Record<string, number> = {
         [WeaponType.PISTOL]: 0,
@@ -278,7 +309,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
                 )}
 
                 <button
-                  onClick={handleOpenCrate}
+                  onClick={() => handleOpenCrate(false)}
                   disabled={isOpening}
                   className="bg-green-700 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white border-4 border-white py-6 px-12 transition-all font-bold"
                   style={{ fontSize: '24px', imageRendering: 'pixelated' }}
@@ -300,6 +331,23 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
                   {!connected ? "CONNECT WALLET TO CHECK STATUS" : 
                    (timeRemaining ? `NEXT CHEST AVAILABLE IN: ${timeRemaining}` : "CHECKING STATUS...")}
                 </p>
+                
+                {feeRequired > 0 && (
+                  <div className="mt-4">
+                    <p className="text-white mb-2 text-sm">OR OPEN IMMEDIATELY</p>
+                    <button
+                      onClick={() => handleOpenCrate(true)}
+                      disabled={isOpening}
+                      className="bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white border-4 border-white py-4 px-8 transition-all font-bold"
+                      style={{ fontSize: '18px', imageRendering: 'pixelated' }}
+                    >
+                      {isOpening ? 'MINTING...' : `PAY ${(feeRequired / 1_000_000_000).toFixed(4)} OCT FEE`}
+                    </button>
+                    <p className="text-gray-400 text-xs mt-2">
+                      (1 OCT Base + {((feeRequired / 1_000_000_000) - 1).toFixed(4)} Time Fee)
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             <button
