@@ -58,32 +58,32 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
         style={{ imageRendering: 'pixelated' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-white text-center mb-6" style={{ fontSize: '20px' }}>
+        <h2 className="text-white text-center mb-6" style={{ fontSize: '32px' }}>
           {weapon.name.toUpperCase()}
         </h2>
 
         <div className="flex justify-center mb-6">
           <canvas
             ref={canvasRef}
-            width={150}
-            height={150}
+            width={180}
+            height={180}
             style={{ imageRendering: 'pixelated' }}
           />
         </div>
 
-        <div className="text-white mb-6" style={{ fontSize: '10px' }}>
-          <div className="mb-2">
-            <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300">{weapon.baseDamage}</span>
+        <div className="text-white mb-6" style={{ fontSize: '18px' }}>
+          <div className="mb-3">
+            <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300 ml-2">{weapon.baseDamage}</span>
           </div>
-          <div className="mb-2">
-            <span className="text-gray-300">COOLDOWN:</span> <span className="text-yellow-300">{weapon.cooldown}MS</span>
+          <div className="mb-3">
+            <span className="text-gray-300">COOLDOWN:</span> <span className="text-yellow-300 ml-2">{weapon.cooldown}MS</span>
           </div>
           {weapon.range && (
-            <div className="mb-2">
-              <span className="text-gray-300">RANGE:</span> <span className="text-yellow-300">{weapon.range}</span>
+            <div className="mb-3">
+              <span className="text-gray-300">RANGE:</span> <span className="text-yellow-300 ml-2">{weapon.range}</span>
             </div>
           )}
-          <div className="mt-4 text-gray-300" style={{ fontSize: '8px', lineHeight: '1.4' }}>
+          <div className="mt-6 text-gray-300" style={{ fontSize: '14px', lineHeight: '1.6' }}>
             {weapon.description.toUpperCase()}
           </div>
         </div>
@@ -91,15 +91,15 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
         <div className="flex gap-4 justify-center">
           <button
             onClick={onClose}
-            className="bg-gray-700 hover:bg-gray-600 text-white border-4 border-white py-3 px-6 transition-all"
-            style={{ fontSize: '10px', imageRendering: 'pixelated' }}
+            className="bg-gray-700 hover:bg-gray-600 text-white border-4 border-white py-4 px-8 transition-all"
+            style={{ fontSize: '16px', imageRendering: 'pixelated' }}
           >
             CANCEL
           </button>
           <button
             onClick={onConfirm}
-            className="bg-green-700 hover:bg-green-600 text-white border-4 border-white py-3 px-6 transition-all"
-            style={{ fontSize: '10px', imageRendering: 'pixelated' }}
+            className="bg-green-700 hover:bg-green-600 text-white border-4 border-white py-4 px-8 transition-all"
+            style={{ fontSize: '16px', imageRendering: 'pixelated' }}
           >
             CONFIRM
           </button>

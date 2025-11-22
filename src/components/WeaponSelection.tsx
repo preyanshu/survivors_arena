@@ -33,12 +33,12 @@ const WeaponSelection = ({ onSelectWeapon }: WeaponSelectionProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-      <div className="text-center pt-8 pb-6">
-        <h1 className="mb-4 text-white" style={{ fontSize: '28px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
+    <div className="min-h-screen bg-black text-white flex flex-col" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+      <div className="text-center pt-24 pb-8">
+        <h1 className="mb-4 text-white" style={{ fontSize: '40px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
       </div>
 
-      <div className="flex flex-wrap gap-4 justify-center max-w-6xl mx-auto px-4">
+      <div className="flex flex-wrap gap-6 justify-center max-w-6xl mx-auto px-4 flex-grow items-start">
         {WEAPONS.map((weapon) => (
           <WeaponCard
             key={weapon.type}
@@ -104,19 +104,19 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
   return (
     <button
       onClick={onClick}
-      className="bg-purple-900 hover:bg-purple-800 border-4 border-white p-4 w-32 h-32 transition-all flex flex-col items-center justify-center"
+      className="bg-purple-900 hover:bg-purple-800 border-4 border-white p-6 w-40 h-40 transition-all flex flex-col items-center justify-center"
       style={{ 
         imageRendering: 'pixelated'
       }}
     >
       <canvas
         ref={canvasRef}
-        width={80}
-        height={80}
+        width={100}
+        height={100}
         style={{ imageRendering: 'pixelated' }}
-        className="mb-2"
+        className="mb-3"
       />
-      <span className="text-white" style={{ fontSize: '8px' }}>
+      <span className="text-white" style={{ fontSize: '16px' }}>
         {weapon.name.toUpperCase()}
       </span>
     </button>
