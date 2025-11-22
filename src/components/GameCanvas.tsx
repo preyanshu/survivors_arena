@@ -535,13 +535,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
-      // Draw slash animations using GIF
+      // Draw slash animations using GIF (GIF will animate automatically when drawn)
       slashAnimationsRef.current.forEach((slash) => {
         const alpha = slash.life / slash.maxLife;
         const slashSprite = spriteManager.getSprite('slash_effect');
         
-        if (slashSprite && slashSprite.complete) {
-          // Draw the GIF animation
+        if (slashSprite) {
+          // Draw the GIF animation - browser handles animation automatically
+          // We redraw every frame so the GIF animation plays
           ctx.save();
           ctx.globalAlpha = alpha;
           ctx.translate(slash.position.x, slash.position.y);
@@ -552,7 +553,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           let drawWidth = slash.size * 1.5; // Make it bigger
           let drawHeight = drawWidth / spriteAspect;
           
-          // Center the sprite
+          // Draw the GIF - it will animate automatically as we redraw each frame
           ctx.drawImage(
             slashSprite,
             -drawWidth / 2,
