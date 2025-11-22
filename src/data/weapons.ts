@@ -5,7 +5,7 @@ export const WEAPONS: Weapon[] = [
     type: WeaponType.PISTOL,
     name: 'Pistol',
     description: 'Shoots single bullets with good accuracy',
-    baseDamage: 10,
+    baseDamage: 15,
     cooldown: 500,
     range: 400,
   },
