@@ -502,7 +502,6 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       // Draw slash animations
       slashAnimationsRef.current.forEach((slash) => {
         const alpha = slash.life / slash.maxLife;
-        const progress = 1 - slash.life;
         
         ctx.save();
         ctx.translate(slash.position.x, slash.position.y);
