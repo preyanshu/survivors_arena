@@ -136,7 +136,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     if (newProjectiles.length > 0) {
       projectilesRef.current.push(...newProjectiles);
       
-      // If sword attack, create slash animation at sword tip
+      // If sword attack, create slash animation at sword tip (extended for range)
       if (weapon.type === 'sword' && newProjectiles.length > 0) {
         const slashAngle = Math.atan2(worldMousePos.y - playerPosRef.current.y, worldMousePos.x - playerPosRef.current.x);
         
@@ -153,9 +153,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const swordTipX = swordX + Math.cos(slashAngle) * swordTipDistance;
         const swordTipY = swordY + Math.sin(slashAngle) * swordTipDistance;
         
+        // Extend further out from sword tip for attack range (add extra distance)
+        const attackRangeExtension = 40; // Extra distance for visual attack range
+        const slashX = swordTipX + Math.cos(slashAngle) * attackRangeExtension;
+        const slashY = swordTipY + Math.sin(slashAngle) * attackRangeExtension;
+        
         slashAnimationsRef.current.push({
           id: `slash-${Date.now()}-${Math.random()}`,
-          position: { x: swordTipX, y: swordTipY },
+          position: { x: slashX, y: slashY },
           angle: slashAngle, // Align with sword angle
           life: 1.0,
           maxLife: 1.0,
