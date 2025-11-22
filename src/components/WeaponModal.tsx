@@ -95,7 +95,7 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
             <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300 ml-2">{weapon.baseDamage}</span>
           </div>
           <div className="mb-3">
-            <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2">{calculateFirerate(weapon.cooldown).toFixed(2)}</span>
+            <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2">{calculateFirerate(weapon.cooldown).toFixed(5)}</span>
           </div>
           {weapon.range && (
             <div className="mb-3">

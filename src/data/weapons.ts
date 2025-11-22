@@ -18,6 +18,26 @@ const RARITY_MULTIPLIERS = {
   [WeaponRarity.LEGENDARY]: { damage: 2.2, cooldown: 0.75 }, // +120% damage, -25% cooldown
 };
 
+// Rarity drop weights (higher = more common)
+// Common is easiest, Legendary is hardest
+export const RARITY_WEIGHTS = {
+  [WeaponRarity.COMMON]: 50,      // 50% chance
+  [WeaponRarity.UNCOMMON]: 30,    // 30% chance
+  [WeaponRarity.RARE]: 12,        // 12% chance
+  [WeaponRarity.EPIC]: 6,         // 6% chance
+  [WeaponRarity.LEGENDARY]: 2,    // 2% chance
+};
+
+// Weapon type drop weights (higher = more common)
+// Sword is easiest, Rifle is hardest
+export const WEAPON_TYPE_WEIGHTS = {
+  [WeaponType.SWORD]: 40,           // 40% chance
+  [WeaponType.PISTOL]: 30,          // 30% chance
+  [WeaponType.SHOTGUN]: 15,         // 15% chance
+  [WeaponType.ASSAULT_RIFLE]: 10,   // 10% chance
+  [WeaponType.RIFLE]: 5,            // 5% chance
+};
+
 // Rarity names
 const RARITY_NAMES = {
   [WeaponRarity.COMMON]: 'Common',
@@ -129,4 +149,45 @@ export const getDefaultPlayerInventory = (): Weapon[] => {
 export const calculateFirerate = (cooldown: number): number => {
   if (cooldown <= 0) return 0;
   return 1000 / cooldown; // Convert milliseconds to shots per second
+};
+
+// Generate a weapon with randomized stats within the range for its type and rarity
+// Stats vary by ±10% to ±15% from base stats
+export const generateRandomWeaponStats = (weaponType: WeaponType, rarity: WeaponRarity): Weapon => {
+  const baseStats = BASE_STATS[weaponType];
+  const weaponName = WEAPON_TYPE_NAMES[weaponType];
+  const weaponDescription = WEAPON_DESCRIPTIONS[weaponType];
+  
+  if (!baseStats || !weaponName || !weaponDescription) {
+    // Fallback to a default weapon if something goes wrong
+    return WEAPONS.find(w => w.type === weaponType && w.rarity === rarity) || WEAPONS[0];
+  }
+  
+  const multipliers = RARITY_MULTIPLIERS[rarity];
+  
+  // Calculate base stats for this rarity
+  const baseDamage = baseStats.damage * multipliers.damage;
+  const baseCooldown = baseStats.cooldown * multipliers.cooldown;
+  
+  // Random variation: ±10% to ±15% (randomized per stat)
+  const damageVariation = 0.10 + (Math.random() * 0.05); // 10% to 15%
+  const cooldownVariation = 0.10 + (Math.random() * 0.05); // 10% to 15%
+  
+  // Randomize up or down
+  const damageMultiplier = 1 + (Math.random() < 0.5 ? -1 : 1) * damageVariation;
+  const cooldownMultiplier = 1 + (Math.random() < 0.5 ? -1 : 1) * cooldownVariation;
+  
+  // Calculate randomized stats with up to 5 decimal places
+  const randomizedDamage = Math.round((baseDamage * damageMultiplier) * 100000) / 100000;
+  const randomizedCooldown = Math.round((baseCooldown * cooldownMultiplier) * 100000) / 100000;
+  
+  return {
+    type: weaponType,
+    rarity: rarity,
+    name: `${RARITY_NAMES[rarity]} ${weaponName}`,
+    description: weaponDescription,
+    baseDamage: randomizedDamage,
+    cooldown: randomizedCooldown,
+    range: baseStats.range,
+  };
 };

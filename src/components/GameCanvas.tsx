@@ -494,7 +494,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       // Spawn health pickups periodically
       const healthPickupSpawnTime = Date.now();
-      const healthPickupSpawnInterval = 8000; // Spawn every 8 seconds
+      const healthPickupSpawnInterval = 15000; // Spawn every 15 seconds (reduced frequency)
       if (healthPickupSpawnTime - lastHealthPickupSpawnRef.current >= healthPickupSpawnInterval) {
         // Spawn health pickup at random position near player but not too close
         const spawnDistance = 300 + Math.random() * 400; // 300-700 units away
@@ -953,6 +953,86 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         ctx.restore();
       }
 
+      // Draw speed boost effect if active
+      if (isSpeedBoostActive) {
+        ctx.save();
+        ctx.translate(newPlayerPos.x, newPlayerPos.y);
+        
+        // Draw speed lines around player
+        const speedLineCount = 8;
+        const speedLineLength = PLAYER_SIZE * 0.6;
+        const speedLineRotation = Date.now() / 50; // Rotate quickly
+        
+        for (let i = 0; i < speedLineCount; i++) {
+          const angle = (i / speedLineCount) * Math.PI * 2 + speedLineRotation;
+          const startX = Math.cos(angle) * (PLAYER_SIZE * 0.6);
+          const startY = Math.sin(angle) * (PLAYER_SIZE * 0.6);
+          const endX = Math.cos(angle) * (PLAYER_SIZE * 0.6 + speedLineLength);
+          const endY = Math.sin(angle) * (PLAYER_SIZE * 0.6 + speedLineLength);
+          
+          ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
+          ctx.lineWidth = 3;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#00ffff';
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+        }
+        
+        ctx.restore();
+      }
+
+      // Draw damage boost effect if active
+      if (isDamageBoostActive) {
+        ctx.save();
+        ctx.translate(newPlayerPos.x, newPlayerPos.y);
+        
+        // Draw red glow around player
+        const damageGlowPulse = Math.sin(Date.now() / 150) * 0.15 + 1;
+        const damageGlowSize = PLAYER_SIZE * 1.2 * damageGlowPulse;
+        
+        const damageGradient = ctx.createRadialGradient(0, 0, PLAYER_SIZE * 0.5, 0, 0, damageGlowSize);
+        damageGradient.addColorStop(0, 'rgba(255, 0, 0, 0.6)');
+        damageGradient.addColorStop(0.5, 'rgba(255, 100, 0, 0.4)');
+        damageGradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+        
+        ctx.fillStyle = damageGradient;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(0, 0, damageGlowSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+      }
+
+      // Draw freeze effect if active (ice particles around player)
+      if (isFreezeActive) {
+        ctx.save();
+        ctx.translate(newPlayerPos.x, newPlayerPos.y);
+        
+        // Draw ice particles floating around player
+        const iceParticleCount = 12;
+        const iceParticleRadius = PLAYER_SIZE * 0.8;
+        const iceRotation = Date.now() / 300; // Slow rotation
+        
+        for (let i = 0; i < iceParticleCount; i++) {
+          const angle = (i / iceParticleCount) * Math.PI * 2 + iceRotation;
+          const particleX = Math.cos(angle) * iceParticleRadius;
+          const particleY = Math.sin(angle) * iceParticleRadius;
+          
+          ctx.fillStyle = 'rgba(173, 216, 230, 0.8)';
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#add8e6';
+          ctx.beginPath();
+          ctx.arc(particleX, particleY, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        ctx.restore();
+      }
+
       // Draw player sprite (no rotation - always facing same direction)
       spriteManager.drawSprite(
         ctx,
@@ -1133,11 +1213,13 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           const cooldownPercent = isOnCooldown ? (cooldownRemaining / abilityData.cooldown) * 100 : 0;
           const durationRemaining = isActive ? Math.max(0, ability.endTime - currentTime) : 0;
           const durationPercent = isActive ? (durationRemaining / abilityData.duration) * 100 : 0;
+          const secondsRemaining = Math.ceil(durationRemaining / 1000);
+          const showCountdown = isActive && secondsRemaining <= 3 && secondsRemaining > 0;
           
           return (
             <div
               key={ability.type}
-              className="border-4 border-white p-3 relative"
+              className="border-4 border-white p-4 relative"
               style={{
                 backgroundColor: isActive ? '#3a0000' : isOnCooldown ? '#1a0000' : '#5a0000',
                 imageRendering: 'pixelated',
@@ -1145,13 +1227,23 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               }}
             >
               <div className="text-center">
-                <div className="text-3xl mb-1">{abilityData.icon}</div>
-                <div className="text-white font-bold text-xs mb-1" style={{ fontSize: '10px' }}>
+                <div className="text-4xl mb-2">{abilityData.icon}</div>
+                <div className="text-white font-bold mb-2" style={{ fontSize: '16px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
                   [{index + 1}]
                 </div>
-                <div className="text-yellow-300 font-bold text-xs" style={{ fontSize: '10px' }}>
+                <div className="text-yellow-300 font-bold mb-1" style={{ fontSize: '14px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
                   {abilityData.name.toUpperCase()}
                 </div>
+                {isActive && !showCountdown && (
+                  <div className="text-cyan-300 font-bold" style={{ fontSize: '12px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                    ACTIVE
+                  </div>
+                )}
+                {showCountdown && (
+                  <div className="text-red-400 font-bold animate-pulse" style={{ fontSize: '24px', textShadow: '3px 3px 0px rgba(0,0,0,0.9)' }}>
+                    {secondsRemaining}
+                  </div>
+                )}
               </div>
               
               {/* Cooldown overlay */}
@@ -1160,7 +1252,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                   className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 flex items-center justify-center"
                   style={{ height: `${cooldownPercent}%` }}
                 >
-                  <span className="text-white font-bold text-xs">
+                  <span className="text-white font-bold" style={{ fontSize: '16px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
                     {Math.ceil(cooldownRemaining / 1000)}s
                   </span>
                 </div>

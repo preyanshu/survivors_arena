@@ -1,5 +1,5 @@
 import { Weapon, WeaponType, WeaponRarity } from '../types/game';
-import { WEAPONS, getDefaultPlayerInventory } from '../data/weapons';
+import { WEAPONS, getDefaultPlayerInventory, generateRandomWeaponStats, RARITY_WEIGHTS, WEAPON_TYPE_WEIGHTS } from '../data/weapons';
 
 const INVENTORY_KEY = 'player_inventory';
 const LAST_CRATE_OPEN_KEY = 'last_crate_open';
@@ -64,22 +64,82 @@ export const addWeaponToInventory = (weapon: Weapon, currentInventory: Weapon[])
   return newInventory;
 };
 
+// Weighted random selection helper
+const weightedRandom = <T>(items: T[], weights: number[]): T => {
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let random = Math.random() * totalWeight;
+  
+  for (let i = 0; i < items.length; i++) {
+    random -= weights[i];
+    if (random <= 0) {
+      return items[i];
+    }
+  }
+  
+  // Fallback to last item
+  return items[items.length - 1];
+};
+
 // Get a random weapon from all available weapons (excluding default ones)
+// Returns a weapon with randomized stats within the range for its type and rarity
+// Uses weighted random selection based on rarity and weapon type
 export const getRandomWeapon = (): Weapon => {
   const defaultInventory = getDefaultPlayerInventory();
   const defaultWeaponIds = defaultInventory.map(w => `${w.type}-${w.rarity}`);
   
-  // Get all weapons except the default ones
-  const availableWeapons = WEAPONS.filter(
-    weapon => !defaultWeaponIds.includes(`${weapon.type}-${weapon.rarity}`)
-  );
+  // Get all available weapon types (excluding default combinations)
+  const availableTypes: WeaponType[] = [];
+  const availableRarities: WeaponRarity[] = [];
   
-  if (availableWeapons.length === 0) {
-    // Fallback: return a random weapon from all weapons
-    return WEAPONS[Math.floor(Math.random() * WEAPONS.length)];
+  // Collect available types and rarities
+  WEAPONS.forEach(weapon => {
+    const weaponId = `${weapon.type}-${weapon.rarity}`;
+    if (!defaultWeaponIds.includes(weaponId)) {
+      if (!availableTypes.includes(weapon.type)) {
+        availableTypes.push(weapon.type);
+      }
+      if (!availableRarities.includes(weapon.rarity)) {
+        availableRarities.push(weapon.rarity);
+      }
+    }
+  });
+  
+  // If no available combinations, use all types and rarities
+  if (availableTypes.length === 0 || availableRarities.length === 0) {
+    const allTypes = [WeaponType.SWORD, WeaponType.PISTOL, WeaponType.SHOTGUN, WeaponType.ASSAULT_RIFLE, WeaponType.RIFLE];
+    const allRarities = Object.values(WeaponRarity);
+    
+    // Use weighted selection
+    const typeWeights = allTypes.map(type => WEAPON_TYPE_WEIGHTS[type] || 1);
+    const rarityWeights = allRarities.map(rarity => RARITY_WEIGHTS[rarity] || 1);
+    
+    const selectedType = weightedRandom(allTypes, typeWeights);
+    const selectedRarity = weightedRandom(allRarities, rarityWeights);
+    
+    return generateRandomWeaponStats(selectedType, selectedRarity);
   }
   
-  return availableWeapons[Math.floor(Math.random() * availableWeapons.length)];
+  // Filter weights for available types and rarities
+  const typeWeights = availableTypes.map(type => WEAPON_TYPE_WEIGHTS[type] || 1);
+  const rarityWeights = availableRarities.map(rarity => RARITY_WEIGHTS[rarity] || 1);
+  
+  // Use weighted random selection
+  const selectedType = weightedRandom(availableTypes, typeWeights);
+  const selectedRarity = weightedRandom(availableRarities, rarityWeights);
+  
+  // Verify the combination is not a default weapon
+  const selectedWeaponId = `${selectedType}-${selectedRarity}`;
+  if (defaultWeaponIds.includes(selectedWeaponId)) {
+    // If it's a default weapon, try again with a different rarity
+    const nonDefaultRarities = availableRarities.filter(r => `${selectedType}-${r}` !== selectedWeaponId);
+    if (nonDefaultRarities.length > 0) {
+      const rarityWeightsFiltered = nonDefaultRarities.map(r => RARITY_WEIGHTS[r] || 1);
+      const finalRarity = weightedRandom(nonDefaultRarities, rarityWeightsFiltered);
+      return generateRandomWeaponStats(selectedType, finalRarity);
+    }
+  }
+  
+  return generateRandomWeaponStats(selectedType, selectedRarity);
 };
 
 // Check if crate can be opened (24-hour cooldown)

@@ -93,7 +93,7 @@ const WeaponSelection = ({ onSelectWeapon, onBack, availableWeapons }: WeaponSel
       </div>
 
       <div className="flex-1 overflow-y-auto pb-8 relative weapons-scrollable" style={{ zIndex: 10, minHeight: 0 }}>
-        <div className="flex flex-wrap gap-6 justify-start max-w-6xl px-8">
+        <div className="grid grid-cols-4 justify-items-center max-w-6xl mx-auto px-8" style={{ gap: '1rem 0.25rem' }}>
           {availableWeapons.map((weapon) => (
             <WeaponCard
               key={`${weapon.type}-${weapon.rarity}`}

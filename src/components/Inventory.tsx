@@ -176,7 +176,7 @@ const Inventory = ({ onBack, playerInventory }: InventoryProps) => {
                   <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300 ml-2 font-bold">{selectedWeapon.baseDamage}</span>
                 </div>
                 <div className="mb-3 p-3 border-4 border-white" style={{ backgroundColor: '#3a0000' }}>
-                  <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2 font-bold">{calculateFirerate(selectedWeapon.cooldown).toFixed(2)}</span>
+                  <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2 font-bold">{calculateFirerate(selectedWeapon.cooldown).toFixed(5)}</span>
                 </div>
                 {selectedWeapon.range && (
                   <div className="mb-3 p-3 border-4 border-white" style={{ backgroundColor: '#3a0000' }}>

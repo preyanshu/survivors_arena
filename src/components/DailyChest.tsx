@@ -99,7 +99,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
               </div>
               <div className="text-white text-xs space-y-1">
                 <div>DAMAGE: <span className="text-yellow-300">{openedWeapon.baseDamage}</span></div>
-                <div>FIRERATE: <span className="text-yellow-300">{calculateFirerate(openedWeapon.cooldown).toFixed(2)}</span></div>
+                <div>FIRERATE: <span className="text-yellow-300">{calculateFirerate(openedWeapon.cooldown).toFixed(5)}</span></div>
                 {openedWeapon.range && (
                   <div>RANGE: <span className="text-yellow-300">{openedWeapon.range}</span></div>
                 )}
