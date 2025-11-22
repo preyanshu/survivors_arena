@@ -180,7 +180,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           const ctx = gifCanvas.getContext('2d');
           if (!ctx) return;
           
-          anim.animateInCanvas(gifCanvas, (frame: any) => {
+          anim.animateInCanvas(gifCanvas, () => {
             // Animation callback - frame is drawn automatically
           });
         });
