@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Weapon } from '../types/game';
-import { WEAPONS } from '../data/weapons';
+import { WEAPONS, getRarityColor, getRarityBorderColor } from '../data/weapons';
 import { spriteManager } from '../utils/spriteManager';
 import WeaponModal from './WeaponModal';
 
@@ -48,8 +48,23 @@ const WeaponSelection = ({ onSelectWeapon, onBack }: WeaponSelectionProps) => {
         .back-button:hover {
           background-color: #7a0000;
         }
+        .weapons-scrollable::-webkit-scrollbar {
+          width: 16px;
+        }
+        .weapons-scrollable::-webkit-scrollbar-track {
+          background: #1a0000;
+          border: 2px solid #3a0000;
+        }
+        .weapons-scrollable::-webkit-scrollbar-thumb {
+          background: #5a0000;
+          border: 2px solid #3a0000;
+          border-radius: 0;
+        }
+        .weapons-scrollable::-webkit-scrollbar-thumb:hover {
+          background: #7a0000;
+        }
       `}</style>
-      <div className="min-h-screen w-screen bg-black text-white flex flex-col relative" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+      <div className="h-screen w-screen bg-black text-white flex flex-col relative overflow-hidden" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
       {/* Background image */}
       <img
         src="/assets/sprites/image copy 3.png"
@@ -72,19 +87,21 @@ const WeaponSelection = ({ onSelectWeapon, onBack }: WeaponSelectionProps) => {
           ← BACK
         </button>
       )}
-      <div className="text-center pt-24 pb-8 relative" style={{ zIndex: 10 }}>
+      <div className="text-center pt-24 pb-8 relative flex-shrink-0" style={{ zIndex: 10 }}>
         <h1 className="mb-4 text-white" style={{ fontSize: '40px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
       </div>
 
-      <div className="flex flex-wrap gap-6 justify-center max-w-6xl mx-auto px-4 flex-grow items-start relative" style={{ zIndex: 10 }}>
-        {WEAPONS.map((weapon) => (
-          <WeaponCard
-            key={weapon.type}
-            weapon={weapon}
-            onClick={() => handleWeaponClick(weapon)}
-            spritesLoaded={spritesLoaded}
-          />
-        ))}
+      <div className="flex-1 overflow-y-auto px-4 pb-8 relative weapons-scrollable" style={{ zIndex: 10, minHeight: 0 }}>
+        <div className="flex flex-wrap gap-6 justify-center max-w-6xl mx-auto">
+          {WEAPONS.map((weapon) => (
+            <WeaponCard
+              key={`${weapon.type}-${weapon.rarity}`}
+              weapon={weapon}
+              onClick={() => handleWeaponClick(weapon)}
+              spritesLoaded={spritesLoaded}
+            />
+          ))}
+        </div>
       </div>
 
       <WeaponModal
@@ -140,12 +157,17 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
     }
   }, [weapon, spritesLoaded]);
 
+  const rarityColor = getRarityColor(weapon.rarity);
+  const rarityBorderColor = getRarityBorderColor(weapon.rarity);
+
   return (
     <button
       onClick={onClick}
-      className="border-4 border-white p-6 w-64 h-64 transition-all flex flex-col items-center justify-center weapon-card"
+      className="border-4 p-6 w-64 h-64 transition-all flex flex-col items-center justify-center weapon-card"
       style={{ 
-        imageRendering: 'pixelated'
+        imageRendering: 'pixelated',
+        backgroundColor: rarityColor,
+        borderColor: rarityBorderColor,
       }}
     >
       <canvas
@@ -155,7 +177,7 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
         style={{ imageRendering: 'pixelated' }}
         className="mb-3"
       />
-      <span className="text-white" style={{ fontSize: '16px' }}>
+      <span className="text-white font-bold" style={{ fontSize: '14px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
         {weapon.name.toUpperCase()}
       </span>
     </button>

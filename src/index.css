@@ -23,3 +23,34 @@ body {
   font-family: 'Pixelify Sans', sans-serif;
   font-size: 8px;
 }
+
+/* Custom scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a0000;
+  border: 2px solid #3a0000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #5a0000;
+  border: 2px solid #3a0000;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7a0000;
+}
+
+::-webkit-scrollbar-corner {
+  background: #1a0000;
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thick;
+  scrollbar-color: #5a0000 #1a0000;
+}

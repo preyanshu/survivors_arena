@@ -51,8 +51,17 @@ export enum WeaponType {
   RIFLE = 'rifle',
 }
 
+export enum WeaponRarity {
+  COMMON = 'common',
+  UNCOMMON = 'uncommon',
+  RARE = 'rare',
+  EPIC = 'epic',
+  LEGENDARY = 'legendary',
+}
+
 export interface Weapon {
   type: WeaponType;
+  rarity: WeaponRarity;
   name: string;
   description: string;
   baseDamage: number;

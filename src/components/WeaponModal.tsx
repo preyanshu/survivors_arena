@@ -1,6 +1,7 @@
 import { Weapon } from '../types/game';
 import { spriteManager } from '../utils/spriteManager';
 import { useEffect, useRef } from 'react';
+import { getRarityColor, getRarityBorderColor } from '../data/weapons';
 
 interface WeaponModalProps {
   weapon: Weapon | null;
@@ -54,13 +55,31 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
       onClick={onClose}
     >
       <div 
-        className="border-4 border-white p-8 max-w-lg"
-        style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated' }}
+        className="border-4 p-8 max-w-lg"
+        style={{ 
+          backgroundColor: getRarityColor(weapon.rarity), 
+          borderColor: getRarityBorderColor(weapon.rarity),
+          imageRendering: 'pixelated' 
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-white text-center mb-6" style={{ fontSize: '32px' }}>
+        <h2 className="text-white text-center mb-2" style={{ fontSize: '32px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
           {weapon.name.toUpperCase()}
         </h2>
+        <div className="text-center mb-6">
+          <span 
+            className="font-bold px-4 py-2 border-2 inline-block"
+            style={{
+              fontSize: '14px',
+              backgroundColor: getRarityColor(weapon.rarity),
+              borderColor: getRarityBorderColor(weapon.rarity),
+              color: '#ffffff',
+              textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
+            }}
+          >
+            {weapon.rarity.toUpperCase()}
+          </span>
+        </div>
 
         <div className="flex justify-center mb-6">
           <canvas

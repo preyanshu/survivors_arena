@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Weapon } from '../types/game';
-import { WEAPONS } from '../data/weapons';
+import { WEAPONS, getRarityColor, getRarityBorderColor } from '../data/weapons';
 import { spriteManager } from '../utils/spriteManager';
 
 interface InventoryProps {
@@ -70,6 +70,21 @@ const Inventory = ({ onBack }: InventoryProps) => {
         .back-button:hover {
           background-color: #7a0000;
         }
+        .weapons-scrollable::-webkit-scrollbar {
+          width: 16px;
+        }
+        .weapons-scrollable::-webkit-scrollbar-track {
+          background: #1a0000;
+          border: 2px solid #3a0000;
+        }
+        .weapons-scrollable::-webkit-scrollbar-thumb {
+          background: #5a0000;
+          border: 2px solid #3a0000;
+          border-radius: 0;
+        }
+        .weapons-scrollable::-webkit-scrollbar-thumb:hover {
+          background: #7a0000;
+        }
       `}</style>
       <div className="h-screen w-screen bg-black text-white flex overflow-hidden relative" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
         {/* Background image */}
@@ -94,35 +109,57 @@ const Inventory = ({ onBack }: InventoryProps) => {
         </button>
 
         {/* Left side - Weapon list */}
-        <div className="w-1/3 p-8 pt-20 border-r-4 border-white overflow-y-auto flex-shrink-0 relative" style={{ zIndex: 10 }}>
+        <div className="w-1/3 p-8 pt-20 border-r-4 border-white overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
           <h1 className="text-white mb-8 text-center font-bold" style={{ fontSize: '32px' }}>INVENTORY</h1>
           <div className="flex flex-col gap-4">
-            {WEAPONS.map((weapon) => (
-              <button
-                key={weapon.type}
-                onClick={() => setSelectedWeapon(weapon)}
-                className={`border-4 border-white p-4 text-left transition-all weapon-list-item ${
-                  selectedWeapon?.type === weapon.type ? 'selected' : ''
-                }`}
-                style={{ 
-                  imageRendering: 'pixelated'
-                }}
-              >
-                <span className="text-white font-bold" style={{ fontSize: '20px' }}>
-                  {weapon.name.toUpperCase()}
-                </span>
-              </button>
-            ))}
+            {WEAPONS.map((weapon) => {
+              const rarityColor = getRarityColor(weapon.rarity);
+              const rarityBorderColor = getRarityBorderColor(weapon.rarity);
+              const isSelected = selectedWeapon?.type === weapon.type && selectedWeapon?.rarity === weapon.rarity;
+              
+              return (
+                <button
+                  key={`${weapon.type}-${weapon.rarity}`}
+                  onClick={() => setSelectedWeapon(weapon)}
+                  className={`border-4 p-4 text-left transition-all weapon-list-item ${
+                    isSelected ? 'selected' : ''
+                  }`}
+                  style={{ 
+                    imageRendering: 'pixelated',
+                    backgroundColor: isSelected ? rarityColor : '#5a0000',
+                    borderColor: rarityBorderColor,
+                  }}
+                >
+                  <span className="text-white font-bold" style={{ fontSize: '20px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                    {weapon.name.toUpperCase()}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Right side - Weapon details */}
-        <div className="w-2/3 p-6 pt-20 flex flex-col items-center justify-start overflow-y-auto flex-shrink-0 relative" style={{ zIndex: 10 }}>
+        <div className="w-2/3 p-6 pt-20 flex flex-col items-center justify-start overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
           {selectedWeapon ? (
             <>
-              <h2 className="text-white mb-4 font-bold text-center" style={{ fontSize: '32px' }}>
+              <h2 className="text-white mb-4 font-bold text-center" style={{ fontSize: '32px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
                 {selectedWeapon.name.toUpperCase()}
               </h2>
+              <div className="mb-2 text-center">
+                <span 
+                  className="font-bold px-4 py-2 border-2 inline-block"
+                  style={{
+                    fontSize: '14px',
+                    backgroundColor: getRarityColor(selectedWeapon.rarity),
+                    borderColor: getRarityBorderColor(selectedWeapon.rarity),
+                    color: '#ffffff',
+                    textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
+                  }}
+                >
+                  {selectedWeapon.rarity.toUpperCase()}
+                </span>
+              </div>
 
               <div className="flex justify-center mb-6">
                 <canvas
