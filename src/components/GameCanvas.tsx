@@ -481,10 +481,15 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       // Offset weapon slightly to the right to look like player is holding it
       const gunAngle = Math.atan2(worldMouseY - newPlayerPos.y, worldMouseX - newPlayerPos.x);
       
-      // Rifle is bigger than other weapons
-      const gunSize = weapon.type === 'rifle' 
-        ? PLAYER_SIZE * 0.9  // Rifle is 90% of player size (bigger)
-        : PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
+      // Different sizes for different weapons
+      let gunSize: number;
+      if (weapon.type === 'rifle') {
+        gunSize = PLAYER_SIZE * 0.9; // Rifle is 90% of player size (bigger)
+      } else if (weapon.type === 'pistol') {
+        gunSize = PLAYER_SIZE * 0.55; // Pistol is 55% of player size (smaller)
+      } else {
+        gunSize = PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
+      }
       
       const gunOffsetX = Math.cos(gunAngle) * (PLAYER_SIZE * 0.1); // Offset along weapon direction
       const gunOffsetY = Math.sin(gunAngle) * (PLAYER_SIZE * 0.1);
