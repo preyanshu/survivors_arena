@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle } from '../types/game';
+import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation } from '../types/game';
 import { WeaponManager } from '../managers/WeaponManager';
 import { EnemyManager } from '../managers/EnemyManager';
 import { WaveManager } from '../managers/WaveManager';
