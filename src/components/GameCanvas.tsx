@@ -499,37 +499,53 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
-      // Draw slash animations
+      // Draw slash animations using GIF
       slashAnimationsRef.current.forEach((slash) => {
         const alpha = slash.life / slash.maxLife;
+        const slashSprite = spriteManager.getSprite('slash_effect');
         
-        ctx.save();
-        ctx.translate(slash.position.x, slash.position.y);
-        ctx.rotate(slash.angle);
-        
-        // Draw slash arc
-        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
-        ctx.lineWidth = 8 * alpha;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-        
-        // Draw curved slash line
-        ctx.beginPath();
-        const arcStart = -Math.PI / 3;
-        const arcEnd = Math.PI / 3;
-        const arcRadius = slash.size * 0.6;
-        ctx.arc(0, 0, arcRadius, arcStart, arcEnd, false);
-        ctx.stroke();
-        
-        // Draw inner bright line
-        ctx.strokeStyle = `rgba(255, 255, 200, ${alpha})`;
-        ctx.lineWidth = 4 * alpha;
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(0, 0, arcRadius * 0.8, arcStart, arcEnd, false);
-        ctx.stroke();
-        
-        ctx.restore();
+        if (slashSprite) {
+          // Draw the GIF animation
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.translate(slash.position.x, slash.position.y);
+          ctx.rotate(slash.angle);
+          
+          // Calculate size to maintain aspect ratio
+          const spriteAspect = slashSprite.width / slashSprite.height;
+          let drawWidth = slash.size;
+          let drawHeight = slash.size / spriteAspect;
+          
+          // Center the sprite
+          ctx.drawImage(
+            slashSprite,
+            -drawWidth / 2,
+            -drawHeight / 2,
+            drawWidth,
+            drawHeight
+          );
+          
+          ctx.restore();
+        } else {
+          // Fallback to canvas-drawn arc if GIF not loaded
+          ctx.save();
+          ctx.translate(slash.position.x, slash.position.y);
+          ctx.rotate(slash.angle);
+          
+          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+          ctx.lineWidth = 8 * alpha;
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+          
+          ctx.beginPath();
+          const arcStart = -Math.PI / 3;
+          const arcEnd = Math.PI / 3;
+          const arcRadius = slash.size * 0.6;
+          ctx.arc(0, 0, arcRadius, arcStart, arcEnd, false);
+          ctx.stroke();
+          
+          ctx.restore();
+        }
       });
 
       // Draw blood particles
