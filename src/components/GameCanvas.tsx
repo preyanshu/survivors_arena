@@ -98,8 +98,26 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       y: mousePos.y + cameraOffsetY,
     };
 
+    // Calculate gun barrel position (end of gun where bullets spawn)
+    const gunAngle = Math.atan2(worldMousePos.y - playerPosRef.current.y, worldMousePos.x - playerPosRef.current.x);
+    const gunSize = weapon.type === 'rifle' 
+      ? PLAYER_SIZE * 0.9  // Rifle is 90% of player size (bigger)
+      : PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
+    
+    const gunOffsetX = Math.cos(gunAngle) * (PLAYER_SIZE * 0.1); // Offset along weapon direction
+    const gunOffsetY = Math.sin(gunAngle) * (PLAYER_SIZE * 0.1);
+    const gunX = playerPosRef.current.x + gunOffsetX + (PLAYER_SIZE * 0.03); // Very small right offset
+    const gunY = playerPosRef.current.y + gunOffsetY;
+    
+    // Calculate barrel tip position (end of gun sprite)
+    const barrelLength = gunSize * 0.5; // Barrel extends about half the gun size forward
+    const gunBarrelPos = {
+      x: gunX + Math.cos(gunAngle) * barrelLength,
+      y: gunY + Math.sin(gunAngle) * barrelLength,
+    };
+
     const newProjectiles = weaponManagerRef.current.attack(
-      playerPosRef.current,
+      gunBarrelPos, // Use gun barrel position instead of player position
       worldMousePos,
       playerStatsRef.current,
       Date.now()
