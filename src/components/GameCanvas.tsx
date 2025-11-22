@@ -153,10 +153,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const swordTipX = swordX + Math.cos(slashAngle) * swordTipDistance;
         const swordTipY = swordY + Math.sin(slashAngle) * swordTipDistance;
         
-        // Extend further out from sword tip for attack range (add extra distance)
-        const attackRangeExtension = 40; // Extra distance for visual attack range
-        const slashX = swordTipX + Math.cos(slashAngle) * attackRangeExtension;
-        const slashY = swordTipY + Math.sin(slashAngle) * attackRangeExtension;
+        // Add distance between sword tip and slash animation (gap for visual effect)
+        const gapDistance = 60; // Distance between sword tip and animation
+        const slashX = swordTipX + Math.cos(slashAngle) * gapDistance;
+        const slashY = swordTipY + Math.sin(slashAngle) * gapDistance;
         
         slashAnimationsRef.current.push({
           id: `slash-${Date.now()}-${Math.random()}`,
