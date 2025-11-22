@@ -1,4 +1,4 @@
-import { Crosshair, Zap, Sword, Scissors, Target, Gauge } from 'lucide-react';
+import { Crosshair, Zap, Sword, Target, Gauge } from 'lucide-react';
 import { Weapon } from '../types/game';
 import { WEAPONS } from '../data/weapons';
 
