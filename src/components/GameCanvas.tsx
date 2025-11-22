@@ -160,14 +160,32 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const slashX = swordTipX + Math.cos(slashAngle) * gapDistance;
         const slashY = swordTipY + Math.sin(slashAngle) * gapDistance;
         
-        slashAnimationsRef.current.push({
+        // Create canvas for animated GIF
+        const gifCanvas = document.createElement('canvas');
+        gifCanvas.width = 200;
+        gifCanvas.height = 200;
+        
+        const slashAnimation: SlashAnimation = {
           id: `slash-${Date.now()}-${Math.random()}`,
           position: { x: slashX, y: slashY },
           angle: slashAngle, // Align with sword angle
           life: 1.0,
           maxLife: 1.0,
           size: 120, // Size for the GIF
+          gifCanvas: gifCanvas,
+        };
+        
+        // Load and animate GIF using gifler
+        gifler('/assets/sprites/Slash_Attack_2D_Game_FX_Animation.gif').get((anim: any) => {
+          const ctx = gifCanvas.getContext('2d');
+          if (!ctx) return;
+          
+          anim.animateInCanvas(gifCanvas, (frame: any) => {
+            // Animation callback - frame is drawn automatically
+          });
         });
+        
+        slashAnimationsRef.current.push(slashAnimation);
         
         // Track sword attack for animation
         swordAttackAngleRef.current = slashAngle;
@@ -537,27 +555,24 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
-      // Draw slash animations using GIF (GIF will animate automatically when drawn)
+      // Draw slash animations using animated GIF canvas
       slashAnimationsRef.current.forEach((slash) => {
         const alpha = slash.life / slash.maxLife;
-        const slashSprite = spriteManager.getSprite('slash_effect');
         
-        if (slashSprite) {
-          // Draw the GIF animation - browser handles animation automatically
-          // We redraw every frame so the GIF animation plays
+        if (slash.gifCanvas) {
+          // Draw the animated GIF canvas
           ctx.save();
           ctx.globalAlpha = alpha;
           ctx.translate(slash.position.x, slash.position.y);
           ctx.rotate(slash.angle);
           
-          // Calculate size to maintain aspect ratio - make it bigger for visibility
-          const spriteAspect = slashSprite.width / slashSprite.height;
-          let drawWidth = slash.size * 1.5; // Make it bigger
-          let drawHeight = drawWidth / spriteAspect;
+          // Calculate size to maintain aspect ratio
+          const drawWidth = slash.size * 1.5;
+          const drawHeight = drawWidth;
           
-          // Draw the GIF - it will animate automatically as we redraw each frame
+          // Draw the animated GIF canvas
           ctx.drawImage(
-            slashSprite,
+            slash.gifCanvas,
             -drawWidth / 2,
             -drawHeight / 2,
             drawWidth,
