@@ -462,7 +462,12 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       // Draw weapon sprite that rotates with mouse aim
       // Offset weapon slightly to the right to look like player is holding it
       const gunAngle = Math.atan2(worldMouseY - newPlayerPos.y, worldMouseX - newPlayerPos.x);
-      const gunSize = PLAYER_SIZE * 0.7; // Weapon is 70% of player size (increased)
+      
+      // Rifle is bigger than other weapons
+      const gunSize = weapon.type === 'rifle' 
+        ? PLAYER_SIZE * 0.9  // Rifle is 90% of player size (bigger)
+        : PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
+      
       const gunOffsetX = Math.cos(gunAngle) * (PLAYER_SIZE * 0.1); // Offset along weapon direction
       const gunOffsetY = Math.sin(gunAngle) * (PLAYER_SIZE * 0.1);
       const gunX = newPlayerPos.x + gunOffsetX + (PLAYER_SIZE * 0.03); // Very small right offset
