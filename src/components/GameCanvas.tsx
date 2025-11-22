@@ -136,18 +136,30 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     if (newProjectiles.length > 0) {
       projectilesRef.current.push(...newProjectiles);
       
-      // If sword attack, create slash animation
+      // If sword attack, create slash animation at sword tip
       if (weapon.type === 'sword' && newProjectiles.length > 0) {
-        const slashProj = newProjectiles[0];
         const slashAngle = Math.atan2(worldMousePos.y - playerPosRef.current.y, worldMousePos.x - playerPosRef.current.x);
+        
+        // Calculate sword position (same as in rendering)
+        const swordSize = PLAYER_SIZE * 0.7;
+        const swordOffsetX = Math.cos(slashAngle) * (PLAYER_SIZE * 0.1);
+        const swordOffsetY = Math.sin(slashAngle) * (PLAYER_SIZE * 0.1);
+        const swordX = playerPosRef.current.x + swordOffsetX + (PLAYER_SIZE * 0.03);
+        const swordY = playerPosRef.current.y + swordOffsetY;
+        
+        // Calculate sword tip position (at the end of the sword sprite)
+        // The sprite is drawn centered, so tip is at half the sword size forward
+        const swordTipDistance = swordSize * 0.5;
+        const swordTipX = swordX + Math.cos(slashAngle) * swordTipDistance;
+        const swordTipY = swordY + Math.sin(slashAngle) * swordTipDistance;
         
         slashAnimationsRef.current.push({
           id: `slash-${Date.now()}-${Math.random()}`,
-          position: slashProj.position,
-          angle: slashAngle,
+          position: { x: swordTipX, y: swordTipY },
+          angle: slashAngle, // Align with sword angle
           life: 1.0,
           maxLife: 1.0,
-          size: slashProj.size,
+          size: 120, // Size for the GIF
         });
         
         // Track sword attack for animation
