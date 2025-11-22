@@ -326,7 +326,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           }
         });
 
-        // Instant melee attacks (like knife) disappear immediately after collision check
+        // Instant melee attacks disappear immediately after collision check
         if (proj.isInstant) {
           return; // Don't add to remaining projectiles - disappears after one frame
         }

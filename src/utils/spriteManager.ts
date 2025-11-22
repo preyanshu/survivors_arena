@@ -12,7 +12,6 @@ export class SpriteManager {
       weapon_pistol: '/assets/sprites/weapon_pistol.png',
       weapon_shotgun: '/assets/sprites/weapon_shotgun.png',
       weapon_sword: '/assets/sprites/weapon_sword.png',
-      weapon_knife: '/assets/sprites/weapon_knife.png',
       weapon_assault_rifle: '/assets/sprites/weapon_assault_rifle.png',
       weapon_rifle: '/assets/sprites/weapon_rifle.png',
       enemy: '/assets/sprites/enemy.png',
@@ -140,20 +139,6 @@ export class SpriteManager {
         ctx.fillRect(28, 8, 8, 6);
         // Handle
         ctx.fillRect(30, 40, 4, 8);
-        break;
-      case 'weapon_knife':
-        // Create a knife shape
-        ctx.fillStyle = '#C0C0C0';
-        // Blade (triangle)
-        ctx.beginPath();
-        ctx.moveTo(30, 15);
-        ctx.lineTo(34, 15);
-        ctx.lineTo(32, 40);
-        ctx.closePath();
-        ctx.fill();
-        // Handle
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(30, 38, 4, 6);
         break;
       case 'weapon_assault_rifle':
         // Create an assault rifle shape

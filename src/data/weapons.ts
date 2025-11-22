@@ -26,14 +26,6 @@ export const WEAPONS: Weapon[] = [
     range: 60,
   },
   {
-    type: WeaponType.KNIFE,
-    name: 'Knife',
-    description: 'Close-range melee weapon with very high damage',
-    baseDamage: 35,
-    cooldown: 300,
-    range: 40,
-  },
-  {
     type: WeaponType.ASSAULT_RIFLE,
     name: 'Assault Rifle',
     description: 'Fast-firing automatic weapon with good damage',

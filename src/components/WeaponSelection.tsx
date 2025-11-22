@@ -15,8 +15,6 @@ const WeaponSelection = ({ onSelectWeapon }: WeaponSelectionProps) => {
         return <Zap className="w-16 h-16" />;
       case 'sword':
         return <Sword className="w-16 h-16" />;
-      case 'knife':
-        return <Scissors className="w-16 h-16" />;
       case 'assault_rifle':
         return <Target className="w-16 h-16" />;
       case 'rifle':

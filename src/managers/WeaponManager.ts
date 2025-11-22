@@ -43,9 +43,6 @@ export class WeaponManager {
       case WeaponType.SWORD:
         return this.createSwordSlash(playerPos, direction, damage, playerStats);
 
-      case WeaponType.KNIFE:
-        return this.createKnifeStab(playerPos, direction, damage, playerStats);
-
       case WeaponType.ASSAULT_RIFLE:
         return this.createAssaultRifleProjectile(playerPos, direction, damage, playerStats);
 
@@ -121,25 +118,6 @@ export class WeaponManager {
         size: 80 * playerStats.projectileSize, // Large hitbox for slash arc
         piercing: true, // Can hit multiple enemies
         isInstant: true, // Disappears immediately after collision check
-      },
-    ];
-  }
-
-  private createKnifeStab(
-    position: Position,
-    direction: Position,
-    damage: number,
-    playerStats: PlayerStats
-  ): Projectile[] {
-    // Instant melee slash: positioned at player, zero velocity, disappears immediately after collision check
-    return [
-      {
-        id: generateId(),
-        position: { ...position }, // Right at player position
-        velocity: { x: 0, y: 0 }, // Zero velocity - doesn't move
-        damage,
-        size: 50 * playerStats.projectileSize, // Large size to hit enemies touching the player
-        isInstant: true, // Mark as instant melee - disappears after one frame
       },
     ];
   }
