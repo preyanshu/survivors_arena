@@ -1,4 +1,5 @@
 import { PlayerStats } from '../types/game';
+import { PixelIcon } from '../utils/pixelIcons';
 
 interface GameUIProps {
   playerStats: PlayerStats;
@@ -15,8 +16,9 @@ const GameUI = ({ playerStats, wave, enemiesRemaining, enemiesKilled, targetEnem
     <div className="fixed top-0 left-0 right-0 p-4 pointer-events-none z-10" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
       <div className="max-w-7xl mx-auto flex justify-between items-start gap-4">
         <div className="bg-opacity-95 p-6 border-4 border-white shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated' }}>
-          <div className="text-white mb-3 font-bold" style={{ fontSize: '20px' }}>
-            HP: {Math.ceil(playerStats.health)}/{playerStats.maxHealth}
+          <div className="flex items-center gap-3 text-white mb-3 font-bold" style={{ fontSize: '20px' }}>
+            <PixelIcon name="heart" size={28} />
+            <span>HP: {Math.ceil(playerStats.health)}/{playerStats.maxHealth}</span>
           </div>
           <div className="w-64 h-8 bg-gray-800 border-4 border-gray-600 overflow-hidden shadow-inner" style={{ imageRendering: 'pixelated' }}>
             <div
@@ -31,13 +33,18 @@ const GameUI = ({ playerStats, wave, enemiesRemaining, enemiesKilled, targetEnem
         </div>
 
         <div className="bg-opacity-95 p-6 border-4 border-white text-center shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated' }}>
-          <div className="text-yellow-300 mb-3 font-bold" style={{ fontSize: '24px' }}>WAVE {wave}</div>
+          <div className="flex items-center justify-center gap-2 text-yellow-300 mb-3 font-bold" style={{ fontSize: '24px' }}>
+            <PixelIcon name="star" size={28} />
+            <span>WAVE {wave}</span>
+          </div>
           <div className="flex flex-col gap-2 text-white">
-            <div className="font-bold" style={{ fontSize: '16px' }}>
-              {enemiesRemaining} REMAINING
+            <div className="flex items-center justify-center gap-2 font-bold" style={{ fontSize: '16px' }}>
+              <PixelIcon name="circle-notch" size={20} />
+              <span>{enemiesRemaining} REMAINING</span>
             </div>
-            <div className="font-bold" style={{ fontSize: '16px' }}>
-              {enemiesKilled}/{targetEnemies} KILLED
+            <div className="flex items-center justify-center gap-2 font-bold" style={{ fontSize: '16px' }}>
+              <PixelIcon name="bolt" size={20} />
+              <span>{enemiesKilled}/{targetEnemies} KILLED</span>
             </div>
           </div>
         </div>
