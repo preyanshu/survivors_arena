@@ -4,11 +4,12 @@ import WeaponSelection from './components/WeaponSelection';
 import GameCanvas from './components/GameCanvas';
 import Inventory from './components/Inventory';
 import DailyChest from './components/DailyChest';
+import Achievements from './components/Achievements';
 import { Weapon, WeaponType, WeaponRarity } from './types/game';
 import { WalletProvider } from './contexts/WalletContext';
 import { useUserWeapons } from './hooks/useUserWeapons';
 
-type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest';
+type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest' | 'achievements';
 
 const DEFAULT_WEAPONS: Weapon[] = [
   {
@@ -56,6 +57,10 @@ function AppContent() {
     setCurrentScreen('dailyChest');
   };
 
+  const handleAchievements = () => {
+    setCurrentScreen('achievements');
+  };
+
   const handleWeaponSelect = (weapon: Weapon) => {
     setSelectedWeapon(weapon);
     setCurrentScreen('game');
@@ -66,7 +71,7 @@ function AppContent() {
     setSelectedWeapon(null);
   };
 
-  const handleWeaponObtained = (weapon: Weapon) => {
+  const handleWeaponObtained = (_weapon: Weapon) => {
     // We don't need to manually update state anymore, just refetch
     // But refetch might be async, so we can optimistically update if we want
     // For now, just triggering refetch is safer
@@ -80,6 +85,7 @@ function AppContent() {
           onPlay={handlePlay}
           onInventory={handleInventory}
           onDailyChest={handleDailyChest}
+          onAchievements={handleAchievements}
         />
       )}
       {currentScreen === 'weaponSelection' && (
@@ -106,6 +112,11 @@ function AppContent() {
         <DailyChest 
           onBack={handleReturnToMenu}
           onWeaponObtained={handleWeaponObtained}
+        />
+      )}
+      {currentScreen === 'achievements' && (
+        <Achievements 
+          onBack={handleReturnToMenu}
         />
       )}
     </div>

@@ -6,9 +6,10 @@ interface MainMenuProps {
   onPlay: () => void;
   onInventory: () => void;
   onDailyChest: () => void;
+  onAchievements: () => void;
 }
 
-const MainMenu = ({ onPlay, onInventory, onDailyChest }: MainMenuProps) => {
+const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMenuProps) => {
   const { connected, address, connect, disconnect, installWallet, isWalletInstalled, isCorrectChain, chainId, checkChain } = useOneWallet();
   const [showWalletWarning, setShowWalletWarning] = useState(false);
   const [showChainWarning, setShowChainWarning] = useState(false);
@@ -131,16 +132,41 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest }: MainMenuProps) => {
       
       {/* Menu buttons on the left side */}
       <div className="absolute left-48 top-6 bottom-0 flex flex-col gap-6 justify-center px-12 z-10">
-        <button
-          onClick={() => handleMenuClick(onPlay)}
-          className="border-4 border-white py-6 px-12 text-white transition-all w-80 font-bold menu-button"
-          style={{ 
-            fontSize: '24px',
-            imageRendering: 'pixelated'
-          }}
-        >
-          PLAY
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => handleMenuClick(onPlay)}
+            className="border-4 border-white py-6 px-12 text-white transition-all w-80 font-bold menu-button"
+            style={{ 
+              fontSize: '24px',
+              imageRendering: 'pixelated'
+            }}
+          >
+            PLAY
+          </button>
+          
+          {/* Trophy icon button - positioned to the right, slightly upward */}
+          <button
+            onClick={onAchievements}
+            className="absolute -right-20 -top-4 text-yellow-400 hover:text-yellow-200 hover:scale-110 transition-all p-2 text-6xl cursor-pointer"
+            style={{ 
+              background: 'transparent',
+              border: 'none',
+              fontSize: '60px',
+              lineHeight: '1',
+              transform: 'scale(1)',
+              filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.5))'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.filter = 'drop-shadow(4px 4px 0px rgba(0,0,0,0.5)) brightness(1.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.filter = 'drop-shadow(2px 2px 0px rgba(0,0,0,0.5))';
+            }}
+            title="Achievements"
+          >
+            🏆
+          </button>
+        </div>
 
         <button
           onClick={() => handleMenuClick(onInventory)}
