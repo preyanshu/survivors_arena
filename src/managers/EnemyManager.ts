@@ -27,7 +27,7 @@ export class EnemyManager {
     // Much harder difficulty: more enemies, stronger stats
     this.targetEnemyCount = Math.min(12 + wave * 6, 80);
     this.waveBaseHealth = 40 + wave * 10;
-    this.waveBaseSpeed = 2.0 + wave * 0.25; // Much faster enemies
+    this.waveBaseSpeed = 2.3 + wave * 0.25; // Much faster enemies (increased base speed)
     this.waveBaseDamage = 15 + wave * 5; // Much more damage
 
     // Spawn first few enemies immediately to start the wave
