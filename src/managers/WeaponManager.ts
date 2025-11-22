@@ -82,7 +82,7 @@ export class WeaponManager {
     playerStats: PlayerStats
   ): Projectile[] {
     const speed = 7;
-    const spreadAngle = Math.PI / 12; // Reduced spread (was Math.PI / 8)
+    const spreadAngle = Math.PI / 24; // Reduced spread (was Math.PI / 8)
     const projectiles: Projectile[] = [];
 
     for (let i = -1; i <= 1; i++) {
@@ -107,15 +107,20 @@ export class WeaponManager {
     damage: number,
     playerStats: PlayerStats
   ): Projectile[] {
-    const speed = 12;
+    // Melee slash attack - positioned in front of player, instant hit, disappears after one frame
+    const slashDistance = 60; // Distance in front of player
     return [
       {
         id: generateId(),
-        position: { x: position.x + direction.x * 20, y: position.y + direction.y * 20 },
-        velocity: { x: direction.x * speed, y: direction.y * speed },
+        position: { 
+          x: position.x + direction.x * slashDistance, 
+          y: position.y + direction.y * slashDistance 
+        },
+        velocity: { x: 0, y: 0 }, // Zero velocity - doesn't move (instant slash)
         damage,
-        size: 30 * playerStats.projectileSize,
-        piercing: true,
+        size: 80 * playerStats.projectileSize, // Large hitbox for slash arc
+        piercing: true, // Can hit multiple enemies
+        isInstant: true, // Disappears immediately after collision check
       },
     ];
   }
