@@ -135,3 +135,13 @@ export interface ActiveAbilityState {
   endTime: number; // When the ability ends
   cooldownEndTime: number; // When cooldown ends
 }
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  waveRequirement: number;
+  unlocked: boolean;
+  image: string; // URL for the achievement image/NFT
+  nftImage?: string; // Placeholder for future NFT image URL
+}

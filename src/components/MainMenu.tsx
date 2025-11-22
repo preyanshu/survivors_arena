@@ -202,6 +202,35 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMen
         </button>
       </div>
 
+      {/* Controls Info - Bottom Center */}
+      <div className="absolute bottom-8 left-0 right-0 text-center z-10 pointer-events-none">
+        <div className="inline-block bg-black/70 border-2 border-white/30 p-4 rounded text-white/80">
+          <p className="text-sm font-bold mb-2 text-yellow-400">CONTROLS</p>
+          <div className="flex gap-8 text-xs">
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-white">WASD</span>
+              <span>MOVE</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-white">MOUSE</span>
+              <span>AIM</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-white">L-CLICK</span>
+              <span>SHOOT</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-white">1 - 5</span>
+              <span>ABILITIES</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="font-bold text-white">E</span>
+              <span>INTERACT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Wallet Warning Modal */}
       <WalletWarningModal
         isOpen={showWalletWarning}
