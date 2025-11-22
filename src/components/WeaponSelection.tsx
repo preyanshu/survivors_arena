@@ -82,7 +82,7 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
     const sprite = spriteManager.getSprite(spriteName);
     
     if (sprite) {
-      const size = 80;
+      const size = 200;
       const x = canvas.width / 2;
       const y = canvas.height / 2;
       
@@ -104,15 +104,15 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
   return (
     <button
       onClick={onClick}
-      className="bg-purple-900 hover:bg-purple-800 border-4 border-white p-6 w-40 h-40 transition-all flex flex-col items-center justify-center"
+      className="bg-purple-900 hover:bg-purple-800 border-4 border-white p-6 w-64 h-64 transition-all flex flex-col items-center justify-center"
       style={{ 
         imageRendering: 'pixelated'
       }}
     >
       <canvas
         ref={canvasRef}
-        width={100}
-        height={100}
+        width={240}
+        height={240}
         style={{ imageRendering: 'pixelated' }}
         className="mb-3"
       />

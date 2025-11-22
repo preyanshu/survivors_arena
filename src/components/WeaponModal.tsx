@@ -26,7 +26,7 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
     const sprite = spriteManager.getSprite(spriteName);
     
     if (sprite) {
-      const size = 120;
+      const size = 300;
       const x = canvas.width / 2;
       const y = canvas.height / 2;
       
@@ -54,7 +54,7 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
       onClick={onClose}
     >
       <div 
-        className="bg-purple-900 border-4 border-white p-8 max-w-md"
+        className="bg-purple-900 border-4 border-white p-8 max-w-lg"
         style={{ imageRendering: 'pixelated' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -65,8 +65,8 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
         <div className="flex justify-center mb-6">
           <canvas
             ref={canvasRef}
-            width={180}
-            height={180}
+            width={360}
+            height={360}
             style={{ imageRendering: 'pixelated' }}
           />
         </div>
@@ -83,7 +83,7 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
               <span className="text-gray-300">RANGE:</span> <span className="text-yellow-300 ml-2">{weapon.range}</span>
             </div>
           )}
-          <div className="mt-6 text-gray-300" style={{ fontSize: '14px', lineHeight: '1.6' }}>
+          <div className="mt-6 text-cyan-300 font-bold" style={{ fontSize: '16px', lineHeight: '1.6' }}>
             {weapon.description.toUpperCase()}
           </div>
         </div>
