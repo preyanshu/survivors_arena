@@ -33,6 +33,10 @@ export interface Enemy {
   shielded?: boolean; // If true, this enemy is protected by a nearby STRONG enemy
   isSplitEnemy?: boolean; // If true, this enemy was spawned from a split and should use STRONG sprite
   level?: number; // Enemy level (based on wave)
+  chargeStartTime?: number; // When charging started (for STRONG enemy charged shots)
+  chargeTargetPos?: Position; // Target position when charge started (locked, doesn't update)
+  isBerserker?: boolean; // If true, enemy is in berserker mode (STRONG enemies < 35% health)
+  baseSize?: number; // Original size before berserker mode
 }
 
 export interface Projectile {
@@ -44,6 +48,7 @@ export interface Projectile {
   piercing?: boolean;
   isInstant?: boolean; // For instant melee attacks that disappear after one frame
   isHoming?: boolean; // If true, this projectile follows the player
+  indestructible?: boolean; // If true, cannot be destroyed by player weapons (STRONG enemy charged shots)
 }
 
 export enum WeaponType {

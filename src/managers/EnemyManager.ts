@@ -235,6 +235,9 @@ export class EnemyManager {
     const attackRange = 600; // Normal enemies attack when within this range
     const attackCooldown = 1500; // Attack every 1.5 seconds
     const shieldRange = 200; // STRONG enemies shield nearby enemies within this range
+    // Charge time decreases as waves progress: starts at 2s, reduces to 1s by wave 10
+    let strongChargeTime = Math.max(1000, 2000 - (this.currentWave * 100)); // 2s -> 1s over 10 waves
+    let strongChargeCooldown = 3000; // Cooldown after firing charged shot
 
     // Apply freeze effect - slow enemies by 50%
     const speedMultiplier = freezeActive ? 0.5 : 1.0;
@@ -259,12 +262,25 @@ export class EnemyManager {
     });
 
     this.enemies.forEach((enemy) => {
+      // Check for berserker mode for STRONG enemies (< 70% health)
+      if (enemy.type === EnemyType.STRONG && !enemy.isBerserker) {
+        const healthPercentage = (enemy.health / enemy.maxHealth) * 100;
+        if (healthPercentage < 70) {
+          enemy.isBerserker = true;
+          enemy.baseSize = enemy.size; // Store original size
+          enemy.size = enemy.size * 1.3; // Increase size by 30%
+          enemy.speed = enemy.speed * 1.8; // Increase speed by 80%
+        }
+      }
+
       const direction = normalize({
         x: playerPos.x - enemy.position.x,
         y: playerPos.y - enemy.position.y,
       });
 
-      const moveSpeed = enemy.speed * speedMultiplier * (deltaTime / 16);
+      // Apply berserker speed multiplier
+      const berserkerSpeedMultiplier = enemy.isBerserker ? 1.0 : 1.0; // Already applied above
+      const moveSpeed = enemy.speed * speedMultiplier * berserkerSpeedMultiplier * (deltaTime / 16);
       enemy.position.x += direction.x * moveSpeed;
       enemy.position.y += direction.y * moveSpeed;
 
@@ -279,10 +295,68 @@ export class EnemyManager {
           enemy.lastAttackTime = currentTime;
         }
       }
+
+      // STRONG enemies use charged shots
+      if (enemy.type === EnemyType.STRONG) {
+        // Berserker mode: reduced charge time and cooldown
+        const berserkerChargeTime = enemy.isBerserker ? strongChargeTime * 0.5 : strongChargeTime; // 50% charge time
+        const berserkerChargeCooldown = enemy.isBerserker ? strongChargeCooldown * 0.6 : strongChargeCooldown; // 40% cooldown reduction
+        
+        const distToPlayer = distance(enemy.position, playerPos);
+        
+        // Start charging if within range and not already charging
+        if (distToPlayer <= attackRange) {
+          // If not charging and cooldown is ready, start charging and lock target position
+          if (!enemy.chargeStartTime && 
+              (!enemy.lastAttackTime || currentTime - enemy.lastAttackTime >= berserkerChargeCooldown)) {
+            enemy.chargeStartTime = currentTime;
+            enemy.chargeTargetPos = { ...playerPos }; // Lock target position when charging starts
+          }
+          
+          // If charging and charge time is complete, fire charged shot at locked target
+          if (enemy.chargeStartTime && currentTime - enemy.chargeStartTime >= berserkerChargeTime) {
+            // Use locked target position, not current player position
+            const targetPos = enemy.chargeTargetPos || playerPos;
+            this.shootChargedShot(enemy, targetPos);
+            enemy.lastAttackTime = currentTime;
+            enemy.chargeStartTime = undefined; // Reset charge
+            enemy.chargeTargetPos = undefined; // Reset target
+          }
+        } else {
+          // Out of range, cancel charge
+          enemy.chargeStartTime = undefined;
+          enemy.chargeTargetPos = undefined;
+        }
+      }
     });
 
     // Update enemy projectiles
     this.updateEnemyProjectiles(deltaTime, playerPos);
+  }
+
+  private shootChargedShot(enemy: Enemy, playerPos: Position): void {
+    const angle = Math.atan2(
+      playerPos.y - enemy.position.y,
+      playerPos.x - enemy.position.x
+    );
+    
+    // Charged shot: single powerful, extremely fast projectile in straight line
+    // Very fast so if player doesn't dodge during charge, they can't dodge after firing
+    const speed = 25; // Extremely fast - nearly undodgeable once fired (normal is 6)
+    const chargedDamage = enemy.damage * 1.2; // 120% of melee damage (more than normal 60%)
+    
+    this.enemyProjectiles.push({
+      id: generateId(),
+      position: { ...enemy.position },
+      velocity: {
+        x: Math.cos(angle) * speed,
+        y: Math.sin(angle) * speed,
+      },
+      damage: chargedDamage,
+      size: 50, // Much larger than normal projectiles (was 30, normal is 20)
+      isHoming: false,
+      indestructible: true, // Charged shots cannot be destroyed by player weapons
+    });
   }
 
   private shootAtPlayer(enemy: Enemy, playerPos: Position, wave: number): void {

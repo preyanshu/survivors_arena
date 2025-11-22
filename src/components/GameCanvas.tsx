@@ -437,13 +437,20 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         // Check collision with enemy projectiles first
         enemyProjectiles.forEach((enemyProj) => {
           if (checkCollision(proj.position, proj.size, enemyProj.position, enemyProj.size)) {
-            // Player bullet destroys enemy projectile
-            enemyManager.removeEnemyProjectile(enemyProj.id);
-            // Create small explosion effect
-            createBloodEffect(enemyProj.position, 15, 0.5);
-            // Player projectile is destroyed unless it's piercing
-            if (!proj.piercing) {
-              hit = true;
+            // Player bullet destroys enemy projectile (unless it's indestructible)
+            if (!enemyProj.indestructible) {
+              enemyManager.removeEnemyProjectile(enemyProj.id);
+              // Create small explosion effect
+              createBloodEffect(enemyProj.position, 15, 0.5);
+              // Player projectile is destroyed unless it's piercing
+              if (!proj.piercing) {
+                hit = true;
+              }
+            } else {
+              // Indestructible projectile (charged shot) - player projectile is destroyed but enemy projectile continues
+              if (!proj.piercing) {
+                hit = true;
+              }
             }
           }
         });
@@ -761,7 +768,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
-      // Draw enemy projectiles (red/orange colored balls, blue for homing)
+      // Draw enemy projectiles (red/orange colored balls, blue for homing, dark red for charged)
       enemyManager.getEnemyProjectiles().forEach((proj) => {
         const angle = Math.atan2(proj.velocity.y, proj.velocity.x);
         ctx.save();
@@ -782,8 +789,29 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           ctx.beginPath();
           ctx.arc(0, 0, proj.size / 3, 0, Math.PI * 2);
           ctx.fill();
+        } else if (proj.size >= 40) {
+          // Draw charged shot (larger, dark red projectile)
+          ctx.fillStyle = '#8b0000'; // Dark red color
+          ctx.shadowBlur = 25;
+          ctx.shadowColor = '#ff0000';
+          ctx.beginPath();
+          ctx.arc(0, 0, proj.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Add inner glow
+          ctx.fillStyle = '#cc0000';
+          ctx.beginPath();
+          ctx.arc(0, 0, proj.size / 3, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Add outer glow ring for extra visibility
+          ctx.strokeStyle = '#ff4444';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, proj.size / 2 + 3, 0, Math.PI * 2);
+          ctx.stroke();
         } else {
-          // Draw red/orange projectile
+          // Draw red/orange projectile (normal)
           ctx.fillStyle = '#ff4500'; // Orange-red color
           ctx.shadowBlur = 10;
           ctx.shadowColor = '#ff0000';
@@ -860,6 +888,84 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           ctx.beginPath();
           ctx.arc(0, 0, enemy.size / 2 + 5, 0, Math.PI * 2);
           ctx.stroke();
+          ctx.restore();
+        }
+
+        // Draw charge effect for STRONG enemies charging their shot
+        if (enemy.type === 'strong' && enemy.chargeStartTime) {
+          const currentTime = Date.now();
+          // Charge time decreases with wave (stored in enemy.level)
+          const wave = enemy.level || 1;
+          let chargeTime = Math.max(1000, 2000 - (wave * 100)); // Same calculation as in EnemyManager
+          // Berserker mode: 50% charge time
+          if (enemy.isBerserker) {
+            chargeTime = chargeTime * 0.5;
+          }
+          const chargeProgress = Math.min((currentTime - enemy.chargeStartTime) / chargeTime, 1);
+          const pulseIntensity = 0.5 + (chargeProgress * 0.5); // Pulse from 0.5 to 1.0
+          
+          // Use locked target position (where player was when charge started), not current position
+          const targetPos = enemy.chargeTargetPos || playerPosRef.current;
+          
+          ctx.save();
+          ctx.translate(enemy.position.x, enemy.position.y);
+          ctx.strokeStyle = `rgba(255, 100, 0, ${pulseIntensity})`; // Orange-red pulsing
+          ctx.fillStyle = `rgba(255, 100, 0, ${pulseIntensity * 0.3})`;
+          ctx.lineWidth = 4;
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = `rgba(255, 100, 0, ${pulseIntensity})`;
+          
+          // Pulsing circle that grows as charge progresses
+          const chargeRadius = (enemy.size / 2) + (chargeProgress * 15);
+          ctx.beginPath();
+          ctx.arc(0, 0, chargeRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+          
+          // Draw dotted line showing the path the charged shot will take (locked to initial target)
+          const angle = Math.atan2(
+            targetPos.y - enemy.position.y,
+            targetPos.x - enemy.position.x
+          );
+          const maxDistance = 1000; // Maximum line length
+          const endX = enemy.position.x + Math.cos(angle) * maxDistance;
+          const endY = enemy.position.y + Math.sin(angle) * maxDistance;
+          
+          ctx.save();
+          ctx.strokeStyle = `rgba(255, 100, 0, ${pulseIntensity * 0.6})`;
+          ctx.lineWidth = 3;
+          ctx.setLineDash([10, 10]); // Dotted line pattern
+          ctx.shadowBlur = 5;
+          ctx.shadowColor = 'rgba(255, 100, 0, 0.5)';
+          ctx.beginPath();
+          ctx.moveTo(enemy.position.x, enemy.position.y);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          ctx.setLineDash([]); // Reset line dash
+          ctx.restore();
+        }
+
+        // Draw berserker red glow for STRONG enemies in berserker mode
+        if (enemy.isBerserker && enemy.type === 'strong') {
+          ctx.save();
+          ctx.translate(enemy.position.x, enemy.position.y);
+          
+          // Pulsing red glow effect
+          const pulseTime = Date.now() / 200;
+          const pulseIntensity = Math.sin(pulseTime) * 0.3 + 0.7; // Pulse between 0.4 and 1.0
+          
+          const glowGradient = ctx.createRadialGradient(0, 0, enemy.size * 0.3, 0, 0, enemy.size * 0.8);
+          glowGradient.addColorStop(0, `rgba(255, 0, 0, ${pulseIntensity * 0.8})`);
+          glowGradient.addColorStop(0.5, `rgba(255, 50, 0, ${pulseIntensity * 0.5})`);
+          glowGradient.addColorStop(1, `rgba(255, 0, 0, 0)`);
+          
+          ctx.fillStyle = glowGradient;
+          ctx.shadowBlur = 30;
+          ctx.shadowColor = `rgba(255, 0, 0, ${pulseIntensity})`;
+          ctx.beginPath();
+          ctx.arc(0, 0, enemy.size * 0.8, 0, Math.PI * 2);
+          ctx.fill();
           ctx.restore();
         }
 
