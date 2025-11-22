@@ -123,3 +123,10 @@ export const getDefaultPlayerInventory = (): Weapon[] => {
       (weapon.type === WeaponType.PISTOL && weapon.rarity === WeaponRarity.COMMON)
   );
 };
+
+// Calculate firerate (shots per second) from cooldown (milliseconds)
+// Lower cooldown = higher firerate (better)
+export const calculateFirerate = (cooldown: number): number => {
+  if (cooldown <= 0) return 0;
+  return 1000 / cooldown; // Convert milliseconds to shots per second
+};

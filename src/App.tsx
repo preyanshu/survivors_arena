@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainMenu from './components/MainMenu';
 import WeaponSelection from './components/WeaponSelection';
 import GameCanvas from './components/GameCanvas';
 import Inventory from './components/Inventory';
+import DailyChest from './components/DailyChest';
 import { Weapon } from './types/game';
-import { getDefaultPlayerInventory } from './data/weapons';
+import { loadInventoryFromStorage, addWeaponToInventory } from './utils/storage';
 
 type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('mainMenu');
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(null);
-  const [playerInventory] = useState<Weapon[]>(getDefaultPlayerInventory());
+  const [playerInventory, setPlayerInventory] = useState<Weapon[]>([]);
+
+  // Load inventory from localStorage on mount
+  useEffect(() => {
+    const inventory = loadInventoryFromStorage();
+    setPlayerInventory(inventory);
+  }, []);
 
   const handlePlay = () => {
     setCurrentScreen('weaponSelection');
@@ -33,6 +40,11 @@ function App() {
   const handleReturnToMenu = () => {
     setCurrentScreen('mainMenu');
     setSelectedWeapon(null);
+  };
+
+  const handleWeaponObtained = (weapon: Weapon) => {
+    const updatedInventory = addWeaponToInventory(weapon, playerInventory);
+    setPlayerInventory(updatedInventory);
   };
 
   return (
@@ -60,26 +72,10 @@ function App() {
         <Inventory onBack={handleReturnToMenu} playerInventory={playerInventory} />
       )}
       {currentScreen === 'dailyChest' && (
-        <div className="min-h-screen w-screen bg-black flex items-center justify-center relative" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-          {/* Background image */}
-          <img
-            src="/assets/sprites/image copy 3.png"
-            alt="Background"
-            className="absolute inset-0 w-screen h-screen object-cover pointer-events-none"
-            style={{ imageRendering: 'pixelated', zIndex: 0 }}
-          />
-          <div className="border-4 border-white p-8 text-center relative" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', zIndex: 10 }}>
-            <h1 className="text-white mb-6" style={{ fontSize: '24px' }}>DAILY CHEST</h1>
-            <p className="text-gray-300 mb-6" style={{ fontSize: '12px' }}>COMING SOON</p>
-            <button
-              onClick={handleReturnToMenu}
-              className="bg-red-700 hover:bg-red-600 text-white border-4 border-white py-3 px-6 transition-all"
-              style={{ fontSize: '12px', imageRendering: 'pixelated' }}
-            >
-              BACK
-            </button>
-          </div>
-        </div>
+        <DailyChest 
+          onBack={handleReturnToMenu}
+          onWeaponObtained={handleWeaponObtained}
+        />
       )}
     </div>
   );
