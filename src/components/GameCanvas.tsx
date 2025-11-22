@@ -430,12 +430,42 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           0 // No rotation - sprite stays straight
         );
 
-        // Draw health bar
-        const healthBarWidth = enemy.size;
-        const healthBarHeight = 4;
+        // Draw health bar with different colors and sizes based on enemy type
         const healthPercentage = enemy.health / enemy.maxHealth;
+        
+        let healthBarWidth: number;
+        let healthBarHeight: number;
+        let healthBarColor: string;
+        let healthBarBgColor: string;
+        
+        switch (enemy.type) {
+          case 'weak':
+            healthBarWidth = enemy.size * 0.8; // Smaller bar for weak enemies
+            healthBarHeight = 3;
+            healthBarColor = '#f39c12'; // Orange for weak
+            healthBarBgColor = '#7f5a00'; // Dark orange background
+            break;
+          case 'normal':
+            healthBarWidth = enemy.size;
+            healthBarHeight = 4;
+            healthBarColor = '#27ae60'; // Green for normal
+            healthBarBgColor = '#2c3e50'; // Dark gray background
+            break;
+          case 'strong':
+            healthBarWidth = enemy.size * 1.2; // Larger bar for strong enemies
+            healthBarHeight = 5;
+            healthBarColor = '#e74c3c'; // Red for strong
+            healthBarBgColor = '#5a0000'; // Dark red background
+            break;
+          default:
+            healthBarWidth = enemy.size;
+            healthBarHeight = 4;
+            healthBarColor = '#27ae60';
+            healthBarBgColor = '#2c3e50';
+        }
 
-        ctx.fillStyle = '#2c3e50';
+        // Draw health bar background
+        ctx.fillStyle = healthBarBgColor;
         ctx.fillRect(
           enemy.position.x - healthBarWidth / 2,
           enemy.position.y - enemy.size / 2 - 10,
@@ -443,7 +473,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           healthBarHeight
         );
 
-        ctx.fillStyle = '#27ae60';
+        // Draw health bar fill
+        ctx.fillStyle = healthBarColor;
         ctx.fillRect(
           enemy.position.x - healthBarWidth / 2,
           enemy.position.y - enemy.size / 2 - 10,
@@ -493,7 +524,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       if (weapon.type === 'rifle') {
         gunSize = PLAYER_SIZE * 0.9; // Rifle is 90% of player size (bigger)
       } else if (weapon.type === 'pistol') {
-        gunSize = PLAYER_SIZE * 0.55; // Pistol is 55% of player size (smaller)
+        gunSize = PLAYER_SIZE * 0.45; // Pistol is 55% of player size (smaller)
       } else {
         gunSize = PLAYER_SIZE * 0.7; // Other weapons are 70% of player size
       }
