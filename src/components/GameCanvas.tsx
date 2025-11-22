@@ -297,6 +297,30 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     }
   }, []);
 
+  const createFireExplosion = useCallback((position: Position, size: number, intensity: number = 1) => {
+    const particleCount = Math.floor(size / 4 * intensity); // Reduced particle count for less intense explosions
+    
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.6;
+      const speed = (2 + Math.random() * 3) * intensity; // Reduced speed
+      
+      bloodParticlesRef.current.push({
+        id: `fire-${Date.now()}-${Math.random()}`,
+        position: { 
+          x: position.x + (Math.random() - 0.5) * size * 0.2, // Smaller spawn area
+          y: position.y + (Math.random() - 0.5) * size * 0.2
+        },
+        velocity: {
+          x: Math.cos(angle) * speed,
+          y: Math.sin(angle) * speed,
+        },
+        size: 3 + Math.random() * 4, // Smaller particles
+        life: 1.0,
+        maxLife: 0.8, // Shorter lifetime for less lingering effect
+      });
+    }
+  }, []);
+
   // Handle E key press to continue to power-up selection or activate abilities
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -440,7 +464,25 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               
               // Create blood effect if enemy was killed
               if (result.killed && result.position) {
-                createBloodEffect(result.position, enemy.size, 1);
+                // WEAK enemies always create fire explosion effect on death
+                if (result.exploded) {
+                  createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
+                  // Apply explosion damage to player if explosionDamage > 0 (player was in range)
+                  if (result.explosionDamage && result.explosionDamage > 0 && !isShieldActive) {
+                    setPlayerStats((prev) => {
+                      const newHealth = prev.health - result.explosionDamage!;
+                      if (newHealth <= 0) {
+                        createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                        setIsGameOver(true);
+                        return { ...prev, health: 0 };
+                      }
+                      createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
+                      return { ...prev, health: newHealth };
+                    });
+                  }
+                } else {
+                  createBloodEffect(result.position, enemy.size, 1);
+                }
               }
               
               if (!proj.piercing) {
@@ -551,7 +593,25 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                 newPlayerPos
               );
               if (result.killed && result.position) {
-                createBloodEffect(result.position, enemy.size, 1);
+                // WEAK enemies always create fire explosion effect on death
+                if (result.exploded) {
+                  createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
+                  // Apply explosion damage to player if explosionDamage > 0 (player was in range)
+                  if (result.explosionDamage && result.explosionDamage > 0 && !isShieldActive) {
+                    setPlayerStats((prev) => {
+                      const newHealth = prev.health - result.explosionDamage!;
+                      if (newHealth <= 0) {
+                        createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                        setIsGameOver(true);
+                        return { ...prev, health: 0 };
+                      }
+                      createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
+                      return { ...prev, health: newHealth };
+                    });
+                  }
+                } else {
+                  createBloodEffect(result.position, enemy.size, 1);
+                }
               }
             }
           });
@@ -597,22 +657,34 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       });
 
       if (currentTime - lastDamageTimeRef.current > 300) {
-        const damage = enemyManager.checkPlayerCollision(newPlayerPos, PLAYER_SIZE);
+        const collisionResult = enemyManager.checkPlayerCollision(newPlayerPos, PLAYER_SIZE);
+        const damage = collisionResult.damage;
+        
+        // Handle weak enemy explosions on contact
+        collisionResult.explodedEnemies.forEach((exploded) => {
+          // Create fire explosion effect
+          createFireExplosion(exploded.position, 60, 1.5);
+        });
+        
         if (damage > 0) {
           // Shield blocks all damage
           if (isShieldActive) {
             // No damage taken
           } else {
             setPlayerStats((prev) => {
-              const newHealth = prev.health - damage * 0.25; // Much more damage - 25% of enemy damage
+              // Explosion damage is already full damage, regular damage is 25%
+              const damageMultiplier = collisionResult.explodedEnemies.length > 0 ? 1.0 : 0.25;
+              const newHealth = prev.health - damage * damageMultiplier;
               if (newHealth <= 0) {
                 // Large blood effect on death
                 createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
                 setIsGameOver(true);
                 return { ...prev, health: 0 };
               }
-              // Small blood effect when taking damage
-              createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.5, 0.6);
+              // Small blood effect when taking damage (larger for explosions)
+              const effectSize = collisionResult.explodedEnemies.length > 0 ? 0.8 : 0.5;
+              const effectIntensity = collisionResult.explodedEnemies.length > 0 ? 1.5 : 0.6;
+              createBloodEffect(newPlayerPos, PLAYER_SIZE * effectSize, effectIntensity);
               return { ...prev, health: newHealth };
             });
             lastDamageTimeRef.current = currentTime;
@@ -689,44 +761,106 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
-      // Draw enemy projectiles (red/orange colored balls)
+      // Draw enemy projectiles (red/orange colored balls, blue for homing)
       enemyManager.getEnemyProjectiles().forEach((proj) => {
         const angle = Math.atan2(proj.velocity.y, proj.velocity.x);
         ctx.save();
         ctx.translate(proj.position.x, proj.position.y);
         ctx.rotate(angle);
         
-        // Draw red/orange projectile
-        ctx.fillStyle = '#ff4500'; // Orange-red color
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#ff0000';
-        ctx.beginPath();
-        ctx.arc(0, 0, proj.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Add inner glow
-        ctx.fillStyle = '#ff6b35';
-        ctx.beginPath();
-        ctx.arc(0, 0, proj.size / 3, 0, Math.PI * 2);
-        ctx.fill();
+        if (proj.isHoming) {
+          // Draw blue homing projectile
+          ctx.fillStyle = '#00aaff'; // Bright blue color
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = '#0088ff';
+          ctx.beginPath();
+          ctx.arc(0, 0, proj.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Add inner glow
+          ctx.fillStyle = '#66ccff';
+          ctx.beginPath();
+          ctx.arc(0, 0, proj.size / 3, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Draw red/orange projectile
+          ctx.fillStyle = '#ff4500'; // Orange-red color
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#ff0000';
+          ctx.beginPath();
+          ctx.arc(0, 0, proj.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Add inner glow
+          ctx.fillStyle = '#ff6b35';
+          ctx.beginPath();
+          ctx.arc(0, 0, proj.size / 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
         
         ctx.restore();
+      });
+
+      // Draw shield connections between STRONG enemies and shielded enemies
+      enemyManager.getEnemies().forEach((strongEnemy) => {
+        if (strongEnemy.type === 'strong') {
+          enemyManager.getEnemies().forEach((otherEnemy) => {
+            if (otherEnemy.id !== strongEnemy.id && otherEnemy.shielded) {
+              const dist = Math.sqrt(
+                Math.pow(strongEnemy.position.x - otherEnemy.position.x, 2) +
+                Math.pow(strongEnemy.position.y - otherEnemy.position.y, 2)
+              );
+              if (dist <= 200) {
+                // Draw connection line
+                ctx.save();
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.3;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(strongEnemy.position.x, strongEnemy.position.y);
+                ctx.lineTo(otherEnemy.position.x, otherEnemy.position.y);
+                ctx.stroke();
+                ctx.restore();
+              }
+            }
+          });
+        }
       });
 
       // Draw enemies with sprites
       enemyManager.getEnemies().forEach((enemy) => {
         // Get sprite name based on enemy type
+        // Split enemies use STRONG sprite (smaller size)
         let spriteName = 'enemy';
-        switch (enemy.type) {
-          case 'weak':
-            spriteName = 'enemy_weak';
-            break;
-          case 'normal':
-            spriteName = 'enemy_normal';
-            break;
-          case 'strong':
-            spriteName = 'enemy_strong';
-            break;
+        if (enemy.isSplitEnemy) {
+          spriteName = 'enemy_strong'; // Split enemies use strong sprite
+        } else {
+          switch (enemy.type) {
+            case 'weak':
+              spriteName = 'enemy_weak';
+              break;
+            case 'normal':
+              spriteName = 'enemy_normal';
+              break;
+            case 'strong':
+              spriteName = 'enemy_strong';
+              break;
+          }
+        }
+
+        // Draw shield effect for shielded enemies
+        if (enemy.shielded) {
+          ctx.save();
+          ctx.translate(enemy.position.x, enemy.position.y);
+          ctx.strokeStyle = '#00ffff'; // Cyan shield color
+          ctx.lineWidth = 3;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#00ffff';
+          ctx.beginPath();
+          ctx.arc(0, 0, enemy.size / 2 + 5, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
         }
 
         // Draw enemy sprite without rotation (angle = 0 to keep sprite straight)
@@ -791,6 +925,25 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           healthBarWidth * healthPercentage,
           healthBarHeight
         );
+
+        // Draw enemy level text above health bar
+        if (enemy.level !== undefined) {
+          ctx.save();
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 3;
+          ctx.font = 'bold 10px "Pixelify Sans", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          
+          const levelText = `Lv.${enemy.level}`;
+          const textY = enemy.position.y - enemy.size / 2 - 15;
+          
+          // Draw text with outline for visibility
+          ctx.strokeText(levelText, enemy.position.x, textY);
+          ctx.fillText(levelText, enemy.position.x, textY);
+          ctx.restore();
+        }
       });
 
       // Draw slash animations using PNG with fade in/out
@@ -846,17 +999,38 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       // Draw blood particles
       bloodParticlesRef.current.forEach((particle) => {
         const alpha = particle.life / particle.maxLife;
-        ctx.fillStyle = `rgba(139, 0, 0, ${alpha})`; // Dark red with fade
-        ctx.beginPath();
-        ctx.arc(particle.position.x, particle.position.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
+        const isFire = particle.id.startsWith('fire-');
         
-        // Add some brighter red particles
-        if (Math.random() > 0.7) {
-          ctx.fillStyle = `rgba(220, 20, 60, ${alpha * 0.8})`; // Crimson
+        if (isFire) {
+          // Fire explosion particles - yellow/orange gradient
+          const fireColors = [
+            `rgba(255, 255, 0, ${alpha})`, // Yellow
+            `rgba(255, 200, 0, ${alpha})`, // Orange-yellow
+            `rgba(255, 140, 0, ${alpha})`, // Orange
+            `rgba(255, 69, 0, ${alpha})`,  // Red-orange
+          ];
+          const colorIndex = Math.floor(Math.random() * fireColors.length);
+          ctx.fillStyle = fireColors[colorIndex];
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = `rgba(255, 140, 0, ${alpha * 0.5})`;
           ctx.beginPath();
-          ctx.arc(particle.position.x, particle.position.y, particle.size * 0.6, 0, Math.PI * 2);
+          ctx.arc(particle.position.x, particle.position.y, particle.size, 0, Math.PI * 2);
           ctx.fill();
+          ctx.shadowBlur = 0; // Reset shadow
+        } else {
+          // Regular blood particles - dark red
+          ctx.fillStyle = `rgba(139, 0, 0, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(particle.position.x, particle.position.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Add some brighter red particles
+          if (Math.random() > 0.7) {
+            ctx.fillStyle = `rgba(220, 20, 60, ${alpha * 0.8})`; // Crimson
+            ctx.beginPath();
+            ctx.arc(particle.position.x, particle.position.y, particle.size * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       });
 

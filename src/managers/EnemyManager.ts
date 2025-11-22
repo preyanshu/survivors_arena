@@ -1,5 +1,5 @@
 import { Enemy, Position, EnemyType, Projectile } from '../types/game';
-import { generateId, normalize, distance, randomInRange } from '../utils/gameUtils';
+import { generateId, normalize, distance } from '../utils/gameUtils';
 
 export class EnemyManager {
   private enemies: Enemy[] = [];
@@ -67,7 +67,7 @@ export class EnemyManager {
       case EnemyType.WEAK:
         return {
           health: Math.floor(baseHealth * 0.6), // 60% of base health
-          speed: baseSpeed * 1.0, // Same as base speed (reduced from 1.1)
+          speed: baseSpeed * 1.4, // Incredibly fast - 3.5x base speed
           damage: Math.floor(baseDamage * 0.7), // 70% of base damage
           size: 80, // Increased for bigger enemies
         };
@@ -223,6 +223,7 @@ export class EnemyManager {
       size: stats.size,
       type: enemyType,
       lastAttackTime: 0, // Initialize attack timer
+      level: this.currentWave, // Set enemy level to current wave
     });
   }
 
@@ -233,9 +234,29 @@ export class EnemyManager {
     const currentTime = Date.now();
     const attackRange = 600; // Normal enemies attack when within this range
     const attackCooldown = 1500; // Attack every 1.5 seconds
+    const shieldRange = 200; // STRONG enemies shield nearby enemies within this range
 
     // Apply freeze effect - slow enemies by 50%
     const speedMultiplier = freezeActive ? 0.5 : 1.0;
+
+    // First, reset all shield states
+    this.enemies.forEach((enemy) => {
+      enemy.shielded = false;
+    });
+
+    // STRONG enemies shield nearby enemies
+    this.enemies.forEach((strongEnemy) => {
+      if (strongEnemy.type === EnemyType.STRONG) {
+        this.enemies.forEach((otherEnemy) => {
+          if (otherEnemy.id !== strongEnemy.id && otherEnemy.type !== EnemyType.STRONG) {
+            const dist = distance(strongEnemy.position, otherEnemy.position);
+            if (dist <= shieldRange) {
+              otherEnemy.shielded = true;
+            }
+          }
+        });
+      }
+    });
 
     this.enemies.forEach((enemy) => {
       const direction = normalize({
@@ -283,6 +304,24 @@ export class EnemyManager {
       playerPos.x - enemy.position.x
     );
 
+    // Determine if we should shoot homing blue balls
+    // Wave 1-2: 15% chance, Wave 3-4: 25% chance, Wave 5-7: 35% chance, Wave 8+: 45% chance
+    let homingChance = 0.15; // Start at 15% for initial waves
+    if (wave >= 3 && wave <= 4) {
+      homingChance = 0.25;
+    } else if (wave >= 5 && wave <= 7) {
+      homingChance = 0.35;
+    } else if (wave >= 8) {
+      homingChance = 0.45;
+    }
+    const shouldShootHoming = Math.random() < homingChance;
+    
+    // Determine how many homing projectiles to shoot (1-2, same as regular projectiles)
+    let homingCount = 0;
+    if (shouldShootHoming) {
+      homingCount = 1 + Math.floor(Math.random() * 2); // 1 or 2 homing projectiles
+    }
+
     for (let i = 0; i < projectileCount; i++) {
       // For single projectile, no spread
       const angleOffset = projectileCount > 1 
@@ -290,6 +329,9 @@ export class EnemyManager {
         : 0;
       const angle = baseAngle + angleOffset;
       const speed = 6; // Projectile speed
+      
+      // Check if this projectile should be homing (last N projectiles where N = homingCount)
+      const isHoming = shouldShootHoming && i >= projectileCount - homingCount;
       
       this.enemyProjectiles.push({
         id: generateId(),
@@ -299,7 +341,8 @@ export class EnemyManager {
           y: Math.sin(angle) * speed,
         },
         damage: enemy.damage * 0.6, // Projectiles do 60% of melee damage
-        size: 20,
+        size: isHoming ? 24 : 20, // Slightly larger for homing projectiles
+        isHoming: isHoming,
       });
     }
   }
@@ -307,6 +350,27 @@ export class EnemyManager {
   private updateEnemyProjectiles(deltaTime: number, playerPos: Position): void {
     // Move projectiles
     this.enemyProjectiles.forEach((proj) => {
+      // Homing projectiles follow the player
+      if (proj.isHoming) {
+        const direction = normalize({
+          x: playerPos.x - proj.position.x,
+          y: playerPos.y - proj.position.y,
+        });
+        const homingSpeed = 5.5; // Increased from 4 to 5.5 - faster homing
+        const turnRate = 0.2; // Increased from 0.15 to 0.2 - turns faster toward player
+        
+        // Gradually turn toward player
+        proj.velocity.x += direction.x * homingSpeed * turnRate;
+        proj.velocity.y += direction.y * homingSpeed * turnRate;
+        
+        // Normalize velocity to maintain consistent speed
+        const currentSpeed = Math.sqrt(proj.velocity.x * proj.velocity.x + proj.velocity.y * proj.velocity.y);
+        if (currentSpeed > 0) {
+          proj.velocity.x = (proj.velocity.x / currentSpeed) * homingSpeed;
+          proj.velocity.y = (proj.velocity.y / currentSpeed) * homingSpeed;
+        }
+      }
+      
       proj.position.x += proj.velocity.x * (deltaTime / 16);
       proj.position.y += proj.velocity.y * (deltaTime / 16);
     });
@@ -327,11 +391,30 @@ export class EnemyManager {
     this.enemyProjectiles = this.enemyProjectiles.filter((p) => p.id !== projectileId);
   }
 
-  damageEnemy(enemyId: string, damage: number, knockback: number, playerPos: Position): { killed: boolean; position?: Position } {
+  damageEnemy(enemyId: string, damage: number, knockback: number, playerPos: Position): { killed: boolean; position?: Position; shouldSplit?: boolean; exploded?: boolean; explosionDamage?: number } {
     const enemy = this.enemies.find((e) => e.id === enemyId);
     if (!enemy) return { killed: false };
 
-    enemy.health -= damage;
+    // Check if enemy is currently shielded by a nearby STRONG enemy
+    // Only non-STRONG enemies can be shielded
+    let isShielded = false;
+    const shieldRange = 200;
+    
+    if (enemy.type !== EnemyType.STRONG) {
+      for (const strongEnemy of this.enemies) {
+        if (strongEnemy.type === EnemyType.STRONG && strongEnemy.id !== enemy.id) {
+          const dist = distance(strongEnemy.position, enemy.position);
+          if (dist <= shieldRange) {
+            isShielded = true;
+            break; // Found a shield, no need to check others
+          }
+        }
+      }
+    }
+
+    // Shielded enemies take 0 damage (complete immunity)
+    const effectiveDamage = isShielded ? 0 : damage;
+    enemy.health -= effectiveDamage;
 
     const direction = normalize({
       x: enemy.position.x - playerPos.x,
@@ -343,29 +426,103 @@ export class EnemyManager {
 
     if (enemy.health <= 0) {
       const deathPosition = { ...enemy.position };
+      const shouldSplit = enemy.type === EnemyType.STRONG;
+      const isWeakEnemy = enemy.type === EnemyType.WEAK;
+      
+      // Remove the enemy
       this.enemies = this.enemies.filter((e) => e.id !== enemyId);
-      return { killed: true, position: deathPosition };
+      
+      // If it's a STRONG enemy, spawn split enemies
+      if (shouldSplit) {
+        this.splitEnemy(deathPosition);
+      }
+      
+      // If it's a WEAK enemy, it always explodes on death (except split enemies)
+      if (isWeakEnemy && !enemy.isSplitEnemy) {
+        const explosionDamage = 40; // Significant explosion damage
+        const distToPlayer = distance(deathPosition, playerPos);
+        const explosionRadius = 150; // Explosion radius
+        
+        // Always return explosion info (visual effect always happens)
+        // Damage is only applied if player is in range
+        return { 
+          killed: true, 
+          position: deathPosition, 
+          shouldSplit: false,
+          exploded: true,
+          explosionDamage: distToPlayer <= explosionRadius ? explosionDamage : 0
+        };
+      }
+      
+      return { killed: true, position: deathPosition, shouldSplit };
     }
 
     return { killed: false };
+  }
+
+  private splitEnemy(position: Position): void {
+    // Spawn 2-3 smaller enemies (WEAK type) when STRONG enemy dies
+    const splitCount = 2 + Math.floor(Math.random() * 2); // 2 or 3 enemies
+    
+    for (let i = 0; i < splitCount; i++) {
+      // Spawn split enemies in a circle around the death position
+      const angle = (Math.PI * 2 * i) / splitCount;
+      const spawnDistance = 40;
+      const splitPosition: Position = {
+        x: position.x + Math.cos(angle) * spawnDistance,
+        y: position.y + Math.sin(angle) * spawnDistance,
+      };
+
+      // Create a WEAK enemy with reduced stats
+      const splitHealth = Math.floor(this.waveBaseHealth * 0.4); // 40% of base health
+      const splitSpeed = this.waveBaseSpeed * 1.2; // 20% faster
+      const splitDamage = Math.floor(this.waveBaseDamage * 0.5); // 50% of base damage
+
+      this.enemies.push({
+        id: generateId(),
+        position: splitPosition,
+        health: splitHealth,
+        maxHealth: splitHealth,
+        speed: splitSpeed,
+        damage: splitDamage,
+        size: 60, // Smaller than normal weak enemies
+        type: EnemyType.WEAK,
+        lastAttackTime: 0,
+        isSplitEnemy: true, // Mark as split enemy to use STRONG sprite
+        level: this.currentWave, // Set enemy level to current wave
+      });
+    }
   }
 
   getEnemies(): Enemy[] {
     return this.enemies;
   }
 
-  checkPlayerCollision(playerPos: Position, playerSize: number): number {
+  checkPlayerCollision(playerPos: Position, playerSize: number): { damage: number; explodedEnemies: Array<{ position: Position; damage: number }> } {
     let totalDamage = 0;
-    const currentTime = Date.now();
+    const explodedEnemies: Array<{ position: Position; damage: number }> = [];
 
     this.enemies.forEach((enemy) => {
       const dist = distance(playerPos, enemy.position);
       if (dist < (playerSize + enemy.size) / 2) {
-        totalDamage += enemy.damage;
+        // WEAK enemies explode on contact, dealing massive damage (except split enemies)
+        if (enemy.type === EnemyType.WEAK && !enemy.isSplitEnemy) {
+          const explosionDamage = 50; // Very high explosion damage on contact
+          explodedEnemies.push({
+            position: { ...enemy.position },
+            damage: explosionDamage
+          });
+          totalDamage += explosionDamage;
+          // Remove the weak enemy after explosion
+          this.enemies = this.enemies.filter((e) => e.id !== enemy.id);
+        } else {
+          // Other enemies (including split enemies) deal normal damage
+          totalDamage += enemy.damage;
+        }
       }
     });
 
-    return totalDamage;
+    return { damage: totalDamage, explodedEnemies };
   }
 
   clear(): void {

@@ -30,6 +30,9 @@ export interface Enemy {
   size: number;
   type: EnemyType;
   lastAttackTime?: number; // For ranged attacks
+  shielded?: boolean; // If true, this enemy is protected by a nearby STRONG enemy
+  isSplitEnemy?: boolean; // If true, this enemy was spawned from a split and should use STRONG sprite
+  level?: number; // Enemy level (based on wave)
 }
 
 export interface Projectile {
@@ -40,6 +43,7 @@ export interface Projectile {
   size: number;
   piercing?: boolean;
   isInstant?: boolean; // For instant melee attacks that disappear after one frame
+  isHoming?: boolean; // If true, this projectile follows the player
 }
 
 export enum WeaponType {
