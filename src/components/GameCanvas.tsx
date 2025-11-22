@@ -523,17 +523,17 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const alpha = slash.life / slash.maxLife;
         const slashSprite = spriteManager.getSprite('slash_effect');
         
-        if (slashSprite) {
+        if (slashSprite && slashSprite.complete) {
           // Draw the GIF animation
           ctx.save();
           ctx.globalAlpha = alpha;
           ctx.translate(slash.position.x, slash.position.y);
           ctx.rotate(slash.angle);
           
-          // Calculate size to maintain aspect ratio
+          // Calculate size to maintain aspect ratio - make it bigger for visibility
           const spriteAspect = slashSprite.width / slashSprite.height;
-          let drawWidth = slash.size;
-          let drawHeight = slash.size / spriteAspect;
+          let drawWidth = slash.size * 1.5; // Make it bigger
+          let drawHeight = drawWidth / spriteAspect;
           
           // Center the sprite
           ctx.drawImage(
@@ -548,6 +548,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         } else {
           // Fallback to canvas-drawn arc if GIF not loaded
           ctx.save();
+          ctx.globalAlpha = alpha;
           ctx.translate(slash.position.x, slash.position.y);
           ctx.rotate(slash.angle);
           
