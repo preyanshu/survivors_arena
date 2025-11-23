@@ -1,5 +1,6 @@
 import { Weapon, WeaponType, Projectile, Position, PlayerStats } from '../types/game';
 import { generateId, normalize } from '../utils/gameUtils';
+import { GAME_BALANCE } from '../data/gameBalance';
 
 export class WeaponManager {
   private weapon: Weapon;
@@ -10,7 +11,8 @@ export class WeaponManager {
   }
 
   canAttack(currentTime: number, cooldownReduction: number): boolean {
-    const adjustedCooldown = this.weapon.cooldown * (1 - cooldownReduction);
+    const baseCooldown = this.weapon.cooldown * GAME_BALANCE.weapons.cooldownMultiplier;
+    const adjustedCooldown = baseCooldown * (1 - cooldownReduction);
     return currentTime - this.lastAttackTime >= adjustedCooldown;
   }
 
@@ -60,7 +62,7 @@ export class WeaponManager {
     damage: number,
     playerStats: PlayerStats
   ): Projectile[] {
-    const speed = 8;
+    const speed = GAME_BALANCE.weapons.pistol.projectileSpeed;
     return [
       {
         id: generateId(),
@@ -78,7 +80,7 @@ export class WeaponManager {
     damage: number,
     playerStats: PlayerStats
   ): Projectile[] {
-    const speed = 7;
+    const speed = GAME_BALANCE.weapons.shotgun.projectileSpeed;
     const spreadAngle = Math.PI / 24; // Reduced spread (was Math.PI / 8)
     const projectiles: Projectile[] = [];
 
@@ -105,7 +107,7 @@ export class WeaponManager {
     playerStats: PlayerStats
   ): Projectile[] {
     // Melee slash attack - positioned in front of player, instant hit, disappears after one frame
-    const slashDistance = 60; // Distance in front of player
+    const slashDistance = GAME_BALANCE.weapons.sword.slashDistance;
     return [
       {
         id: generateId(),
@@ -129,7 +131,7 @@ export class WeaponManager {
     playerStats: PlayerStats
   ): Projectile[] {
     // Fast-firing automatic weapon with slight spread
-    const speed = 10;
+    const speed = GAME_BALANCE.weapons.assaultRifle.projectileSpeed;
     const spreadAngle = (Math.random() - 0.5) * 0.1; // Small random spread
     const angle = Math.atan2(direction.y, direction.x) + spreadAngle;
     const dir = { x: Math.cos(angle), y: Math.sin(angle) };
@@ -152,7 +154,7 @@ export class WeaponManager {
     playerStats: PlayerStats
   ): Projectile[] {
     // High-damage precision weapon with long range and piercing
-    const speed = 12;
+    const speed = GAME_BALANCE.weapons.rifle.projectileSpeed;
     return [
       {
         id: generateId(),

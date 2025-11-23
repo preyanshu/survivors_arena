@@ -37,6 +37,7 @@ export interface Enemy {
   chargeTargetPos?: Position; // Target position when charge started (locked, doesn't update)
   isBerserker?: boolean; // If true, enemy is in berserker mode (STRONG enemies < 35% health)
   baseSize?: number; // Original size before berserker mode
+  isBurning?: boolean; // If true, enemy is being burned by fire ring
 }
 
 export interface Projectile {

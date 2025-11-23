@@ -1,5 +1,6 @@
 import { Enemy, Position, EnemyType, Projectile } from '../types/game';
 import { generateId, normalize, distance } from '../utils/gameUtils';
+import { GAME_BALANCE } from '../data/gameBalance';
 
 export class EnemyManager {
   private enemies: Enemy[] = [];
@@ -25,11 +26,14 @@ export class EnemyManager {
     this.currentWave = wave;
     this.lastSpawnTime = Date.now();
     
-    // Much harder difficulty: more enemies, stronger stats
-    this.targetEnemyCount = Math.min(12 + wave * 6, 80);
-    this.waveBaseHealth = 40 + wave * 10;
-    this.waveBaseSpeed = 3.2 + wave * 0.3; // Reduced enemy speed for easier gameplay
-    this.waveBaseDamage = 15 + wave * 5; // Much more damage
+    // Calculate enemy stats based on wave and balance config
+    this.targetEnemyCount = Math.min(
+      GAME_BALANCE.waves.enemyCountStart + wave * GAME_BALANCE.waves.enemyCountPerWave,
+      GAME_BALANCE.waves.enemyCountMax
+    );
+    this.waveBaseHealth = GAME_BALANCE.enemies.baseHealthStart + wave * GAME_BALANCE.enemies.baseHealthPerWave;
+    this.waveBaseSpeed = GAME_BALANCE.enemies.baseSpeedStart + wave * GAME_BALANCE.enemies.baseSpeedPerWave;
+    this.waveBaseDamage = GAME_BALANCE.enemies.baseDamageStart + wave * GAME_BALANCE.enemies.baseDamagePerWave;
 
     // Spawn first few enemies immediately to start the wave
     const initialSpawn = Math.min(3, this.targetEnemyCount);
@@ -44,53 +48,55 @@ export class EnemyManager {
     // Later waves: more strong enemies
     const rand = Math.random();
     
+    const dist = GAME_BALANCE.waves.distribution;
     if (wave <= 3) {
-      // Waves 1-3: 50% weak, 40% normal, 10% strong
-      if (rand < 0.5) return EnemyType.WEAK;
-      if (rand < 0.9) return EnemyType.NORMAL;
+      // Waves 1-3
+      if (rand < dist.waves1to3.weak) return EnemyType.WEAK;
+      if (rand < dist.waves1to3.weak + dist.waves1to3.normal) return EnemyType.NORMAL;
       return EnemyType.STRONG;
     } else if (wave <= 6) {
-      // Waves 4-6: 30% weak, 50% normal, 20% strong
-      if (rand < 0.3) return EnemyType.WEAK;
-      if (rand < 0.8) return EnemyType.NORMAL;
+      // Waves 4-6
+      if (rand < dist.waves4to6.weak) return EnemyType.WEAK;
+      if (rand < dist.waves4to6.weak + dist.waves4to6.normal) return EnemyType.NORMAL;
       return EnemyType.STRONG;
     } else {
-      // Waves 7+: 20% weak, 40% normal, 40% strong
-      if (rand < 0.2) return EnemyType.WEAK;
-      if (rand < 0.6) return EnemyType.NORMAL;
+      // Waves 7+
+      if (rand < dist.waves7Plus.weak) return EnemyType.WEAK;
+      if (rand < dist.waves7Plus.weak + dist.waves7Plus.normal) return EnemyType.NORMAL;
       return EnemyType.STRONG;
     }
   }
 
   private getEnemyStats(type: EnemyType, baseHealth: number, baseSpeed: number, baseDamage: number) {
+    const config = GAME_BALANCE.enemies;
     switch (type) {
       case EnemyType.WEAK:
         return {
-          health: Math.floor(baseHealth * 0.6), // 60% of base health
-          speed: baseSpeed * 1.4, // Incredibly fast - 3.5x base speed
-          damage: Math.floor(baseDamage * 0.7), // 70% of base damage
-          size: 80, // Increased for bigger enemies
+          health: Math.floor(baseHealth * config.weak.healthMultiplier),
+          speed: baseSpeed * config.weak.speedMultiplier,
+          damage: Math.floor(baseDamage * config.weak.damageMultiplier),
+          size: config.weak.size,
         };
       case EnemyType.NORMAL:
         return {
-          health: baseHealth, // Base stats
+          health: baseHealth,
           speed: baseSpeed,
           damage: baseDamage,
-          size: 100, // Increased for bigger enemies
+          size: config.normal.size,
         };
       case EnemyType.STRONG:
         return {
-          health: Math.floor(baseHealth * 1.8), // 180% of base health
-          speed: baseSpeed * 0.85, // Slightly slower
-          damage: Math.floor(baseDamage * 1.5), // 150% of base damage
-          size: 140, // Increased for bigger enemies
+          health: Math.floor(baseHealth * config.strong.healthMultiplier),
+          speed: baseSpeed * config.strong.speedMultiplier,
+          damage: Math.floor(baseDamage * config.strong.damageMultiplier),
+          size: config.strong.size,
         };
       default:
         return {
           health: baseHealth,
           speed: baseSpeed,
           damage: baseDamage,
-          size: 100,
+          size: config.normal.size,
         };
     }
   }
@@ -136,9 +142,9 @@ export class EnemyManager {
       const viewTop = playerPos.y - this.canvasHeight / 2;
       const viewBottom = playerPos.y + this.canvasHeight / 2;
 
-      // Determine spawn direction - 40% chance to spawn behind player if mouse direction is known
+      // Determine spawn direction - 70% chance to spawn behind player if mouse direction is known
       let direction: number;
-      if (mouseDirection && Math.random() < 0.4) {
+      if (mouseDirection && Math.random() < 0.7) {
         // Spawn behind player (opposite of where player is facing)
         // Mouse direction indicates where player is facing
         const angle = Math.atan2(mouseDirection.y - playerPos.y, mouseDirection.x - playerPos.x);
@@ -149,7 +155,7 @@ export class EnemyManager {
         const directionAngle = normalizedAngle / (Math.PI * 2) * 8;
         direction = Math.floor(directionAngle) % 8;
       } else {
-        // Spawn from random direction (60% chance, or if no mouse direction)
+        // Spawn from random direction (30% chance, or if no mouse direction)
         direction = Math.floor(Math.random() * 8);
       }
 
@@ -232,15 +238,19 @@ export class EnemyManager {
     this.updateSpawning(playerPos, isWaveInProgress, mousePos);
 
     const currentTime = Date.now();
-    const attackRange = 600; // Normal enemies attack when within this range
-    const attackCooldown = 1500; // Attack every 1.5 seconds
-    const shieldRange = 200; // STRONG enemies shield nearby enemies within this range
-    // Charge time decreases as waves progress: starts at 2s, reduces to 1s by wave 10
-    let strongChargeTime = Math.max(1000, 2000 - (this.currentWave * 100)); // 2s -> 1s over 10 waves
-    let strongChargeCooldown = 3000; // Cooldown after firing charged shot
+    const attackConfig = GAME_BALANCE.enemies.attack;
+    const attackRange = attackConfig.range;
+    const attackCooldown = attackConfig.cooldown;
+    const shieldRange = GAME_BALANCE.enemies.shieldRange;
+    // Charge time decreases as waves progress
+    const strongChargeTime = Math.max(
+      attackConfig.chargeTimeMin,
+      attackConfig.chargeTimeStart - (this.currentWave * attackConfig.chargeTimeReductionPerWave)
+    );
+    const strongChargeCooldown = attackConfig.chargeCooldown;
 
-    // Apply freeze effect - slow enemies by 50%
-    const speedMultiplier = freezeActive ? 0.5 : 1.0;
+    // Apply freeze effect
+    const speedMultiplier = freezeActive ? GAME_BALANCE.enemies.freezeSpeedMultiplier : 1.0;
 
     // First, reset all shield states
     this.enemies.forEach((enemy) => {
@@ -261,15 +271,28 @@ export class EnemyManager {
       }
     });
 
+    // Check for enemies that are too far from player and respawn them behind player
+    const maxDistanceFromPlayer = Math.max(this.canvasWidth, this.canvasHeight) * 1.5; // 1.5x viewport size
+    const enemiesToRespawn: Enemy[] = [];
+    
     this.enemies.forEach((enemy) => {
+      const distToPlayer = distance(enemy.position, playerPos);
+      
+      // If enemy is too far from player, mark for respawn
+      if (distToPlayer > maxDistanceFromPlayer) {
+        enemiesToRespawn.push(enemy);
+        return; // Skip processing this enemy, will be respawned
+      }
+      
       // Check for berserker mode for STRONG enemies (< 70% health)
       if (enemy.type === EnemyType.STRONG && !enemy.isBerserker) {
         const healthPercentage = (enemy.health / enemy.maxHealth) * 100;
         if (healthPercentage < 70) {
           enemy.isBerserker = true;
           enemy.baseSize = enemy.size; // Store original size
-          enemy.size = enemy.size * 1.3; // Increase size by 30%
-          enemy.speed = enemy.speed * 1.8; // Increase speed by 80%
+          const berserkerConfig = attackConfig;
+          enemy.size = enemy.size * berserkerConfig.berserkerSizeMultiplier;
+          enemy.speed = enemy.speed * berserkerConfig.berserkerSpeedMultiplier;
         }
       }
 
@@ -299,8 +322,12 @@ export class EnemyManager {
       // STRONG enemies use charged shots
       if (enemy.type === EnemyType.STRONG) {
         // Berserker mode: reduced charge time and cooldown
-        const berserkerChargeTime = enemy.isBerserker ? strongChargeTime * 0.5 : strongChargeTime; // 50% charge time
-        const berserkerChargeCooldown = enemy.isBerserker ? strongChargeCooldown * 0.6 : strongChargeCooldown; // 40% cooldown reduction
+        const berserkerChargeTime = enemy.isBerserker 
+          ? strongChargeTime * attackConfig.berserkerChargeTimeMultiplier 
+          : strongChargeTime;
+        const berserkerChargeCooldown = enemy.isBerserker 
+          ? strongChargeCooldown * attackConfig.berserkerCooldownMultiplier 
+          : strongChargeCooldown;
         
         const distToPlayer = distance(enemy.position, playerPos);
         
@@ -330,6 +357,39 @@ export class EnemyManager {
       }
     });
 
+    // Respawn enemies that are too far from player (behind the player)
+    enemiesToRespawn.forEach((enemy) => {
+      // Respawn behind player
+      if (mousePos) {
+        const spawnDistance = 700;
+        const angle = Math.atan2(mousePos.y - playerPos.y, mousePos.x - playerPos.x);
+        const behindAngle = angle + Math.PI; // 180 degrees opposite
+        
+        // Spawn behind player with some random offset
+        const randomOffset = (Math.random() - 0.5) * 400; // Random offset up to 200 units
+        enemy.position.x = playerPos.x + Math.cos(behindAngle) * spawnDistance + Math.cos(behindAngle + Math.PI / 2) * randomOffset;
+        enemy.position.y = playerPos.y + Math.sin(behindAngle) * spawnDistance + Math.sin(behindAngle + Math.PI / 2) * randomOffset;
+        
+        // Reset enemy state
+        enemy.chargeStartTime = undefined;
+        enemy.chargeTargetPos = undefined;
+        enemy.lastAttackTime = 0;
+      } else {
+        // Fallback: spawn at a random position behind player (opposite of player's last known direction)
+        const spawnDistance = 700;
+        const randomAngle = Math.random() * Math.PI * 2;
+        // Spawn in a semi-circle behind player (180 degrees)
+        const behindAngle = randomAngle + Math.PI;
+        enemy.position.x = playerPos.x + Math.cos(behindAngle) * spawnDistance;
+        enemy.position.y = playerPos.y + Math.sin(behindAngle) * spawnDistance;
+        
+        // Reset enemy state
+        enemy.chargeStartTime = undefined;
+        enemy.chargeTargetPos = undefined;
+        enemy.lastAttackTime = 0;
+      }
+    });
+
     // Update enemy projectiles
     this.updateEnemyProjectiles(deltaTime, playerPos);
   }
@@ -341,9 +401,9 @@ export class EnemyManager {
     );
     
     // Charged shot: single powerful, extremely fast projectile in straight line
-    // Very fast so if player doesn't dodge during charge, they can't dodge after firing
-    const speed = 25; // Extremely fast - nearly undodgeable once fired (normal is 6)
-    const chargedDamage = enemy.damage * 1.2; // 120% of melee damage (more than normal 60%)
+    const attackConfig = GAME_BALANCE.enemies.attack;
+    const speed = attackConfig.chargedProjectileSpeed;
+    const chargedDamage = enemy.damage * attackConfig.chargedDamageMultiplier;
     
     this.enemyProjectiles.push({
       id: generateId(),
@@ -353,22 +413,24 @@ export class EnemyManager {
         y: Math.sin(angle) * speed,
       },
       damage: chargedDamage,
-      size: 50, // Much larger than normal projectiles (was 30, normal is 20)
+      size: attackConfig.chargedProjectileSize,
       isHoming: false,
       indestructible: true, // Charged shots cannot be destroyed by player weapons
     });
   }
 
   private shootAtPlayer(enemy: Enemy, playerPos: Position, wave: number): void {
+    const attackConfig = GAME_BALANCE.enemies.attack;
+    const projCount = attackConfig.projectileCount;
+    
     // Reduce projectile count for early waves
-    // Wave 1: 1 projectile, Wave 2-3: 1-2 projectiles, Wave 4+: 2-3 projectiles
     let projectileCount: number;
     if (wave <= 1) {
-      projectileCount = 1; // Only 1 projectile in wave 1
+      projectileCount = projCount.wave1;
     } else if (wave <= 3) {
-      projectileCount = 1 + Math.floor(Math.random() * 2); // 1 or 2 projectiles
+      projectileCount = projCount.wave2to3.min + Math.floor(Math.random() * (projCount.wave2to3.max - projCount.wave2to3.min + 1));
     } else {
-      projectileCount = 2 + Math.floor(Math.random() * 2); // 2 or 3 projectiles
+      projectileCount = projCount.wave4Plus.min + Math.floor(Math.random() * (projCount.wave4Plus.max - projCount.wave4Plus.min + 1));
     }
     
     const spreadAngle = Math.PI / 6; // 30 degree spread
@@ -379,14 +441,14 @@ export class EnemyManager {
     );
 
     // Determine if we should shoot homing blue balls
-    // Wave 1-2: 15% chance, Wave 3-4: 25% chance, Wave 5-7: 35% chance, Wave 8+: 45% chance
-    let homingChance = 0.15; // Start at 15% for initial waves
+    const homingChances = attackConfig.homingChance;
+    let homingChance: number = homingChances.wave1to2;
     if (wave >= 3 && wave <= 4) {
-      homingChance = 0.25;
+      homingChance = homingChances.wave3to4;
     } else if (wave >= 5 && wave <= 7) {
-      homingChance = 0.35;
+      homingChance = homingChances.wave5to7;
     } else if (wave >= 8) {
-      homingChance = 0.45;
+      homingChance = homingChances.wave8Plus;
     }
     const shouldShootHoming = Math.random() < homingChance;
     
@@ -402,7 +464,7 @@ export class EnemyManager {
         ? (i - (projectileCount - 1) / 2) * spreadAngle / (projectileCount - 1)
         : 0;
       const angle = baseAngle + angleOffset;
-      const speed = 6; // Projectile speed
+      const speed = attackConfig.projectileSpeed;
       
       // Check if this projectile should be homing (last N projectiles where N = homingCount)
       const isHoming = shouldShootHoming && i >= projectileCount - homingCount;
@@ -415,7 +477,7 @@ export class EnemyManager {
           y: Math.sin(angle) * speed,
         },
         damage: enemy.damage * 0.6, // Projectiles do 60% of melee damage
-        size: isHoming ? 24 : 20, // Slightly larger for homing projectiles
+        size: isHoming ? 24 : attackConfig.projectileSize,
         isHoming: isHoming,
       });
     }
@@ -423,6 +485,7 @@ export class EnemyManager {
 
   private updateEnemyProjectiles(deltaTime: number, playerPos: Position): void {
     // Move projectiles
+    const attackConfig = GAME_BALANCE.enemies.attack;
     this.enemyProjectiles.forEach((proj) => {
       // Homing projectiles follow the player
       if (proj.isHoming) {
@@ -430,8 +493,8 @@ export class EnemyManager {
           x: playerPos.x - proj.position.x,
           y: playerPos.y - proj.position.y,
         });
-        const homingSpeed = 5.5; // Increased from 4 to 5.5 - faster homing
-        const turnRate = 0.2; // Increased from 0.15 to 0.2 - turns faster toward player
+        const homingSpeed = attackConfig.homingProjectileSpeed;
+        const turnRate = 0.2; // Turn rate (can be added to config if needed)
         
         // Gradually turn toward player
         proj.velocity.x += direction.x * homingSpeed * turnRate;
@@ -513,9 +576,9 @@ export class EnemyManager {
       
       // If it's a WEAK enemy, it always explodes on death (except split enemies)
       if (isWeakEnemy && !enemy.isSplitEnemy) {
-        const explosionDamage = 40; // Significant explosion damage
+        const explosionDamage = GAME_BALANCE.enemies.weak.explosionDamageOnDeath;
         const distToPlayer = distance(deathPosition, playerPos);
-        const explosionRadius = 150; // Explosion radius
+        const explosionRadius = GAME_BALANCE.enemies.weak.explosionRadius;
         
         // Always return explosion info (visual effect always happens)
         // Damage is only applied if player is in range
@@ -581,7 +644,7 @@ export class EnemyManager {
       if (dist < (playerSize + enemy.size) / 2) {
         // WEAK enemies explode on contact, dealing massive damage (except split enemies)
         if (enemy.type === EnemyType.WEAK && !enemy.isSplitEnemy) {
-          const explosionDamage = 50; // Very high explosion damage on contact
+          const explosionDamage = GAME_BALANCE.enemies.weak.explosionDamageOnContact;
           explodedEnemies.push({
             position: { ...enemy.position },
             damage: explosionDamage

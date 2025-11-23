@@ -9,6 +9,7 @@ import { useGameLoop } from '../hooks/useGameLoop';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { checkCollision, generateId, distance } from '../utils/gameUtils';
 import { spriteManager } from '../utils/spriteManager';
+import { GAME_BALANCE } from '../data/gameBalance';
 import GameUI from './GameUI';
 import PowerUpSelection from './PowerUpSelection';
 import GameOver from './GameOver';
@@ -18,7 +19,7 @@ interface GameCanvasProps {
   onReturnToMenu: () => void;
 }
 
-const PLAYER_SIZE = 120; // Increased from 90 to 120
+const PLAYER_SIZE = GAME_BALANCE.player.size;
 
 const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -34,14 +35,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   });
 
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
-    maxHealth: 80, // Reduced starting health
-    health: 80,
-    movementSpeed: 7, // Increased for faster-paced gameplay
-    damage: 1,
-    attackSpeed: 1,
-    projectileSize: 1,
-    knockback: 10,
-    cooldownReduction: 0,
+    maxHealth: GAME_BALANCE.player.startingMaxHealth,
+    health: GAME_BALANCE.player.startingHealth,
+    movementSpeed: GAME_BALANCE.player.baseMovementSpeed,
+    damage: GAME_BALANCE.player.startingDamage,
+    attackSpeed: GAME_BALANCE.player.startingAttackSpeed,
+    projectileSize: GAME_BALANCE.player.startingProjectileSize,
+    knockback: GAME_BALANCE.player.startingKnockback,
+    cooldownReduction: GAME_BALANCE.player.startingCooldownReduction,
   });
 
   const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
@@ -544,10 +545,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       // Spawn health pickups periodically
       const healthPickupSpawnTime = Date.now();
-      const healthPickupSpawnInterval = 15000; // Spawn every 15 seconds (reduced frequency)
+      const healthPickupSpawnInterval = GAME_BALANCE.healthPickups.spawnInterval;
       if (healthPickupSpawnTime - lastHealthPickupSpawnRef.current >= healthPickupSpawnInterval) {
         // Spawn health pickup at random position near player but not too close
-        const spawnDistance = 300 + Math.random() * 400; // 300-700 units away
+        const spawnDistance = GAME_BALANCE.healthPickups.spawnDistance.min + 
+          Math.random() * (GAME_BALANCE.healthPickups.spawnDistance.max - GAME_BALANCE.healthPickups.spawnDistance.min);
         const angle = Math.random() * Math.PI * 2;
         const healthPickup: HealthPickup = {
           id: generateId(),
@@ -555,8 +557,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             x: newPlayerPos.x + Math.cos(angle) * spawnDistance,
             y: newPlayerPos.y + Math.sin(angle) * spawnDistance,
           },
-          healAmount: 20, // Heal 20 HP
-          size: 30,
+          healAmount: GAME_BALANCE.healthPickups.healAmount,
+          size: GAME_BALANCE.healthPickups.size,
           life: 0, // For pulsing animation
         };
         healthPickupsRef.current.push(healthPickup);
@@ -580,19 +582,27 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         
         // Remove pickups that are too far from player
         const dist = distance(pickup.position, newPlayerPos);
-        return dist < 1000; // Keep within 1000 units
+        return dist < GAME_BALANCE.healthPickups.despawnDistance;
       });
 
       // Fire ring damages nearby enemies (with damage tick rate)
       if (isFireRingActive) {
-        const fireRingRadius = 150;
-        const fireRingDamage = 15; // Damage per tick
+        const fireRingRadius = 300; // Doubled from 150
+        const fireRingDamage = 30; // Doubled from 15
         const fireRingTickRate = 500; // Damage every 500ms
+        
+        // First, mark all enemies as not burning, then mark those in range
+        enemyManager.getEnemies().forEach((enemy) => {
+          enemy.isBurning = false;
+        });
         
         if (currentTime - lastFireRingDamageRef.current >= fireRingTickRate) {
           enemyManager.getEnemies().forEach((enemy) => {
             const dist = distance(newPlayerPos, enemy.position);
             if (dist < fireRingRadius) {
+              // Mark enemy as burning
+              enemy.isBurning = true;
+              
               const result = enemyManager.damageEnemy(
                 enemy.id,
                 fireRingDamage,
@@ -623,11 +633,23 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             }
           });
           lastFireRingDamageRef.current = currentTime;
+        } else {
+          // Still mark enemies as burning even between damage ticks
+          enemyManager.getEnemies().forEach((enemy) => {
+            const dist = distance(newPlayerPos, enemy.position);
+            if (dist < fireRingRadius) {
+              enemy.isBurning = true;
+            }
+          });
         }
         // Update fire ring animation
         fireRingAnimationRef.current += deltaTime / 1000 * 2;
       } else {
         fireRingAnimationRef.current = 0;
+        // Clear burning state when fire ring is not active
+        enemyManager.getEnemies().forEach((enemy) => {
+          enemy.isBurning = false;
+        });
       }
 
       // Check collision with enemy projectiles (player getting hit)
@@ -946,6 +968,29 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           ctx.restore();
         }
 
+        // Draw burning effect for enemies in fire ring
+        if (enemy.isBurning) {
+          ctx.save();
+          ctx.translate(enemy.position.x, enemy.position.y);
+          
+          // Pulsing orange glow effect
+          const pulseTime = Date.now() / 150;
+          const pulseIntensity = Math.sin(pulseTime) * 0.4 + 0.6; // Pulse between 0.2 and 1.0
+          
+          const glowGradient = ctx.createRadialGradient(0, 0, enemy.size * 0.2, 0, 0, enemy.size * 0.9);
+          glowGradient.addColorStop(0, `rgba(255, 140, 0, ${pulseIntensity * 0.9})`);
+          glowGradient.addColorStop(0.5, `rgba(255, 100, 0, ${pulseIntensity * 0.6})`);
+          glowGradient.addColorStop(1, `rgba(255, 50, 0, 0)`);
+          
+          ctx.fillStyle = glowGradient;
+          ctx.shadowBlur = 25;
+          ctx.shadowColor = `rgba(255, 140, 0, ${pulseIntensity})`;
+          ctx.beginPath();
+          ctx.arc(0, 0, enemy.size * 0.9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
         // Draw berserker red glow for STRONG enemies in berserker mode
         if (enemy.isBerserker && enemy.type === 'strong') {
           ctx.save();
@@ -1200,32 +1245,33 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       // Draw fire ring effect if active
       if (isFireRingActive) {
-        const fireRingRadius = 150;
+        const fireRingRadius = 300; // Doubled from 150
         const ringRotation = fireRingAnimationRef.current;
         
         ctx.save();
         ctx.translate(newPlayerPos.x, newPlayerPos.y);
         ctx.rotate(ringRotation);
         
-        // Outer fire ring
-        const gradient = ctx.createRadialGradient(0, 0, fireRingRadius * 0.7, 0, 0, fireRingRadius);
-        gradient.addColorStop(0, 'rgba(255, 100, 0, 0.8)');
-        gradient.addColorStop(0.5, 'rgba(255, 200, 0, 0.6)');
-        gradient.addColorStop(1, 'rgba(255, 0, 0, 0.3)');
-        
-        ctx.fillStyle = gradient;
+        // Glowing perimeter circle (no solid fill)
+        const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulse between 0.4 and 1.0
+        ctx.strokeStyle = `rgba(255, 140, 0, ${pulseIntensity})`; // Glowing orange
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = `rgba(255, 100, 0, ${pulseIntensity})`;
         ctx.beginPath();
         ctx.arc(0, 0, fireRingRadius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.stroke();
         
         // Fire particles around the ring
-        for (let i = 0; i < 12; i++) {
-          const angle = (i / 12) * Math.PI * 2 + ringRotation;
-          const particleDist = fireRingRadius * 0.9;
+        for (let i = 0; i < 16; i++) {
+          const angle = (i / 16) * Math.PI * 2 + ringRotation;
+          const particleDist = fireRingRadius * 0.95;
           const particleX = Math.cos(angle) * particleDist;
           const particleY = Math.sin(angle) * particleDist;
           
           ctx.fillStyle = `rgba(255, ${100 + Math.sin(ringRotation + i) * 50}, 0, 0.9)`;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = 'rgba(255, 140, 0, 0.8)';
           ctx.beginPath();
           ctx.arc(particleX, particleY, 8, 0, Math.PI * 2);
           ctx.fill();
