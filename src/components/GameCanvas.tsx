@@ -49,6 +49,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [availablePowerUps, setAvailablePowerUps] = useState<PowerUp[]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const showExitConfirmRef = useRef(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const isPausedRef = useRef(false);
   // Active abilities - start empty, obtained from power-ups
   const [activeAbilities, setActiveAbilities] = useState<ActiveAbilityState[]>([]);
 
@@ -146,6 +149,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const lastHealthPickupSpawnRef = useRef<number>(0);
   const lastFireRingDamageRef = useRef<number>(0);
   const fireRingAnimationRef = useRef<number>(0);
+  const lastShieldBlockSoundRef = useRef<number>(0);
   const playerPosRef = useRef<Position>(playerPos);
   const playerStatsRef = useRef<PlayerStats>(playerStats);
   const spritesLoadedRef = useRef<boolean>(false);
@@ -163,6 +167,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const normalEnemyDeathSoundRef = useRef<HTMLAudioElement | null>(null);
   const enemyProjectileDestroyedSoundRef = useRef<HTMLAudioElement | null>(null);
   const enemySplitSoundRef = useRef<HTMLAudioElement | null>(null);
+  const abilityActivationSoundRef = useRef<HTMLAudioElement | null>(null);
 
   // Update canvas size on window resize
   useEffect(() => {
@@ -358,6 +363,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     const enemySplitSound = new Audio('/assets/impact-thud-372473.mp3');
     enemySplitSound.volume = 0.3; // Set volume to 30%
     enemySplitSoundRef.current = enemySplitSound;
+
+    // Initialize ability activation/deactivation sound
+    const abilityActivationSound = new Audio('/assets/flame-spell-impact-393919.mp3');
+    abilityActivationSound.volume = 0.3; // Set volume to 30%
+    abilityActivationSoundRef.current = abilityActivationSound;
 
     // Create callback for enemy projectile sound
     const playEnemyProjectileSound = () => {
@@ -756,6 +766,12 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   // Handle E key press to continue to power-up selection or activate abilities
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't handle keys when exit confirmation is shown (let Escape handler take over)
+      // Also don't handle Escape key here - let the Escape handler take care of it
+      if (showExitConfirm || e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+        return;
+      }
+      
       if (e.key === 'e' || e.key === 'E') {
         const waveManager = waveManagerRef.current;
         
@@ -794,6 +810,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               endTime: currentTime + abilityData.duration,
               cooldownEndTime: currentTime + abilityData.duration + abilityData.cooldown,
             };
+            
+            // Play ability activation sound
+            if (abilityActivationSoundRef.current) {
+              const sound = abilityActivationSoundRef.current.cloneNode() as HTMLAudioElement;
+              sound.volume = 0.3;
+              sound.play().catch(() => {
+                // Ignore autoplay errors
+              });
+            }
+            
             return newAbilities;
           }
           return prev;
@@ -803,7 +829,74 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [showExitConfirm]);
+
+  // Track ability expiration to play deactivation sound
+  const prevActiveAbilitiesRef = useRef<ActiveAbilityState[]>([]);
+  useEffect(() => {
+    const currentTime = Date.now();
+    
+    // Check if any ability just expired (was active before, now inactive)
+    prevActiveAbilitiesRef.current.forEach((prevAbility) => {
+      const wasActive = currentTime < prevAbility.endTime;
+      const currentAbility = activeAbilities.find(a => a.type === prevAbility.type);
+      
+      if (wasActive && currentAbility) {
+        const isNowActive = currentTime < currentAbility.endTime;
+        if (!isNowActive) {
+          // Ability just expired, play deactivation sound
+          if (abilityActivationSoundRef.current) {
+            const sound = abilityActivationSoundRef.current.cloneNode() as HTMLAudioElement;
+            sound.volume = 0.3;
+            sound.play().catch(() => {
+              // Ignore autoplay errors
+            });
+          }
+        }
+      }
+    });
+    
+    // Update previous state
+    prevActiveAbilitiesRef.current = activeAbilities;
+  }, [activeAbilities]);
+
+  // Update refs when state changes
+  useEffect(() => {
+    showExitConfirmRef.current = showExitConfirm;
+  }, [showExitConfirm]);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
+  // Handle Escape key to pause game or confirm exit
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      // Check for Escape key (can be 'Escape' or 'Esc' depending on browser)
+      if (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // If exit confirmation is shown, confirm exit
+        if (showExitConfirmRef.current) {
+          cleanupAllSounds();
+          onReturnToMenu();
+        } 
+        // If paused, resume
+        else if (isPausedRef.current) {
+          setIsPaused(false);
+        }
+        // Otherwise, pause the game
+        else if (!isGameOver && !waveManagerRef.current.isShowingPowerUpSelection() && !waveManagerRef.current.isWaveCompleted()) {
+          setIsPaused(true);
+        }
+      }
+    };
+
+    // Use capture phase to ensure this handler runs first
+    window.addEventListener('keydown', handleEscape, true);
+    return () => window.removeEventListener('keydown', handleEscape, true);
+  }, [cleanupAllSounds, onReturnToMenu, isGameOver]);
 
   const gameLoop = useCallback(
     (deltaTime: number) => {
@@ -919,13 +1012,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                   // Apply explosion damage to player if explosionDamage > 0 (player was in range)
                   if (result.explosionDamage && result.explosionDamage > 0) {
                     if (isShieldActive) {
-                      // Play shield block sound
-                      if (enemyProjectileDestroyedSoundRef.current) {
-                        const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
-                        sound.volume = 0.3;
-                        sound.play().catch(() => {
-                          // Ignore autoplay errors
-                        });
+                      // Play shield block sound (throttled to prevent spam)
+                      if (currentTime - lastShieldBlockSoundRef.current > 200) {
+                        if (enemyProjectileDestroyedSoundRef.current) {
+                          const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+                          sound.volume = 0.3;
+                          sound.play().catch(() => {
+                            // Ignore autoplay errors
+                          });
+                        }
+                        lastShieldBlockSoundRef.current = currentTime;
                       }
                     } else {
                       setPlayerStats((prev) => {
@@ -1078,13 +1174,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                   // Apply explosion damage to player if explosionDamage > 0 (player was in range)
                   if (result.explosionDamage && result.explosionDamage > 0) {
                     if (isShieldActive) {
-                      // Play shield block sound
-                      if (enemyProjectileDestroyedSoundRef.current) {
-                        const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
-                        sound.volume = 0.3;
-                        sound.play().catch(() => {
-                          // Ignore autoplay errors
-                        });
+                      // Play shield block sound (throttled to prevent spam)
+                      if (currentTime - lastShieldBlockSoundRef.current > 200) {
+                        if (enemyProjectileDestroyedSoundRef.current) {
+                          const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+                          sound.volume = 0.3;
+                          sound.play().catch(() => {
+                            // Ignore autoplay errors
+                          });
+                        }
+                        lastShieldBlockSoundRef.current = currentTime;
                       }
                     } else {
                       setPlayerStats((prev) => {
@@ -1135,13 +1234,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             // Just remove projectile, no damage
             enemyManager.removeEnemyProjectile(proj.id);
             
-            // Play explosion sound effect
-            if (enemyProjectileDestroyedSoundRef.current) {
-              const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
-              sound.volume = 0.3;
-              sound.play().catch(() => {
-                // Ignore autoplay errors
-              });
+            // Play explosion sound effect (throttled to prevent spam)
+            if (currentTime - lastShieldBlockSoundRef.current > 100) {
+              if (enemyProjectileDestroyedSoundRef.current) {
+                const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+                sound.volume = 0.3;
+                sound.play().catch(() => {
+                  // Ignore autoplay errors
+                });
+              }
+              lastShieldBlockSoundRef.current = currentTime;
             }
             
             return;
@@ -1190,13 +1292,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         if (damage > 0) {
           // Shield blocks all damage
           if (isShieldActive) {
-            // Play shield block sound
-            if (enemyProjectileDestroyedSoundRef.current) {
-              const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
-              sound.volume = 0.3;
-              sound.play().catch(() => {
-                // Ignore autoplay errors
-              });
+            // Play shield block sound (throttled to prevent spam)
+            if (currentTime - lastShieldBlockSoundRef.current > 200) {
+              if (enemyProjectileDestroyedSoundRef.current) {
+                const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+                sound.volume = 0.3;
+                sound.play().catch(() => {
+                  // Ignore autoplay errors
+                });
+              }
+              lastShieldBlockSoundRef.current = currentTime;
             }
           } else {
             setPlayerStats((prev) => {
@@ -1910,7 +2015,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities]
   );
 
-  useGameLoop(gameLoop, !isGameOver);
+  useGameLoop(gameLoop, !isGameOver && !showExitConfirm && !isPaused);
 
   return (
     <>
@@ -1933,6 +2038,12 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         .exit-confirm-yes:hover {
           background-color: #aa0000;
         }
+        .pause-button {
+          background-color: #5a0000;
+        }
+        .pause-button:hover {
+          background-color: #7a0000;
+        }
       `}</style>
       <div className="relative w-screen h-screen">
         <canvas
@@ -1940,17 +2051,64 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           className="cursor-crosshair w-full h-full"
         />
 
-        {/* Exit to main menu button */}
-        <button
-          onClick={() => setShowExitConfirm(true)}
-          className="absolute top-4 right-4 border-4 border-white py-3 px-6 text-white font-bold exit-button z-20"
-          style={{ 
-            fontSize: '18px',
-            imageRendering: 'pixelated'
-          }}
-        >
-          EXIT
-        </button>
+        {/* Pause button - top center */}
+        {(() => {
+          const waveManager = waveManagerRef.current;
+          const shouldShowPause = !isGameOver && !isPaused && !showExitConfirm && 
+            !waveManager.isShowingPowerUpSelection() && !waveManager.isWaveCompleted();
+          
+          return shouldShowPause ? (
+            <button
+              onClick={() => setIsPaused(true)}
+              className="fixed top-4 left-1/2 transform -translate-x-1/2 border-4 border-white py-3 px-6 text-white font-bold pause-button z-30"
+              style={{ 
+                fontSize: '24px',
+                imageRendering: 'pixelated',
+                pointerEvents: 'auto',
+                backgroundColor: '#5a0000'
+              }}
+            >
+              <span style={{ fontSize: '32px' }}>⏸</span> PAUSE
+            </button>
+          ) : null;
+        })()}
+
+        {/* Pause modal */}
+        {isPaused && (
+          <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+            <div className="border-4 border-white p-12 text-center shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', minWidth: '500px' }}>
+              <h2 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>
+                GAME PAUSED
+              </h2>
+              <div className="flex gap-6 justify-center">
+                <button
+                  onClick={() => setIsPaused(false)}
+                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-no"
+                  style={{ 
+                    fontSize: '18px',
+                    imageRendering: 'pixelated'
+                  }}
+                >
+                  RESUME
+                </button>
+                <button
+                  onClick={() => {
+                    setIsPaused(false);
+                    setShowExitConfirm(true);
+                  }}
+                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-yes"
+                  style={{ 
+                    fontSize: '18px',
+                    imageRendering: 'pixelated'
+                  }}
+                >
+                  EXIT
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* Exit confirmation modal */}
         {showExitConfirm && (
@@ -2031,6 +2189,49 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           }}
         />
       )}
+
+      {/* Center screen countdown when ability is about to expire */}
+      {(() => {
+        const currentTime = Date.now();
+        let expiringAbility: { name: string; secondsRemaining: number } | null = null;
+        
+        for (const ability of activeAbilities) {
+          const abilityData = getAbilityByType(ability.type);
+          if (!abilityData) continue;
+          
+          const isActive = currentTime < ability.endTime;
+          if (isActive) {
+            const durationRemaining = Math.max(0, ability.endTime - currentTime);
+            const secondsRemaining = Math.ceil(durationRemaining / 1000);
+            
+            if (secondsRemaining <= 3 && secondsRemaining > 0) {
+              // Show the ability with the least time remaining
+              if (!expiringAbility || secondsRemaining < expiringAbility.secondsRemaining) {
+                expiringAbility = {
+                  name: abilityData.name,
+                  secondsRemaining: secondsRemaining
+                };
+              }
+            }
+          }
+        }
+        
+        if (expiringAbility) {
+          return (
+            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
+              <div className="text-center">
+                <div className="text-red-400 font-bold animate-pulse" style={{ fontSize: '120px', textShadow: '6px 6px 0px rgba(0,0,0,0.9)' }}>
+                  {expiringAbility.secondsRemaining}
+                </div>
+                <div className="text-yellow-300 font-bold mt-4" style={{ fontSize: '32px', textShadow: '4px 4px 0px rgba(0,0,0,0.8)' }}>
+                  {expiringAbility.name.toUpperCase()} EXPIRING
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {/* Active Abilities UI */}
       <div className="absolute bottom-4 left-4 flex gap-4 z-20 pointer-events-none" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
