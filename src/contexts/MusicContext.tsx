@@ -5,6 +5,8 @@ interface MusicContextType {
   toggleMusic: () => void;
   stopMusic: () => void;
   resumeMusic: () => void;
+  isSfxEnabled: boolean;
+  toggleSfx: () => void;
 }
 
 const MusicContext = createContext<MusicContextType | null>(null);
@@ -16,6 +18,14 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     const saved = localStorage.getItem('musicEnabled');
     return saved !== null ? saved === 'true' : true; // Default to true (ON)
   });
+
+  // SFX is ON by default, load from localStorage
+  const [isSfxEnabled, setIsSfxEnabled] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = localStorage.getItem('sfxEnabled');
+    return saved !== null ? saved === 'true' : true; // Default to true (ON)
+  });
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasUserInteractedRef = useRef(false);
 
@@ -96,6 +106,16 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const toggleSfx = () => {
+    const newState = !isSfxEnabled;
+    setIsSfxEnabled(newState);
+    
+    // Save preference to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sfxEnabled', String(newState));
+    }
+  };
+
   // Expose function to stop music (for when game starts)
   const stopMusic = () => {
     if (audioRef.current) {
@@ -113,7 +133,7 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <MusicContext.Provider value={{ isMusicEnabled, toggleMusic, stopMusic, resumeMusic }}>
+    <MusicContext.Provider value={{ isMusicEnabled, toggleMusic, stopMusic, resumeMusic, isSfxEnabled, toggleSfx }}>
       {children}
     </MusicContext.Provider>
   );
@@ -126,4 +146,3 @@ export const useMusic = () => {
   }
   return context;
 };
-
