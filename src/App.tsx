@@ -7,6 +7,7 @@ import DailyChest from './components/DailyChest';
 import Achievements from './components/Achievements';
 import { Weapon, WeaponType, WeaponRarity } from './types/game';
 import { WalletProvider } from './contexts/WalletContext';
+import { MusicProvider } from './contexts/MusicContext';
 import { useUserWeapons } from './hooks/useUserWeapons';
 
 type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest' | 'achievements';
@@ -126,7 +127,9 @@ function AppContent() {
 function App() {
   return (
     <WalletProvider>
-      <AppContent />
+      <MusicProvider>
+        <AppContent />
+      </MusicProvider>
     </WalletProvider>
   );
 }

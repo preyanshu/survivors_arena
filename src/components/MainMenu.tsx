@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useOneWallet } from '../hooks/useOneWallet';
+import { useMusic } from '../contexts/MusicContext';
 import WalletWarningModal from './WalletWarningModal';
 
 interface MainMenuProps {
@@ -11,6 +12,7 @@ interface MainMenuProps {
 
 const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMenuProps) => {
   const { connected, address, connect, disconnect, installWallet, isWalletInstalled, isCorrectChain, chainId, checkChain } = useOneWallet();
+  const { isMusicEnabled, toggleMusic } = useMusic();
   const [showWalletWarning, setShowWalletWarning] = useState(false);
   const [showChainWarning, setShowChainWarning] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
@@ -75,6 +77,22 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMen
         style={{ imageRendering: 'pixelated' }}
       />
       
+      {/* Music toggle button - top left */}
+      <div className="absolute top-8 left-8 z-20">
+        <button
+          onClick={toggleMusic}
+          className="border-2 border-white/50 py-2 px-3 text-white font-bold transition-all rounded bg-black/70 hover:bg-black/90"
+          style={{ 
+            fontSize: '24px',
+            imageRendering: 'pixelated',
+            opacity: isMusicEnabled ? 1 : 0.5
+          }}
+          title={isMusicEnabled ? 'Music ON - Click to turn off' : 'Music OFF - Click to turn on'}
+        >
+          {isMusicEnabled ? '🎵' : '🔇'}
+        </button>
+      </div>
+
       {/* Wallet connection button - top right */}
       <div className="absolute top-8 right-8 z-20">
         {connected ? (
