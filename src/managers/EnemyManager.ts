@@ -14,10 +14,28 @@ export class EnemyManager {
   private waveBaseHealth: number = 0;
   private waveBaseSpeed: number = 0;
   private waveBaseDamage: number = 0;
+  private onProjectileFired?: () => void;
+  private onBerserkerActivated?: () => void;
+  private onChargingStarted?: () => void;
+  private onChargingStopped?: () => void;
+  private onChargedShotFired?: () => void;
+  private onWeakEnemyExploded?: () => void;
+  private onNormalEnemyDied?: () => void;
+  private onShieldBlocked?: () => void;
+  private onEnemySplit?: () => void;
 
-  constructor(canvasWidth: number, canvasHeight: number) {
+  constructor(canvasWidth: number, canvasHeight: number, onProjectileFired?: () => void, onBerserkerActivated?: () => void, onChargingStarted?: () => void, onChargingStopped?: () => void, onChargedShotFired?: () => void, onWeakEnemyExploded?: () => void, onNormalEnemyDied?: () => void, onShieldBlocked?: () => void, onEnemySplit?: () => void) {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
+    this.onProjectileFired = onProjectileFired;
+    this.onBerserkerActivated = onBerserkerActivated;
+    this.onChargingStarted = onChargingStarted;
+    this.onChargingStopped = onChargingStopped;
+    this.onChargedShotFired = onChargedShotFired;
+    this.onWeakEnemyExploded = onWeakEnemyExploded;
+    this.onNormalEnemyDied = onNormalEnemyDied;
+    this.onShieldBlocked = onShieldBlocked;
+    this.onEnemySplit = onEnemySplit;
   }
 
   spawnWave(wave: number, playerPos?: Position, mousePos?: Position): void {
@@ -293,6 +311,11 @@ export class EnemyManager {
           const berserkerConfig = attackConfig;
           enemy.size = enemy.size * berserkerConfig.berserkerSizeMultiplier;
           enemy.speed = enemy.speed * berserkerConfig.berserkerSpeedMultiplier;
+          
+          // Play berserker sound effect
+          if (this.onBerserkerActivated) {
+            this.onBerserkerActivated();
+          }
         }
       }
 
@@ -338,6 +361,11 @@ export class EnemyManager {
               (!enemy.lastAttackTime || currentTime - enemy.lastAttackTime >= berserkerChargeCooldown)) {
             enemy.chargeStartTime = currentTime;
             enemy.chargeTargetPos = { ...playerPos }; // Lock target position when charging starts
+            
+            // Play charging sound effect
+            if (this.onChargingStarted) {
+              this.onChargingStarted();
+            }
           }
           
           // If charging and charge time is complete, fire charged shot at locked target
@@ -351,6 +379,12 @@ export class EnemyManager {
           }
         } else {
           // Out of range, cancel charge
+          if (enemy.chargeStartTime) {
+            // Only stop sound if charging was actually in progress
+            if (this.onChargingStopped) {
+              this.onChargingStopped();
+            }
+          }
           enemy.chargeStartTime = undefined;
           enemy.chargeTargetPos = undefined;
         }
@@ -371,6 +405,12 @@ export class EnemyManager {
         enemy.position.y = playerPos.y + Math.sin(behindAngle) * spawnDistance + Math.sin(behindAngle + Math.PI / 2) * randomOffset;
         
         // Reset enemy state
+        if (enemy.chargeStartTime) {
+          // Only stop sound if charging was actually in progress
+          if (this.onChargingStopped) {
+            this.onChargingStopped();
+          }
+        }
         enemy.chargeStartTime = undefined;
         enemy.chargeTargetPos = undefined;
         enemy.lastAttackTime = 0;
@@ -384,6 +424,12 @@ export class EnemyManager {
         enemy.position.y = playerPos.y + Math.sin(behindAngle) * spawnDistance;
         
         // Reset enemy state
+        if (enemy.chargeStartTime) {
+          // Only stop sound if charging was actually in progress
+          if (this.onChargingStopped) {
+            this.onChargingStopped();
+          }
+        }
         enemy.chargeStartTime = undefined;
         enemy.chargeTargetPos = undefined;
         enemy.lastAttackTime = 0;
@@ -417,6 +463,11 @@ export class EnemyManager {
       isHoming: false,
       indestructible: true, // Charged shots cannot be destroyed by player weapons
     });
+    
+    // Play charged shot firing sound effect
+    if (this.onChargedShotFired) {
+      this.onChargedShotFired();
+    }
   }
 
   private shootAtPlayer(enemy: Enemy, playerPos: Position, wave: number): void {
@@ -480,6 +531,11 @@ export class EnemyManager {
         size: isHoming ? 24 : attackConfig.projectileSize,
         isHoming: isHoming,
       });
+    }
+    
+    // Play sound effect when projectiles are fired (only once per attack, not per projectile)
+    if (this.onProjectileFired && projectileCount > 0) {
+      this.onProjectileFired();
     }
   }
 
@@ -551,6 +607,12 @@ export class EnemyManager {
 
     // Shielded enemies take 0 damage (complete immunity)
     const effectiveDamage = isShielded ? 0 : damage;
+    
+    // Play shield block sound if enemy is shielded
+    if (isShielded && this.onShieldBlocked) {
+      this.onShieldBlocked();
+    }
+    
     enemy.health -= effectiveDamage;
 
     const direction = normalize({
@@ -566,6 +628,11 @@ export class EnemyManager {
       const shouldSplit = enemy.type === EnemyType.STRONG;
       const isWeakEnemy = enemy.type === EnemyType.WEAK;
       
+      // Stop charging sound if enemy was charging when it died
+      if (enemy.chargeStartTime && this.onChargingStopped) {
+        this.onChargingStopped();
+      }
+      
       // Remove the enemy
       this.enemies = this.enemies.filter((e) => e.id !== enemyId);
       
@@ -580,6 +647,11 @@ export class EnemyManager {
         const distToPlayer = distance(deathPosition, playerPos);
         const explosionRadius = GAME_BALANCE.enemies.weak.explosionRadius;
         
+        // Play explosion sound effect
+        if (this.onWeakEnemyExploded) {
+          this.onWeakEnemyExploded();
+        }
+        
         // Always return explosion info (visual effect always happens)
         // Damage is only applied if player is in range
         return { 
@@ -591,6 +663,13 @@ export class EnemyManager {
         };
       }
       
+      // If it's a NORMAL enemy, play death sound
+      if (enemy.type === EnemyType.NORMAL) {
+        if (this.onNormalEnemyDied) {
+          this.onNormalEnemyDied();
+        }
+      }
+      
       return { killed: true, position: deathPosition, shouldSplit };
     }
 
@@ -598,6 +677,11 @@ export class EnemyManager {
   }
 
   private splitEnemy(position: Position): void {
+    // Play split sound effect
+    if (this.onEnemySplit) {
+      this.onEnemySplit();
+    }
+    
     // Spawn 2-3 smaller enemies (WEAK type) when STRONG enemy dies
     const splitCount = 2 + Math.floor(Math.random() * 2); // 2 or 3 enemies
     
@@ -650,6 +734,12 @@ export class EnemyManager {
             damage: explosionDamage
           });
           totalDamage += explosionDamage;
+          
+          // Play explosion sound effect
+          if (this.onWeakEnemyExploded) {
+            this.onWeakEnemyExploded();
+          }
+          
           // Remove the weak enemy after explosion
           this.enemies = this.enemies.filter((e) => e.id !== enemy.id);
         } else {

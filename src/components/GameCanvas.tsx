@@ -53,10 +53,88 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const [activeAbilities, setActiveAbilities] = useState<ActiveAbilityState[]>([]);
 
   const weaponManagerRef = useRef<WeaponManager>(new WeaponManager(weapon));
+  // Callback for enemy projectile sound - will be set in useEffect
+  const playEnemyProjectileSoundRef = useRef<(() => void) | null>(null);
+  const playBerserkerSoundRef = useRef<(() => void) | null>(null);
+  const playChargingSoundRef = useRef<(() => void) | null>(null);
+  const stopChargingSoundRef = useRef<(() => void) | null>(null);
+  const playChargedShotSoundRef = useRef<(() => void) | null>(null);
+  const playWeakEnemyBlastSoundRef = useRef<(() => void) | null>(null);
+  const playNormalEnemyDeathSoundRef = useRef<(() => void) | null>(null);
+  
   const enemyManagerRef = useRef<EnemyManager>(
-    new EnemyManager(canvasWidth, canvasHeight)
+    new EnemyManager(canvasWidth, canvasHeight, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (playEnemyProjectileSoundRef.current) {
+        playEnemyProjectileSoundRef.current();
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (playBerserkerSoundRef.current) {
+        playBerserkerSoundRef.current();
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (playChargingSoundRef.current) {
+        playChargingSoundRef.current();
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (stopChargingSoundRef.current) {
+        stopChargingSoundRef.current();
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (playChargedShotSoundRef.current) {
+        playChargedShotSoundRef.current();
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (playWeakEnemyBlastSoundRef.current) {
+        playWeakEnemyBlastSoundRef.current();
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (playNormalEnemyDeathSoundRef.current) {
+        playNormalEnemyDeathSoundRef.current();
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (enemyProjectileDestroyedSoundRef.current) {
+        const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    }, () => {
+      // Temporary callback, will be replaced in useEffect
+      if (enemySplitSoundRef.current) {
+        const sound = enemySplitSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    })
   );
   const waveManagerRef = useRef<WaveManager>(new WaveManager());
+
+  // Cleanup function to stop all playing sounds
+  const cleanupAllSounds = useCallback(() => {
+    // Stop charging sound
+    if (currentChargingSoundRef.current) {
+      currentChargingSoundRef.current.pause();
+      currentChargingSoundRef.current.currentTime = 0;
+      currentChargingSoundRef.current = null;
+    }
+    
+    // Stop all audio elements by pausing and resetting them
+    // Note: We can't track all cloned sounds, but stopping the main refs helps
+    if (stopChargingSoundRef.current) {
+      stopChargingSoundRef.current();
+    }
+  }, []);
 
   const projectilesRef = useRef<Projectile[]>([]);
   const bloodParticlesRef = useRef<BloodParticle[]>([]);
@@ -71,6 +149,20 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const playerPosRef = useRef<Position>(playerPos);
   const playerStatsRef = useRef<PlayerStats>(playerStats);
   const spritesLoadedRef = useRef<boolean>(false);
+  const pistolSoundRef = useRef<HTMLAudioElement | null>(null);
+  const swordSoundRef = useRef<HTMLAudioElement | null>(null);
+  const rifleSoundRef = useRef<HTMLAudioElement | null>(null);
+  const shotgunSoundRef = useRef<HTMLAudioElement | null>(null);
+  const enemyProjectileSoundRef = useRef<HTMLAudioElement | null>(null);
+  const healthPickupSoundRef = useRef<HTMLAudioElement | null>(null);
+  const berserkerSoundRef = useRef<HTMLAudioElement | null>(null);
+  const chargingSoundRef = useRef<HTMLAudioElement | null>(null);
+  const currentChargingSoundRef = useRef<HTMLAudioElement | null>(null);
+  const chargedShotSoundRef = useRef<HTMLAudioElement | null>(null);
+  const weakEnemyBlastSoundRef = useRef<HTMLAudioElement | null>(null);
+  const normalEnemyDeathSoundRef = useRef<HTMLAudioElement | null>(null);
+  const enemyProjectileDestroyedSoundRef = useRef<HTMLAudioElement | null>(null);
+  const enemySplitSoundRef = useRef<HTMLAudioElement | null>(null);
 
   // Update canvas size on window resize
   useEffect(() => {
@@ -95,7 +187,105 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
   // Recreate EnemyManager when canvas size changes
   useEffect(() => {
-    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight);
+    const playEnemyProjectileSound = () => {
+      if (enemyProjectileSoundRef.current) {
+        const sound = enemyProjectileSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    const playBerserkerSound = () => {
+      if (berserkerSoundRef.current) {
+        const sound = berserkerSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    const playChargingSound = () => {
+      // Stop any currently playing charging sound
+      if (currentChargingSoundRef.current) {
+        currentChargingSoundRef.current.pause();
+        currentChargingSoundRef.current.currentTime = 0;
+        currentChargingSoundRef.current = null;
+      }
+      
+      if (chargingSoundRef.current) {
+        const sound = chargingSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.loop = true; // Loop the charging sound
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+        currentChargingSoundRef.current = sound; // Track the currently playing sound
+      }
+    };
+    const stopChargingSound = () => {
+      if (currentChargingSoundRef.current) {
+        currentChargingSoundRef.current.pause();
+        currentChargingSoundRef.current.currentTime = 0;
+        currentChargingSoundRef.current = null;
+      }
+    };
+    const playChargedShotSound = () => {
+      // Stop charging sound when shot is fired
+      stopChargingSound();
+      
+      if (chargedShotSoundRef.current) {
+        const sound = chargedShotSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    const playWeakEnemyBlastSound = () => {
+      if (weakEnemyBlastSoundRef.current) {
+        const sound = weakEnemyBlastSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.currentTime = 0; // Start from beginning
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+        
+        // Stop after 1 second
+        setTimeout(() => {
+          sound.pause();
+          sound.currentTime = 0;
+        }, 1000);
+      }
+    };
+    const playNormalEnemyDeathSound = () => {
+      if (normalEnemyDeathSoundRef.current) {
+        const sound = normalEnemyDeathSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    const playShieldBlockSound = () => {
+      if (enemyProjectileDestroyedSoundRef.current) {
+        const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    const playEnemySplitSound = () => {
+      if (enemySplitSoundRef.current) {
+        const sound = enemySplitSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight, playEnemyProjectileSound, playBerserkerSound, playChargingSound, stopChargingSound, playChargedShotSound, playWeakEnemyBlastSound, playNormalEnemyDeathSound, playShieldBlockSound, playEnemySplitSound);
   }, [canvasWidth, canvasHeight]);
 
   useEffect(() => {
@@ -103,6 +293,199 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     spriteManager.loadSprites().then(() => {
       spritesLoadedRef.current = true;
     });
+
+    // Initialize pistol sound
+    const pistolSound = new Audio('/assets/pistol-shot-233473.mp3');
+    pistolSound.volume = 0.3; // Set volume to 30%
+    pistolSoundRef.current = pistolSound;
+
+    // Initialize sword sound
+    const swordSound = new Audio('/assets/sword-slice-393847.mp3');
+    swordSound.volume = 0.3; // Set volume to 30%
+    swordSoundRef.current = swordSound;
+
+    // Initialize rifle sound
+    const rifleSound = new Audio('/assets/powerful-cannon-shot-352459.mp3');
+    rifleSound.volume = 0.3; // Set volume to 30%
+    rifleSoundRef.current = rifleSound;
+
+    // Initialize shotgun sound
+    const shotgunSound = new Audio('/assets/shotgun-146188.mp3');
+    shotgunSound.volume = 0.3; // Set volume to 30%
+    shotgunSoundRef.current = shotgunSound;
+
+    // Initialize enemy projectile sound
+    const enemyProjectileSound = new Audio('/assets/fire-magic-5-378639.mp3');
+    enemyProjectileSound.volume = 0.3; // Set volume to 30%
+    enemyProjectileSoundRef.current = enemyProjectileSound;
+
+    // Initialize health pickup sound
+    const healthPickupSound = new Audio('/assets/health-pickup-6860.mp3');
+    healthPickupSound.volume = 0.3; // Set volume to 30%
+    healthPickupSoundRef.current = healthPickupSound;
+
+    // Initialize berserker sound
+    const berserkerSound = new Audio('/assets/monster-growl-390285.mp3');
+    berserkerSound.volume = 0.3; // Set volume to 30%
+    berserkerSoundRef.current = berserkerSound;
+
+    // Initialize charging sound
+    const chargingSound = new Audio('/assets/062708_laser-charging-81968.mp3');
+    chargingSound.volume = 0.3; // Set volume to 30%
+    chargingSoundRef.current = chargingSound;
+
+    // Initialize charged shot sound
+    const chargedShotSound = new Audio('/assets/lazer-gun-432285.mp3');
+    chargedShotSound.volume = 0.3; // Set volume to 30%
+    chargedShotSoundRef.current = chargedShotSound;
+
+    // Initialize weak enemy blast sound
+    const weakEnemyBlastSound = new Audio('/assets/blast-37988.mp3');
+    weakEnemyBlastSound.volume = 0.3; // Set volume to 30%
+    weakEnemyBlastSoundRef.current = weakEnemyBlastSound;
+
+    // Initialize normal enemy death sound
+    const normalEnemyDeathSound = new Audio('/assets/slime-squish-5-218569.mp3');
+    normalEnemyDeathSound.volume = 0.3; // Set volume to 30%
+    normalEnemyDeathSoundRef.current = normalEnemyDeathSound;
+
+    // Initialize enemy projectile destroyed sound
+    const enemyProjectileDestroyedSound = new Audio('/assets/attack-match-1-394505.mp3');
+    enemyProjectileDestroyedSound.volume = 0.3; // Set volume to 30%
+    enemyProjectileDestroyedSoundRef.current = enemyProjectileDestroyedSound;
+
+    // Initialize enemy split sound
+    const enemySplitSound = new Audio('/assets/impact-thud-372473.mp3');
+    enemySplitSound.volume = 0.3; // Set volume to 30%
+    enemySplitSoundRef.current = enemySplitSound;
+
+    // Create callback for enemy projectile sound
+    const playEnemyProjectileSound = () => {
+      if (enemyProjectileSoundRef.current) {
+        const sound = enemyProjectileSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    
+    // Create callback for berserker sound
+    const playBerserkerSound = () => {
+      if (berserkerSoundRef.current) {
+        const sound = berserkerSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    
+    // Create callback for charging sound
+    const playChargingSound = () => {
+      // Stop any currently playing charging sound
+      if (currentChargingSoundRef.current) {
+        currentChargingSoundRef.current.pause();
+        currentChargingSoundRef.current.currentTime = 0;
+        currentChargingSoundRef.current = null;
+      }
+      
+      if (chargingSoundRef.current) {
+        const sound = chargingSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.loop = true; // Loop the charging sound
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+        currentChargingSoundRef.current = sound; // Track the currently playing sound
+      }
+    };
+    
+    // Create callback to stop charging sound
+    const stopChargingSound = () => {
+      if (currentChargingSoundRef.current) {
+        currentChargingSoundRef.current.pause();
+        currentChargingSoundRef.current.currentTime = 0;
+        currentChargingSoundRef.current = null;
+      }
+    };
+    
+    // Create callback for charged shot sound
+    const playChargedShotSound = () => {
+      // Stop charging sound when shot is fired
+      stopChargingSound();
+      
+      if (chargedShotSoundRef.current) {
+        const sound = chargedShotSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    
+    // Create callback for weak enemy blast sound (only first 1 second)
+    const playWeakEnemyBlastSound = () => {
+      if (weakEnemyBlastSoundRef.current) {
+        const sound = weakEnemyBlastSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.currentTime = 0; // Start from beginning
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+        
+        // Stop after 1 second
+        setTimeout(() => {
+          sound.pause();
+          sound.currentTime = 0;
+        }, 1000);
+      }
+    };
+    
+    // Create callback for normal enemy death sound
+    const playNormalEnemyDeathSound = () => {
+      if (normalEnemyDeathSoundRef.current) {
+        const sound = normalEnemyDeathSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    
+    // Create callback for shield block sound
+    const playShieldBlockSound = () => {
+      if (enemyProjectileDestroyedSoundRef.current) {
+        const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    
+    // Create callback for enemy split sound
+    const playEnemySplitSound = () => {
+      if (enemySplitSoundRef.current) {
+        const sound = enemySplitSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+    };
+    
+    // Store callbacks in refs so they can be used by EnemyManager
+    playEnemyProjectileSoundRef.current = playEnemyProjectileSound;
+    playBerserkerSoundRef.current = playBerserkerSound;
+    playChargingSoundRef.current = playChargingSound;
+    stopChargingSoundRef.current = stopChargingSound;
+    playChargedShotSoundRef.current = playChargedShotSound;
+    playWeakEnemyBlastSoundRef.current = playWeakEnemyBlastSound;
+    playNormalEnemyDeathSoundRef.current = playNormalEnemyDeathSound;
+    
+    // Update EnemyManager with sound callbacks
+    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight, playEnemyProjectileSound, playBerserkerSound, playChargingSound, stopChargingSound, playChargedShotSound, playWeakEnemyBlastSound, playNormalEnemyDeathSound, playShieldBlockSound, playEnemySplitSound);
 
     const waveManager = waveManagerRef.current;
     const enemyManager = enemyManagerRef.current;
@@ -116,6 +499,18 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     waveManager.startWave();
     enemyManager.spawnWave(1, playerPos, initialWorldMouse);
   }, []);
+
+  // Cleanup sounds when game ends or component unmounts
+  useEffect(() => {
+    if (isGameOver) {
+      cleanupAllSounds();
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      cleanupAllSounds();
+    };
+  }, [isGameOver, cleanupAllSounds]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const canvas = canvasRef.current;
@@ -176,8 +571,44 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     if (newProjectiles.length > 0) {
       projectilesRef.current.push(...newProjectiles);
       
+      // Play pistol sound effect when pistol or assault rifle is fired
+      if ((weapon.type === 'pistol' || weapon.type === 'assault_rifle') && pistolSoundRef.current) {
+        const sound = pistolSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+      
+      // Play rifle sound effect when rifle is fired
+      if (weapon.type === 'rifle' && rifleSoundRef.current) {
+        const sound = rifleSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+      
+      // Play shotgun sound effect when shotgun is fired
+      if (weapon.type === 'shotgun' && shotgunSoundRef.current) {
+        const sound = shotgunSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.3;
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+      
       // If sword attack, create slash animation at sword tip (extended for range)
       if (weapon.type === 'sword' && newProjectiles.length > 0) {
+        // Play sword sound effect
+        if (swordSoundRef.current) {
+          const sound = swordSoundRef.current.cloneNode() as HTMLAudioElement;
+          sound.volume = 0.3;
+          sound.play().catch(() => {
+            // Ignore autoplay errors
+          });
+        }
+        
         const slashAngle = Math.atan2(worldMousePos.y - playerPosRef.current.y, worldMousePos.x - playerPosRef.current.x);
         
         // Calculate sword position (same as in rendering)
@@ -443,6 +874,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               enemyManager.removeEnemyProjectile(enemyProj.id);
               // Create small explosion effect
               createBloodEffect(enemyProj.position, 15, 0.5);
+              
+              // Play explosion sound effect
+              if (enemyProjectileDestroyedSoundRef.current) {
+                const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+                sound.volume = 0.3;
+                sound.play().catch(() => {
+                  // Ignore autoplay errors
+                });
+              }
+              
               // Player projectile is destroyed unless it's piercing
               if (!proj.piercing) {
                 hit = true;
@@ -476,17 +917,28 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                 if (result.exploded) {
                   createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
                   // Apply explosion damage to player if explosionDamage > 0 (player was in range)
-                  if (result.explosionDamage && result.explosionDamage > 0 && !isShieldActive) {
-                    setPlayerStats((prev) => {
-                      const newHealth = prev.health - result.explosionDamage!;
-                      if (newHealth <= 0) {
-                        createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
-                        setIsGameOver(true);
-                        return { ...prev, health: 0 };
+                  if (result.explosionDamage && result.explosionDamage > 0) {
+                    if (isShieldActive) {
+                      // Play shield block sound
+                      if (enemyProjectileDestroyedSoundRef.current) {
+                        const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+                        sound.volume = 0.3;
+                        sound.play().catch(() => {
+                          // Ignore autoplay errors
+                        });
                       }
-                      createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
-                      return { ...prev, health: newHealth };
-                    });
+                    } else {
+                      setPlayerStats((prev) => {
+                        const newHealth = prev.health - result.explosionDamage!;
+                        if (newHealth <= 0) {
+                          createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                          setIsGameOver(true);
+                          return { ...prev, health: 0 };
+                        }
+                        createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
+                        return { ...prev, health: newHealth };
+                      });
+                    }
                   }
                 } else {
                   createBloodEffect(result.position, enemy.size, 1);
@@ -577,6 +1029,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             const newHealth = Math.min(prev.maxHealth, prev.health + pickup.healAmount);
             return { ...prev, health: newHealth };
           });
+          
+          // Play health pickup sound effect
+          if (healthPickupSoundRef.current) {
+            const sound = healthPickupSoundRef.current.cloneNode() as HTMLAudioElement;
+            sound.volume = 0.3;
+            sound.play().catch(() => {
+              // Ignore autoplay errors
+            });
+          }
+          
           return false; // Remove pickup
         }
         
@@ -614,17 +1076,28 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                 if (result.exploded) {
                   createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
                   // Apply explosion damage to player if explosionDamage > 0 (player was in range)
-                  if (result.explosionDamage && result.explosionDamage > 0 && !isShieldActive) {
-                    setPlayerStats((prev) => {
-                      const newHealth = prev.health - result.explosionDamage!;
-                      if (newHealth <= 0) {
-                        createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
-                        setIsGameOver(true);
-                        return { ...prev, health: 0 };
+                  if (result.explosionDamage && result.explosionDamage > 0) {
+                    if (isShieldActive) {
+                      // Play shield block sound
+                      if (enemyProjectileDestroyedSoundRef.current) {
+                        const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+                        sound.volume = 0.3;
+                        sound.play().catch(() => {
+                          // Ignore autoplay errors
+                        });
                       }
-                      createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
-                      return { ...prev, health: newHealth };
-                    });
+                    } else {
+                      setPlayerStats((prev) => {
+                        const newHealth = prev.health - result.explosionDamage!;
+                        if (newHealth <= 0) {
+                          createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                          setIsGameOver(true);
+                          return { ...prev, health: 0 };
+                        }
+                        createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
+                        return { ...prev, health: newHealth };
+                      });
+                    }
                   }
                 } else {
                   createBloodEffect(result.position, enemy.size, 1);
@@ -661,6 +1134,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           if (isShieldActive) {
             // Just remove projectile, no damage
             enemyManager.removeEnemyProjectile(proj.id);
+            
+            // Play explosion sound effect
+            if (enemyProjectileDestroyedSoundRef.current) {
+              const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+              sound.volume = 0.3;
+              sound.play().catch(() => {
+                // Ignore autoplay errors
+              });
+            }
+            
             return;
           }
           
@@ -682,6 +1165,15 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           }
           // Remove projectile after hitting player
           enemyManager.removeEnemyProjectile(proj.id);
+          
+          // Play explosion sound effect
+          if (enemyProjectileDestroyedSoundRef.current) {
+            const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+            sound.volume = 0.3;
+            sound.play().catch(() => {
+              // Ignore autoplay errors
+            });
+          }
         }
       });
 
@@ -698,7 +1190,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         if (damage > 0) {
           // Shield blocks all damage
           if (isShieldActive) {
-            // No damage taken
+            // Play shield block sound
+            if (enemyProjectileDestroyedSoundRef.current) {
+              const sound = enemyProjectileDestroyedSoundRef.current.cloneNode() as HTMLAudioElement;
+              sound.volume = 0.3;
+              sound.play().catch(() => {
+                // Ignore autoplay errors
+              });
+            }
           } else {
             setPlayerStats((prev) => {
               // Explosion damage is already full damage, regular damage is 25%
@@ -1475,7 +1974,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                   NO
                 </button>
                 <button
-                  onClick={onReturnToMenu}
+                  onClick={() => {
+                    cleanupAllSounds();
+                    onReturnToMenu();
+                  }}
                   className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-yes"
                   style={{ 
                     fontSize: '18px',
@@ -1523,7 +2025,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       {isGameOver && (
         <GameOver
           wave={waveManagerRef.current.getCurrentWave()}
-          onReturnToMenu={onReturnToMenu}
+          onReturnToMenu={() => {
+            cleanupAllSounds();
+            onReturnToMenu();
+          }}
         />
       )}
 
