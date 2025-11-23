@@ -3,13 +3,19 @@ import React, { createContext, useContext, useState, useEffect, useRef, ReactNod
 interface MusicContextType {
   isMusicEnabled: boolean;
   toggleMusic: () => void;
+  stopMusic: () => void;
+  resumeMusic: () => void;
 }
 
 const MusicContext = createContext<MusicContextType | null>(null);
 
 export const MusicProvider = ({ children }: { children: ReactNode }) => {
-  // Music is off by default, no persistence
-  const [isMusicEnabled, setIsMusicEnabled] = useState(false);
+  // Music is ON by default, load from localStorage
+  const [isMusicEnabled, setIsMusicEnabled] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = localStorage.getItem('musicEnabled');
+    return saved !== null ? saved === 'true' : true; // Default to true (ON)
+  });
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasUserInteractedRef = useRef(false);
 
@@ -70,6 +76,11 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     const newState = !isMusicEnabled;
     setIsMusicEnabled(newState);
     
+    // Save preference to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('musicEnabled', String(newState));
+    }
+    
     // Mark that user has interacted (clicking the button counts)
     hasUserInteractedRef.current = true;
     
@@ -85,8 +96,24 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Expose function to stop music (for when game starts)
+  const stopMusic = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+
+  // Expose function to resume music (for when returning to menu)
+  const resumeMusic = () => {
+    if (isMusicEnabled && audioRef.current && hasUserInteractedRef.current) {
+      audioRef.current.play().catch((error) => {
+        console.log('Audio play failed on resume:', error);
+      });
+    }
+  };
+
   return (
-    <MusicContext.Provider value={{ isMusicEnabled, toggleMusic }}>
+    <MusicContext.Provider value={{ isMusicEnabled, toggleMusic, stopMusic, resumeMusic }}>
       {children}
     </MusicContext.Provider>
   );

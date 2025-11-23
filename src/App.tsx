@@ -7,7 +7,7 @@ import DailyChest from './components/DailyChest';
 import Achievements from './components/Achievements';
 import { Weapon, WeaponType, WeaponRarity } from './types/game';
 import { WalletProvider } from './contexts/WalletContext';
-import { MusicProvider } from './contexts/MusicContext';
+import { MusicProvider, useMusic } from './contexts/MusicContext';
 import { useUserWeapons } from './hooks/useUserWeapons';
 
 type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest' | 'achievements';
@@ -38,6 +38,7 @@ const DEFAULT_WEAPONS: Weapon[] = [
 function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('mainMenu');
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(null);
+  const { stopMusic, resumeMusic } = useMusic();
   
   // Fetch weapons from blockchain
   const { weapons: userWeapons, loading: weaponsLoading, refetch: refetchWeapons } = useUserWeapons();
@@ -65,11 +66,15 @@ function AppContent() {
   const handleWeaponSelect = (weapon: Weapon) => {
     setSelectedWeapon(weapon);
     setCurrentScreen('game');
+    // Stop menu music when game starts
+    stopMusic();
   };
 
   const handleReturnToMenu = () => {
     setCurrentScreen('mainMenu');
     setSelectedWeapon(null);
+    // Resume menu music if it's enabled
+    resumeMusic();
   };
 
   const handleWeaponObtained = (_weapon: Weapon) => {

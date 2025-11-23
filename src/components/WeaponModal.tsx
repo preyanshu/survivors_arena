@@ -55,7 +55,7 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
       onClick={onClose}
     >
       <div 
-        className="border-4 p-8 max-w-lg"
+        className="border-4 p-6 max-w-lg"
         style={{ 
           backgroundColor: getRarityColor(weapon.rarity), 
           borderColor: getRarityBorderColor(weapon.rarity),
@@ -63,14 +63,14 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-white text-center mb-2" style={{ fontSize: '32px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+        <h2 className="text-white text-center mb-2" style={{ fontSize: '28px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
           {weapon.name.toUpperCase()}
         </h2>
-        <div className="text-center mb-6">
+        <div className="text-center mb-3">
           <span 
-            className="font-bold px-4 py-2 border-2 inline-block"
+            className="font-bold px-3 py-1 border-2 inline-block"
             style={{
-              fontSize: '14px',
+              fontSize: '12px',
               backgroundColor: getRarityColor(weapon.rarity),
               borderColor: getRarityBorderColor(weapon.rarity),
               color: '#ffffff',
@@ -81,28 +81,28 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
           </span>
         </div>
 
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-4">
           <canvas
             ref={canvasRef}
-            width={360}
-            height={360}
+            width={280}
+            height={280}
             style={{ imageRendering: 'pixelated' }}
           />
         </div>
 
-        <div className="text-white mb-6" style={{ fontSize: '18px' }}>
-          <div className="mb-3">
+        <div className="text-white mb-4" style={{ fontSize: '16px' }}>
+          <div className="mb-2">
             <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300 ml-2">{weapon.baseDamage}</span>
           </div>
-          <div className="mb-3">
+          <div className="mb-2">
             <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2">{calculateFirerate(weapon.cooldown).toFixed(5)}</span>
           </div>
           {weapon.range && (
-            <div className="mb-3">
+            <div className="mb-2">
               <span className="text-gray-300">RANGE:</span> <span className="text-yellow-300 ml-2">{weapon.range}</span>
             </div>
           )}
-          <div className="mt-6 text-yellow-300 font-bold text-center" style={{ fontSize: '14px', fontFamily: 'monospace' }}>
+          <div className="mt-3 text-yellow-300 font-bold text-center" style={{ fontSize: '12px', fontFamily: 'monospace' }}>
             {weapon.id?.startsWith('default-') 
               ? '[DEFAULT WEAPON]' 
               : weapon.id 
@@ -114,15 +114,15 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
         <div className="flex gap-4 justify-center">
           <button
             onClick={onClose}
-            className="bg-gray-700 hover:bg-gray-600 text-white border-4 border-white py-4 px-8 transition-all"
-            style={{ fontSize: '16px', imageRendering: 'pixelated' }}
+            className="bg-gray-700 hover:bg-gray-600 text-white border-4 border-white py-3 px-6 transition-all"
+            style={{ fontSize: '14px', imageRendering: 'pixelated' }}
           >
             CANCEL
           </button>
           <button
             onClick={onConfirm}
-            className="bg-green-700 hover:bg-green-600 text-white border-4 border-white py-4 px-8 transition-all"
-            style={{ fontSize: '16px', imageRendering: 'pixelated' }}
+            className="bg-green-700 hover:bg-green-600 text-white border-4 border-white py-3 px-6 transition-all"
+            style={{ fontSize: '14px', imageRendering: 'pixelated' }}
           >
             CONFIRM
           </button>
