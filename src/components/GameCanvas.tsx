@@ -612,8 +612,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         currentAmmoRef.current = newAmmo;
       }
       
-      // Play pistol sound effect when pistol or assault rifle is fired
-      if (isSfxEnabled && (weapon.type === 'pistol' || weapon.type === 'assault_rifle') && pistolSoundRef.current) {
+      // Play pistol sound effect when pistol, assault rifle, or machine gun is fired
+      if (isSfxEnabled && (weapon.type === 'pistol' || weapon.type === 'assault_rifle' || weapon.type === 'machine_gun') && pistolSoundRef.current) {
         const sound = pistolSoundRef.current.cloneNode() as HTMLAudioElement;
         sound.volume = 0.1; // Reduced from 0.3 to 0.15 (15%)
         sound.play().catch(() => {
@@ -1364,7 +1364,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           // Player collected vest pickup
           setPlayerStats((prev) => ({
             ...prev,
-            blueHealth: prev.blueHealth + pickup.blueHealthAmount
+            blueHealth: Math.min(60, prev.blueHealth + pickup.blueHealthAmount) // Cap at 60
           }));
           
           // Play health pickup sound effect (reuse for vest)

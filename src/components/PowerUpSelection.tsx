@@ -11,18 +11,27 @@ interface PowerUpSelectionProps {
 const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionProps) => {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Only handle if modal is visible (prevent conflicts with other key handlers)
       const key = e.key;
+      
       if (key === '1' && powerUps[0]) {
+        e.preventDefault();
+        e.stopPropagation();
         onSelectPowerUp(powerUps[0]);
       } else if (key === '2' && powerUps[1]) {
+        e.preventDefault();
+        e.stopPropagation();
         onSelectPowerUp(powerUps[1]);
       } else if (key === '3' && powerUps[2]) {
+        e.preventDefault();
+        e.stopPropagation();
         onSelectPowerUp(powerUps[2]);
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    // Use capture phase to ensure we catch the event early
+    window.addEventListener('keydown', handleKeyPress, true);
+    return () => window.removeEventListener('keydown', handleKeyPress, true);
   }, [powerUps, onSelectPowerUp]);
 
   const getPowerUpIcon = (id: string) => {

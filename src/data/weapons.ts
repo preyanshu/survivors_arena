@@ -1,12 +1,13 @@
 import { Weapon, WeaponType, WeaponRarity } from '../types/game';
 
-// Base stats for each weapon type (5 types)
+// Base stats for each weapon type (6 types)
 const BASE_STATS: Partial<Record<WeaponType, { damage: number; cooldown: number; range?: number }>> = {
   [WeaponType.PISTOL]: { damage: 25, cooldown: 500, range: 400 },
   [WeaponType.SHOTGUN]: { damage: 30, cooldown: 800, range: 300 },
   [WeaponType.SWORD]: { damage: 40, cooldown: 400, range: 60 },
   [WeaponType.ASSAULT_RIFLE]: { damage: 22, cooldown: 150, range: 500 },
   [WeaponType.RIFLE]: { damage: 45, cooldown: 600, range: 600 },
+  [WeaponType.MACHINE_GUN]: { damage: 22, cooldown: 100, range: 500 }, // Very fast full auto
 };
 
 // Rarity multipliers
@@ -36,6 +37,7 @@ export const WEAPON_TYPE_WEIGHTS = {
   [WeaponType.SHOTGUN]: 15,         // 15% chance
   [WeaponType.ASSAULT_RIFLE]: 10,   // 10% chance
   [WeaponType.RIFLE]: 5,            // 5% chance
+  [WeaponType.MACHINE_GUN]: 0,      // 0% chance (testing only, hardcoded)
 };
 
 // Rarity names
@@ -54,6 +56,7 @@ const WEAPON_TYPE_NAMES: Partial<Record<WeaponType, string>> = {
   [WeaponType.SWORD]: 'Sword',
   [WeaponType.ASSAULT_RIFLE]: 'Assault Rifle',
   [WeaponType.RIFLE]: 'Rifle',
+  [WeaponType.MACHINE_GUN]: 'Machine Gun',
 };
 
 // Descriptions for each weapon type
@@ -63,22 +66,29 @@ const WEAPON_DESCRIPTIONS: Partial<Record<WeaponType, string>> = {
   [WeaponType.SWORD]: 'Melee slash attack with high damage',
   [WeaponType.ASSAULT_RIFLE]: 'Fast-firing automatic weapon with good damage',
   [WeaponType.RIFLE]: 'High-damage precision weapon with long range',
+  [WeaponType.MACHINE_GUN]: 'Full auto machine gun with extremely high fire rate',
 };
 
 // Generate all weapons (5 types × 5 rarities = 25 weapons)
 export const WEAPONS: Weapon[] = [];
 
-// Only generate for the 5 weapon types that have base stats
+// Only generate for the 6 weapon types that have base stats
 const WEAPON_TYPES_TO_GENERATE = [
   WeaponType.PISTOL,
   WeaponType.SHOTGUN,
   WeaponType.SWORD,
   WeaponType.ASSAULT_RIFLE,
   WeaponType.RIFLE,
+  WeaponType.MACHINE_GUN,
 ];
 
 WEAPON_TYPES_TO_GENERATE.forEach((weaponType) => {
-  Object.values(WeaponRarity).forEach((rarity) => {
+  // Machine gun only generates as Legendary
+  const raritiesToGenerate = weaponType === WeaponType.MACHINE_GUN 
+    ? [WeaponRarity.LEGENDARY]
+    : Object.values(WeaponRarity);
+  
+  raritiesToGenerate.forEach((rarity) => {
     const baseStats = BASE_STATS[weaponType];
     const weaponName = WEAPON_TYPE_NAMES[weaponType];
     const weaponDescription = WEAPON_DESCRIPTIONS[weaponType];
@@ -135,7 +145,7 @@ export const getRarityBorderColor = (rarity: WeaponRarity): string => {
   }
 };
 
-// Get default player inventory (Common Sword and Common Pistol)
+// Get default player inventory (Common Sword and Common Pistol only)
 export const getDefaultPlayerInventory = (): Weapon[] => {
   return WEAPONS.filter(
     (weapon) =>

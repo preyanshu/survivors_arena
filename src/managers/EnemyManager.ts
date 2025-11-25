@@ -154,11 +154,12 @@ export class EnemyManager {
     let x: number, y: number;
 
     if (playerPos) {
-      // Calculate visible area bounds (camera view)
-      const viewLeft = playerPos.x - this.canvasWidth / 2;
-      const viewRight = playerPos.x + this.canvasWidth / 2;
-      const viewTop = playerPos.y - this.canvasHeight / 2;
-      const viewBottom = playerPos.y + this.canvasHeight / 2;
+      // Calculate visible area bounds (camera view) with extra margin to ensure enemies are completely off-screen
+      const margin = 100; // Extra margin to ensure enemies are fully off-screen
+      const viewLeft = playerPos.x - this.canvasWidth / 2 - margin;
+      const viewRight = playerPos.x + this.canvasWidth / 2 + margin;
+      const viewTop = playerPos.y - this.canvasHeight / 2 - margin;
+      const viewBottom = playerPos.y + this.canvasHeight / 2 + margin;
 
       // Determine spawn direction - 70% chance to spawn behind player if mouse direction is known
       let direction: number;
@@ -180,21 +181,49 @@ export class EnemyManager {
       const randomOffset = Math.random() * 200;
       
       switch (direction) {
-        case 0: // North (top)
-          x = viewLeft + Math.random() * this.canvasWidth;
+        case 0: // North (top) - spawn above visible area
+          // X must be outside visible bounds - spawn to left or right of visible area
+          if (Math.random() < 0.5) {
+            // Spawn to the left of visible area
+            x = viewLeft - spawnDistance - randomOffset - Math.random() * 200;
+          } else {
+            // Spawn to the right of visible area
+            x = viewRight + spawnDistance + randomOffset + Math.random() * 200;
+          }
           y = viewTop - spawnDistance - randomOffset;
           break;
-        case 1: // South (bottom)
-          x = viewLeft + Math.random() * this.canvasWidth;
+        case 1: // South (bottom) - spawn below visible area
+          // X must be outside visible bounds - spawn to left or right of visible area
+          if (Math.random() < 0.5) {
+            // Spawn to the left of visible area
+            x = viewLeft - spawnDistance - randomOffset - Math.random() * 200;
+          } else {
+            // Spawn to the right of visible area
+            x = viewRight + spawnDistance + randomOffset + Math.random() * 200;
+          }
           y = viewBottom + spawnDistance + randomOffset;
           break;
-        case 2: // East (right)
+        case 2: // East (right) - spawn to the right of visible area
           x = viewRight + spawnDistance + randomOffset;
-          y = viewTop + Math.random() * this.canvasHeight;
+          // Y must be outside visible bounds - spawn above or below visible area
+          if (Math.random() < 0.5) {
+            // Spawn above visible area
+            y = viewTop - spawnDistance - randomOffset - Math.random() * 200;
+          } else {
+            // Spawn below visible area
+            y = viewBottom + spawnDistance + randomOffset + Math.random() * 200;
+          }
           break;
-        case 3: // West (left)
+        case 3: // West (left) - spawn to the left of visible area
           x = viewLeft - spawnDistance - randomOffset;
-          y = viewTop + Math.random() * this.canvasHeight;
+          // Y must be outside visible bounds - spawn above or below visible area
+          if (Math.random() < 0.5) {
+            // Spawn above visible area
+            y = viewTop - spawnDistance - randomOffset - Math.random() * 200;
+          } else {
+            // Spawn below visible area
+            y = viewBottom + spawnDistance + randomOffset + Math.random() * 200;
+          }
           break;
         case 4: // Northeast (top-right corner)
           x = viewRight + spawnDistance + randomOffset;

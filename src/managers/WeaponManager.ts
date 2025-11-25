@@ -51,6 +51,9 @@ export class WeaponManager {
       case WeaponType.RIFLE:
         return this.createRifleProjectile(playerPos, direction, damage, playerStats);
 
+      case WeaponType.MACHINE_GUN:
+        return this.createMachineGunProjectile(playerPos, direction, damage, playerStats);
+
       default:
         return [];
     }
@@ -163,6 +166,29 @@ export class WeaponManager {
         damage,
         size: 24 * playerStats.projectileSize, // Increased for better visibility
         piercing: true, // Rifle bullets pierce through enemies
+      },
+    ];
+  }
+
+  private createMachineGunProjectile(
+    position: Position,
+    direction: Position,
+    damage: number,
+    playerStats: PlayerStats
+  ): Projectile[] {
+    // Full auto machine gun with very high fire rate
+    const speed = GAME_BALANCE.weapons.machine_gun.projectileSpeed;
+    const spreadAngle = (Math.random() - 0.5) * 0.15; // Slightly more spread than assault rifle
+    const angle = Math.atan2(direction.y, direction.x) + spreadAngle;
+    const dir = { x: Math.cos(angle), y: Math.sin(angle) };
+    
+    return [
+      {
+        id: generateId(),
+        position: { ...position },
+        velocity: { x: dir.x * speed, y: dir.y * speed },
+        damage,
+        size: 20 * playerStats.projectileSize,
       },
     ];
   }

@@ -276,6 +276,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
         [WeaponType.SWORD]: 2,
         [WeaponType.ASSAULT_RIFLE]: 3,
         [WeaponType.RIFLE]: 4,
+        [WeaponType.MACHINE_GUN]: 5,
       };
       
       const rarityMap: Record<string, number> = {

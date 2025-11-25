@@ -27,11 +27,44 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [showNews, setShowNews] = useState(false);
   
+  // News entries
+  const newsEntries = [
+    {
+      id: 'legendary_machine_gun',
+      title: 'LEGENDARY MACHINE GUN',
+      date: 'Dec 1, 2025',
+      image: '/assets/pngegg (2).png',
+      description: 'A new Legendary weapon has been discovered! The Machine Gun is now available exclusively from Daily Chests. This ultra-rare weapon features an extremely high fire rate and can only be obtained as a Legendary rarity. Good luck finding one!'
+    },
+    {
+      id: 'vest_system',
+      title: 'VEST SYSTEM ADDED',
+      date: 'Nov 30, 2025',
+      image: '/assets/vest.png',
+      description: 'Protective vests are now available! Collect vests to gain up to 60 blue health (armor) that absorbs damage before your regular health. Vests can spawn randomly or be dropped by defeated enemies. Stay protected out there!'
+    },
+    {
+      id: 'ammo_system',
+      title: 'AMMO DROP SYSTEM',
+      date: 'Nov 29, 2025',
+      image: '/assets/ammo.png',
+      description: 'Ammo management is now in effect! Non-sword weapons have limited ammo per wave. Collect ammo pickups that spawn randomly or drop from enemies to keep your weapons loaded. Watch your ammo count and stay stocked!'
+    },
+    {
+      id: 'encyclopedia_nov25_2025',
+      title: 'ENCYCLOPEDIA ADDED',
+      date: 'Nov 25, 2025',
+      image: '/assets/guide/encyclopedia_preview.png',
+      description: 'A comprehensive Encyclopedia has been added to the game! Learn about all enemy types, their abilities, lore, and discover pro tips for using your abilities effectively. Access it from the GUIDE button in the top-left corner.'
+    }
+  ];
+
   // Track if user has seen the latest news (stored in localStorage)
-  const LATEST_NEWS_ID = 'encyclopedia_nov25_2025';
+  const LATEST_NEWS_ID = 'legendary_machine_gun';
   const [hasUnreadNews, setHasUnreadNews] = useState(() => {
     if (typeof window === 'undefined') return true;
     const lastSeenNews = localStorage.getItem('lastSeenNewsId');
+    // Check if user has seen the latest news entry
     return lastSeenNews !== LATEST_NEWS_ID;
   });
 
@@ -446,30 +479,36 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
               LATEST NEWS
             </h2>
             
-            {/* News Entry */}
-            <div className="border-4 border-white p-4" style={{ backgroundColor: '#5a0000' }}>
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-yellow-300 font-bold" style={{ fontSize: '18px' }}>ENCYCLOPEDIA ADDED</span>
-                <span className="text-gray-300 text-sm font-bold">Nov 25, 2025</span>
-              </div>
-              
-              {/* News Image */}
-              <div className="mb-4 border-2 border-white/50 overflow-hidden">
-                <img 
-                  src="/assets/guide/encyclopedia_preview.png" 
-                  alt="Encyclopedia Preview"
-                  className="w-full h-48 object-cover"
-                  style={{ imageRendering: 'pixelated' }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              </div>
-              
-              <p className="text-white leading-relaxed" style={{ fontSize: '14px' }}>
-                A comprehensive Encyclopedia has been added to the game! Learn about all enemy types, their abilities, lore, and discover pro tips for using your abilities effectively. Access it from the GUIDE button in the top-left corner.
-              </p>
+            {/* News Entries */}
+            <div className="space-y-4">
+              {newsEntries.map((news) => (
+                <div key={news.id} className="border-4 border-white p-4" style={{ backgroundColor: '#5a0000' }}>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-yellow-300 font-bold" style={{ fontSize: '18px' }}>{news.title}</span>
+                    <span className="text-gray-300 text-sm font-bold">{news.date}</span>
+                  </div>
+                  
+                  {/* News Image */}
+                  {news.image && (
+                    <div className="mb-4 border-2 border-white/50 overflow-hidden">
+                      <img 
+                        src={news.image} 
+                        alt={news.title}
+                        className="w-full h-48 object-cover"
+                        style={{ imageRendering: 'pixelated' }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  <p className="text-white leading-relaxed" style={{ fontSize: '14px' }}>
+                    {news.description}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

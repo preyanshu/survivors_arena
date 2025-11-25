@@ -82,6 +82,9 @@ export const GAME_BALANCE = {
     rifle: {
       projectileSpeed: speed(12),
     },
+    machine_gun: {
+      projectileSpeed: speed(10), // Same as assault rifle
+    },
     sword: {
       // Sword is instant, no projectile speed needed
       slashDistance: 60,
@@ -226,6 +229,7 @@ export const GAME_BALANCE = {
       assault_rifle: 400,
       rifle: 90,
       shotgun: 80,
+      machine_gun: 600,           // High ammo for full auto
     },
     pickupAmount: 10000000,             // Ammo restored per pickup
     size: 25,                     // Pickup size (pixels)

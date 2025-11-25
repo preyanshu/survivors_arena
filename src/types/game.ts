@@ -60,6 +60,7 @@ export enum WeaponType {
   KNIFE = 'knife',
   ASSAULT_RIFLE = 'assault_rifle',
   RIFLE = 'rifle',
+  MACHINE_GUN = 'machine_gun',
 }
 
 export enum WeaponRarity {

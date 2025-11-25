@@ -14,6 +14,7 @@ export class SpriteManager {
       weapon_sword: '/assets/sprites/weapon_sword.png',
       weapon_assault_rifle: '/assets/sprites/weapon_assault_rifle.png',
       weapon_rifle: '/assets/sprites/weapon_rifle.png',
+      weapon_machine_gun: '/assets/pngegg (2).png',
       enemy: '/assets/sprites/enemy.png',
       enemy_weak: '/assets/sprites/enemy_weak.png',
       enemy_normal: '/assets/sprites/enemy_normal.png',
@@ -164,6 +165,17 @@ export class SpriteManager {
         ctx.fillRect(48, 29, 12, 4);
         // Stock
         ctx.fillRect(16, 34, 12, 6);
+        // Handle
+        ctx.fillRect(22, 34, 4, 8);
+        break;
+      case 'weapon_machine_gun':
+        // Use same fallback as assault rifle
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(18, 28, 28, 6);
+        // Barrel
+        ctx.fillRect(46, 29, 8, 4);
+        // Stock
+        ctx.fillRect(18, 34, 10, 6);
         // Handle
         ctx.fillRect(22, 34, 4, 8);
         break;

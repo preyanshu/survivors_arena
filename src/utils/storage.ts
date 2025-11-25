@@ -104,7 +104,14 @@ export const getRandomWeapon = (): Weapon => {
     }
   });
   
-  // If no available combinations, use all types and rarities
+  // Special handling for machine gun (Legendary only, very rare)
+  // 1% chance to get machine gun, otherwise use normal selection
+  if (Math.random() < 0.01) {
+    // Machine gun is only Legendary
+    return generateRandomWeaponStats(WeaponType.MACHINE_GUN, WeaponRarity.LEGENDARY);
+  }
+  
+  // If no available combinations, use all types and rarities (excluding machine gun)
   if (availableTypes.length === 0 || availableRarities.length === 0) {
     const allTypes = [WeaponType.SWORD, WeaponType.PISTOL, WeaponType.SHOTGUN, WeaponType.ASSAULT_RIFLE, WeaponType.RIFLE];
     const allRarities = Object.values(WeaponRarity);
