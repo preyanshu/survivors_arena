@@ -327,6 +327,13 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                       </button>
                     );
                   })}
+                  
+                  {/* Coming Soon Message */}
+                  <div className="border-4 border-yellow-900/50 p-4 mt-4" style={{ backgroundColor: 'rgba(90, 60, 0, 0.2)' }}>
+                    <p className="text-yellow-300 text-center font-bold" style={{ fontSize: '14px' }}>
+                      EXPECT MORE ENEMY TYPES SOON
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -487,6 +494,15 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                   </div>
                 </div>
 
+                {/* Coming Soon - Weapons */}
+                <div className="mb-6">
+                  <div className="border-4 border-yellow-900/50 p-4" style={{ backgroundColor: 'rgba(90, 60, 0, 0.2)' }}>
+                    <p className="text-yellow-300 text-center font-bold" style={{ fontSize: '16px' }}>
+                      EXPECT MORE WEAPONS SOON
+                    </p>
+                  </div>
+                </div>
+
                 {/* Backstory */}
                 <div>
                   <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
@@ -531,6 +547,13 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                       </div>
                     </button>
                   ))}
+                  
+                  {/* Coming Soon Message */}
+                  <div className="border-4 border-yellow-900/50 p-4 mt-4" style={{ backgroundColor: 'rgba(90, 60, 0, 0.2)' }}>
+                    <p className="text-yellow-300 text-center font-bold" style={{ fontSize: '14px' }}>
+                      EXPECT MORE ABILITIES SOON
+                    </p>
+                  </div>
                 </div>
               </div>
 
