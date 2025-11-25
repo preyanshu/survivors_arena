@@ -127,7 +127,14 @@ const GameOver = ({ wave, onReturnToMenu }: GameOverProps) => {
       // Keep newAchievement visible but show success state
     } catch (e: any) {
       console.error("Mint failed:", e);
-      setError(e.message || "Failed to mint achievement");
+      const errorMessage = e.message || "Failed to mint achievement";
+      
+      // Check for wallet permission errors
+      if (errorMessage.includes('viewAccount') || errorMessage.includes('suggestTransaction') || errorMessage.includes('permission')) {
+        setError("Your wallet is not connected properly. Please reconnect your wallet and try again.");
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setMinting(false);
     }

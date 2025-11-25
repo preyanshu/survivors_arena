@@ -43,7 +43,14 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
       }, 2000);
     } catch (err: any) {
       console.error("Transfer failed:", err);
-      setTransferError(err.message || "Transfer failed");
+      const errorMessage = err.message || "Transfer failed";
+      
+      // Check for wallet permission errors
+      if (errorMessage.includes('viewAccount') || errorMessage.includes('suggestTransaction') || errorMessage.includes('permission')) {
+        setTransferError("Your wallet is not connected properly. Please reconnect your wallet and try again.");
+      } else {
+        setTransferError(errorMessage);
+      }
     } finally {
       setIsTransferring(false);
     }

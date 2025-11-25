@@ -395,7 +395,13 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
         stack: error.stack,
       });
       const errorMessage = error.message || error.toString() || "Unknown error";
-      setMintError(`Minting failed: ${errorMessage}`);
+      
+      // Check for wallet permission errors
+      if (errorMessage.includes('viewAccount') || errorMessage.includes('suggestTransaction') || errorMessage.includes('permission')) {
+        setMintError("Your wallet is not connected properly. Please reconnect your wallet and try again.");
+      } else {
+        setMintError(`Minting failed: ${errorMessage}`);
+      }
     } finally {
       setIsOpening(false);
     }

@@ -20,7 +20,7 @@ const DEFAULT_WEAPONS: Weapon[] = [
     rarity: WeaponRarity.COMMON,
     name: 'Common Pistol',
     description: 'A reliable standard-issue sidearm. Low damage but consistent fire rate. Good for beginners.',
-    baseDamage: 15,
+    baseDamage: 25,
     cooldown: 500,
     range: 400
   },
