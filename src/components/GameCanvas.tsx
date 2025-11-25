@@ -1034,7 +1034,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       let newPlayerPos = { ...playerPosRef.current };
       // Apply speed boost if active
       const baseSpeed = playerStatsRef.current.movementSpeed;
-      const effectiveSpeed = isSpeedBoostActive ? baseSpeed * 2 : baseSpeed;
+      const effectiveSpeed = isSpeedBoostActive ? baseSpeed * 1.5 : baseSpeed;
       const speed = effectiveSpeed * (deltaTime / 16);
 
       if (keys['w'] || keys['arrowup']) newPlayerPos.y -= speed;

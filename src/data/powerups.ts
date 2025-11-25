@@ -2,15 +2,6 @@ import { PowerUp, PlayerStats, ActiveAbilityType } from '../types/game';
 
 export const POWER_UPS: PowerUp[] = [
   {
-    id: 'speed',
-    name: '+30% Movement Speed',
-    description: 'Move faster across the battlefield',
-    effect: (stats: PlayerStats) => ({
-      ...stats,
-      movementSpeed: stats.movementSpeed * 1.3,
-    }),
-  },
-  {
     id: 'attack_speed',
     name: '+25% Attack Speed',
     description: 'Attack more frequently',
@@ -39,15 +30,6 @@ export const POWER_UPS: PowerUp[] = [
     }),
   },
   {
-    id: 'projectile_size',
-    name: '+25% Projectile Size',
-    description: 'Bigger projectiles hit more easily',
-    effect: (stats: PlayerStats) => ({
-      ...stats,
-      projectileSize: stats.projectileSize * 1.25,
-    }),
-  },
-  {
     id: 'knockback',
     name: '+30% Knockback',
     description: 'Push enemies back further',
@@ -63,15 +45,6 @@ export const POWER_UPS: PowerUp[] = [
     effect: (stats: PlayerStats) => ({
       ...stats,
       cooldownReduction: stats.cooldownReduction + 0.3,
-    }),
-  },
-  {
-    id: 'health_regen',
-    name: '+30 HP',
-    description: 'Restore health immediately',
-    effect: (stats: PlayerStats) => ({
-      ...stats,
-      health: Math.min(stats.health + 30, stats.maxHealth),
     }),
   },
   // Ability power-ups
@@ -92,7 +65,7 @@ export const POWER_UPS: PowerUp[] = [
   {
     id: 'ability_speed_boost',
     name: 'Speed Boost Ability',
-    description: 'Unlock Speed Boost - Double movement for 15s',
+    description: 'Unlock Speed Boost - +50% movement for 15s',
     effect: (stats: PlayerStats) => stats,
     abilityType: ActiveAbilityType.SPEED_BOOST,
   },

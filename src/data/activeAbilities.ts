@@ -20,7 +20,7 @@ export const ACTIVE_ABILITIES: ActiveAbility[] = [
   {
     type: ActiveAbilityType.SPEED_BOOST,
     name: 'Speed Boost',
-    description: 'Double movement speed for 15 seconds',
+    description: '+50% movement speed for 15 seconds',
     duration: 15000, // 15 seconds
     cooldown: 30000, // 30 seconds cooldown
     icon: 'bolt',

@@ -593,7 +593,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                           `The Fire Ring summons a blazing circle of flame around you. Any enemy that enters this zone takes continuous damage and is marked with a burning effect. The ring rotates visually and emits fire particles along its perimeter. Enemies caught in the fire glow orange, making them easy to track. This ability excels at crowd control and area denial.`
                         }
                         {selectedAbilityData.type === 'speed_boost' && 
-                          `Speed Boost doubles your movement speed, allowing you to outrun any enemy in the arena. Cyan speed lines appear around your character to indicate the boost is active. This ability is invaluable for repositioning, escaping dangerous situations, or kiting enemies while your weapons are on cooldown.`
+                          `Speed Boost increases your movement speed by 50%, allowing you to outrun most enemies in the arena. Cyan speed lines appear around your character to indicate the boost is active. This ability is invaluable for repositioning, escaping dangerous situations, or kiting enemies while your weapons are on cooldown.`
                         }
                         {selectedAbilityData.type === 'damage_boost' && 
                           `Damage Boost triples ALL damage you deal for its duration. Your character gains a red glow to indicate the power surge. This ability transforms even basic weapons into devastating tools of destruction. Best used when you have clear shots at high-value targets.`

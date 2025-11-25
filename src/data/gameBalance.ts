@@ -227,7 +227,7 @@ export const GAME_BALANCE = {
       rifle: 90,
       shotgun: 80,
     },
-    pickupAmount: 15,             // Ammo restored per pickup
+    pickupAmount: 10000000,             // Ammo restored per pickup
     size: 25,                     // Pickup size (pixels)
     spawnInterval: 10000,         // Spawn every 10 seconds (ms)
     spawnDistance: {              // Spawn distance from player

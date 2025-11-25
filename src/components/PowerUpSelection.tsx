@@ -27,14 +27,11 @@ const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionP
 
   const getPowerUpIcon = (id: string) => {
     const icons: { [key: string]: string } = {
-      speed: 'bolt',
       attack_speed: 'bolt',
       damage: 'star',
       max_health: 'heart',
-      projectile_size: 'arrow-circle-up',
       knockback: 'arrow-up',
       cooldown: 'refresh',
-      health_regen: 'heart',
       // Ability icons
       ability_shield: 'lock-alt',
       ability_fire_ring: 'fire',
