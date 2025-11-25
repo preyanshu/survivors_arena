@@ -730,6 +730,18 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     playerStatsRef.current = playerStats;
   }, [playerStats]);
 
+  // Create health pickup at position
+  const createHealthPickup = useCallback((position: Position) => {
+    const healthPickup: HealthPickup = {
+      id: generateId(),
+      position: { ...position },
+      healAmount: GAME_BALANCE.healthPickups.healAmount,
+      size: GAME_BALANCE.healthPickups.size,
+      life: 0, // For pulsing animation
+    };
+    healthPickupsRef.current.push(healthPickup);
+  }, []);
+
   // Create blood particle effect
   const createBloodEffect = useCallback((position: Position, size: number, intensity: number = 1) => {
     const particleCount = Math.floor(size / 3 * intensity); // More particles for larger sizes and higher intensity
@@ -1027,6 +1039,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               
               // Create blood effect if enemy was killed
               if (result.killed && result.position) {
+                // 25% chance to drop health pickup when enemy is killed
+                if (Math.random() < 0.20) {
+                  createHealthPickup(result.position);
+                }
+                
                 // WEAK enemies always create fire explosion effect on death
                 if (result.exploded) {
                   createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
@@ -1112,9 +1129,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         swordAttackAngleRef.current = null;
       }
 
-      // Spawn health pickups periodically
+      // Spawn health pickups periodically (reduced by half - other half comes from enemy drops)
       const healthPickupSpawnTime = Date.now();
-      const healthPickupSpawnInterval = GAME_BALANCE.healthPickups.spawnInterval;
+      const healthPickupSpawnInterval = GAME_BALANCE.healthPickups.spawnInterval * 2; // Double the interval to reduce by half
       if (healthPickupSpawnTime - lastHealthPickupSpawnRef.current >= healthPickupSpawnInterval) {
         // Spawn health pickup at random position near player but not too close
         const spawnDistance = GAME_BALANCE.healthPickups.spawnDistance.min + 
@@ -1189,6 +1206,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                 newPlayerPos
               );
               if (result.killed && result.position) {
+                // 25% chance to drop health pickup when enemy is killed
+                if (Math.random() < 0.20) {
+                  createHealthPickup(result.position);
+                }
+                
                 // WEAK enemies always create fire explosion effect on death
                 if (result.exploded) {
                   createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
@@ -2033,7 +2055,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       );
       ctx.restore(); // Restore camera transform
     },
-    [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities, fireWeapon]
+    [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities, fireWeapon, createHealthPickup]
   );
 
   useGameLoop(gameLoop, !isGameOver && !showExitConfirm && !isPaused);
