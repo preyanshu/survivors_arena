@@ -39,6 +39,7 @@ export interface Enemy {
   isBerserker?: boolean; // If true, enemy is in berserker mode (STRONG enemies < 35% health)
   baseSize?: number; // Original size before berserker mode
   isBurning?: boolean; // If true, enemy is being burned by fire ring
+  burnEndTime?: number; // Timestamp when burn effect expires (for persistent burn)
 }
 
 export interface Projectile {

@@ -1384,24 +1384,37 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         return dist < GAME_BALANCE.vests.despawnDistance;
       });
 
-      // Fire ring damages nearby enemies (with damage tick rate)
+      // Fire ring damages nearby enemies (with damage tick rate and persistent burn)
       if (isFireRingActive) {
         const fireRingRadius = 300; // Doubled from 150
         const fireRingDamage = 30; // Doubled from 15
         const fireRingTickRate = 500; // Damage every 500ms
+        const burnDuration = 3000; // Burn lasts 3 seconds
         
-        // First, mark all enemies as not burning, then mark those in range
+        // Mark enemies in fire ring range and apply burn effect
         enemyManager.getEnemies().forEach((enemy) => {
-          enemy.isBurning = false;
+          const dist = distance(newPlayerPos, enemy.position);
+          if (dist < fireRingRadius) {
+            // Enemy touches fire ring - apply 3 second burn
+            if (!enemy.burnEndTime || enemy.burnEndTime < currentTime + burnDuration) {
+              enemy.burnEndTime = currentTime + burnDuration; // Set burn to last at least 3 seconds
+            }
+            enemy.isBurning = true;
+          }
         });
         
+        // Apply damage to burning enemies (both in range and with active burn effect)
         if (currentTime - lastFireRingDamageRef.current >= fireRingTickRate) {
           enemyManager.getEnemies().forEach((enemy) => {
-            const dist = distance(newPlayerPos, enemy.position);
-            if (dist < fireRingRadius) {
-              // Mark enemy as burning
-              enemy.isBurning = true;
+            // Check if enemy is burning (either in range or has active burn timer)
+            const isInRange = distance(newPlayerPos, enemy.position) < fireRingRadius;
+            const hasActiveBurn = enemy.burnEndTime && enemy.burnEndTime > currentTime;
+            
+            if (isInRange || hasActiveBurn) {
+              // Update isBurning status
+              enemy.isBurning = hasActiveBurn || isInRange;
               
+              // Apply damage
               const result = enemyManager.damageEnemy(
                 enemy.id,
                 fireRingDamage,
@@ -1461,23 +1474,74 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             }
           });
           lastFireRingDamageRef.current = currentTime;
-        } else {
-          // Still mark enemies as burning even between damage ticks
-          enemyManager.getEnemies().forEach((enemy) => {
-            const dist = distance(newPlayerPos, enemy.position);
-            if (dist < fireRingRadius) {
-              enemy.isBurning = true;
-            }
-          });
         }
+        
+        // Update isBurning status for enemies with active burn timers (even if not in range)
+        enemyManager.getEnemies().forEach((enemy) => {
+          if (enemy.burnEndTime && enemy.burnEndTime > currentTime) {
+            enemy.isBurning = true;
+          } else {
+            // Only clear isBurning if not in range and burn timer expired
+            const dist = distance(newPlayerPos, enemy.position);
+            if (dist >= fireRingRadius) {
+              enemy.isBurning = false;
+            }
+          }
+        });
+        
         // Update fire ring animation
         fireRingAnimationRef.current += deltaTime / 1000 * 2;
       } else {
-        fireRingAnimationRef.current = 0;
-        // Clear burning state when fire ring is not active
+        // Fire ring not active - clear burn status for enemies whose burn timer expired
         enemyManager.getEnemies().forEach((enemy) => {
-          enemy.isBurning = false;
+          if (enemy.burnEndTime && enemy.burnEndTime <= currentTime) {
+            enemy.isBurning = false;
+          }
         });
+        fireRingAnimationRef.current = 0;
+      }
+      
+      // Apply burn damage to enemies with active burn timers (even if fire ring is not active)
+      const burnDamage = 30;
+      const burnTickRate = 500;
+      if (!isFireRingActive && currentTime - lastFireRingDamageRef.current >= burnTickRate) {
+        enemyManager.getEnemies().forEach((enemy) => {
+          // Check if enemy has active burn timer
+          const hasActiveBurn = enemy.burnEndTime && enemy.burnEndTime > currentTime;
+          
+          if (hasActiveBurn) {
+            // Apply burn damage
+            enemy.isBurning = true;
+            const result = enemyManager.damageEnemy(
+              enemy.id,
+              burnDamage,
+              0,
+              newPlayerPos
+            );
+            if (result.killed && result.position) {
+              // 20% chance to drop health pickup when enemy is killed
+              if (Math.random() < 0.20) {
+                createHealthPickup(result.position);
+              }
+              
+              // Drop ammo pickup from enemies (only if not using sword)
+              if (weapon.type !== 'sword' && Math.random() < GAME_BALANCE.ammo.dropChance) {
+                createAmmoPickup(result.position);
+              }
+              
+              // Drop vest pickup from enemies
+              if (Math.random() < GAME_BALANCE.vests.dropChance) {
+                createVestPickup(result.position);
+              }
+              
+              createBloodEffect(result.position, enemy.size, 1);
+            }
+          }
+        });
+        // Update timer if we have any burning enemies
+        if (enemyManager.getEnemies().some(e => e.burnEndTime && e.burnEndTime > currentTime)) {
+          lastFireRingDamageRef.current = currentTime;
+        }
       }
 
       // Check collision with enemy projectiles (player getting hit)
