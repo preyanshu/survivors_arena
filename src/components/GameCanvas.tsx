@@ -148,6 +148,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const swordAttackAngleRef = useRef<number | null>(null);
   const swordAttackTimeRef = useRef<number>(0);
   const lastDamageTimeRef = useRef<number>(0);
+  const isMouseDownRef = useRef<boolean>(false);
   const lastHealthPickupSpawnRef = useRef<number>(0);
   const lastFireRingDamageRef = useRef<number>(0);
   const fireRingAnimationRef = useRef<number>(0);
@@ -535,7 +536,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     });
   }, []);
 
-  const handleMouseDown = useCallback(() => {
+  const handleMouseUp = useCallback(() => {
+    isMouseDownRef.current = false;
+  }, []);
+
+  const fireWeapon = useCallback(() => {
     if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection() || waveManagerRef.current.isWaveCompleted()) return;
 
     // Convert screen mouse position to world coordinates
@@ -658,7 +663,12 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         swordAttackTimeRef.current = Date.now();
       }
     }
-  }, [isGameOver, mousePos, canvasWidth, canvasHeight, weapon.type]);
+  }, [isGameOver, mousePos, canvasWidth, canvasHeight, weapon.type, isSfxEnabled]);
+
+  const handleMouseDown = useCallback(() => {
+    isMouseDownRef.current = true;
+    fireWeapon();
+  }, [fireWeapon]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -666,12 +676,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mouseup', handleMouseUp); // Also listen on window in case mouse released outside canvas
 
     return () => {
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [handleMouseMove, handleMouseDown]);
+  }, [handleMouseMove, handleMouseDown, handleMouseUp]);
 
   const handlePowerUpSelect = (powerUp: PowerUp) => {
     // Check if this is an ability power-up
@@ -903,6 +917,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const gameLoop = useCallback(
     (deltaTime: number) => {
       if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection() || waveManagerRef.current.isWaveCompleted()) return;
+
+      // Auto-fire when mouse is held down
+      if (isMouseDownRef.current) {
+        fireWeapon();
+      }
 
       const enemyManager = enemyManagerRef.current;
       const waveManager = waveManagerRef.current;
@@ -2014,7 +2033,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       );
       ctx.restore(); // Restore camera transform
     },
-    [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities]
+    [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities, fireWeapon]
   );
 
   useGameLoop(gameLoop, !isGameOver && !showExitConfirm && !isPaused);

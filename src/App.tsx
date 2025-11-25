@@ -5,12 +5,13 @@ import GameCanvas from './components/GameCanvas';
 import Inventory from './components/Inventory';
 import DailyChest from './components/DailyChest';
 import Achievements from './components/Achievements';
+import Guide from './components/Guide';
 import { Weapon, WeaponType, WeaponRarity } from './types/game';
 import { WalletProvider } from './contexts/WalletContext';
 import { MusicProvider, useMusic } from './contexts/MusicContext';
 import { useUserWeapons } from './hooks/useUserWeapons';
 
-type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest' | 'achievements';
+type AppScreen = 'mainMenu' | 'weaponSelection' | 'game' | 'inventory' | 'dailyChest' | 'achievements' | 'guide';
 
 const DEFAULT_WEAPONS: Weapon[] = [
   {
@@ -81,6 +82,10 @@ function AppContent() {
 
   const handleAchievements = () => {
     setCurrentScreen('achievements');
+  };
+
+  const handleGuide = () => {
+    setCurrentScreen('guide');
   };
 
   const handleWeaponSelect = (weapon: Weapon) => {
@@ -156,6 +161,7 @@ function AppContent() {
           onInventory={handleInventory}
           onDailyChest={handleDailyChest}
           onAchievements={handleAchievements}
+          onGuide={handleGuide}
         />
       )}
       {currentScreen === 'weaponSelection' && (
@@ -189,6 +195,11 @@ function AppContent() {
           onBack={handleReturnToMenu}
         />
       )}
+      {currentScreen === 'guide' && (
+        <Guide 
+          onBack={handleReturnToMenu}
+        />
+      )}
     </div>
   );
 }
@@ -204,3 +215,4 @@ function App() {
 }
 
 export default App;
+

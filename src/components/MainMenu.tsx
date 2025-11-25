@@ -8,9 +8,10 @@ interface MainMenuProps {
   onInventory: () => void;
   onDailyChest: () => void;
   onAchievements: () => void;
+  onGuide: () => void;
 }
 
-const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMenuProps) => {
+const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }: MainMenuProps) => {
   const { connected, address, connect, disconnect, installWallet, isWalletInstalled, isCorrectChain, chainId, checkChain } = useOneWallet();
   const { isMusicEnabled, toggleMusic, isSfxEnabled, toggleSfx } = useMusic();
   
@@ -24,6 +25,25 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMen
   const [showWalletWarning, setShowWalletWarning] = useState(false);
   const [showChainWarning, setShowChainWarning] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [showNews, setShowNews] = useState(false);
+  
+  // Track if user has seen the latest news (stored in localStorage)
+  const LATEST_NEWS_ID = 'encyclopedia_nov25_2025';
+  const [hasUnreadNews, setHasUnreadNews] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const lastSeenNews = localStorage.getItem('lastSeenNewsId');
+    return lastSeenNews !== LATEST_NEWS_ID;
+  });
+
+  const handleOpenNews = () => {
+    handleButtonInteraction();
+    setShowNews(true);
+    // Mark news as read
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lastSeenNewsId', LATEST_NEWS_ID);
+    }
+    setHasUnreadNews(false);
+  };
 
   const formatAddress = (addr: string | null) => {
     if (!addr) return '';
@@ -86,7 +106,7 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMen
         style={{ imageRendering: 'pixelated' }}
       />
       
-      {/* Audio controls - top left */}
+      {/* Audio controls and Guide - top left */}
       <div className="absolute top-8 left-8 z-20 flex flex-col gap-3">
         {/* Music Toggle */}
         <div className="flex items-center gap-2">
@@ -129,6 +149,54 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMen
           </button>
           <span className="text-white font-bold text-sm bg-black/50 px-2 py-1 rounded border border-white/20" style={{ imageRendering: 'pixelated' }}>
             SFX {isSfxEnabled ? 'ON' : 'OFF'}
+          </span>
+        </div>
+
+        {/* Guide Button */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              handleButtonInteraction();
+              onGuide();
+            }}
+            className="border-2 border-white/50 py-2 px-3 text-white font-bold transition-all rounded bg-black/70 hover:bg-black/90 w-12 h-12 flex items-center justify-center"
+            style={{ 
+              fontSize: '24px',
+              imageRendering: 'pixelated'
+            }}
+            title="Encyclopedia / Guide"
+          >
+            📖
+          </button>
+          <span className="text-white font-bold text-sm bg-black/50 px-2 py-1 rounded border border-white/20" style={{ imageRendering: 'pixelated' }}>
+            GUIDE
+          </span>
+        </div>
+
+        {/* News Button */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={handleOpenNews}
+              className="border-2 border-white/50 py-2 px-3 text-white font-bold transition-all rounded bg-black/70 hover:bg-black/90 w-12 h-12 flex items-center justify-center"
+              style={{ 
+                fontSize: '24px',
+                imageRendering: 'pixelated'
+              }}
+              title="Latest News"
+            >
+              📰
+            </button>
+            {/* Red dot for unread news */}
+            {hasUnreadNews && (
+              <div 
+                className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse"
+                style={{ boxShadow: '0 0 8px rgba(255, 0, 0, 0.8)' }}
+              />
+            )}
+          </div>
+          <span className="text-white font-bold text-sm bg-black/50 px-2 py-1 rounded border border-white/20" style={{ imageRendering: 'pixelated' }}>
+            NEWS
           </span>
         </div>
       </div>
@@ -346,6 +414,62 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements }: MainMen
               >
                 CLOSE
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* News Modal */}
+      {showNews && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          onClick={() => setShowNews(false)}
+        >
+          <div 
+            className="border-4 border-white p-6 max-w-xl w-full mx-4 relative max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            style={{ fontFamily: "'Pixelify Sans', sans-serif", backgroundColor: '#3a0000' }}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowNews(false)}
+              className="absolute top-4 right-4 text-white hover:text-red-400 transition-colors font-bold"
+              style={{ fontSize: '24px', imageRendering: 'pixelated' }}
+            >
+              ✕
+            </button>
+
+            <h2 
+              className="text-white text-2xl font-bold mb-6 text-center border-b-4 border-white pb-4"
+              style={{ imageRendering: 'pixelated' }}
+            >
+              LATEST NEWS
+            </h2>
+            
+            {/* News Entry */}
+            <div className="border-4 border-white p-4" style={{ backgroundColor: '#5a0000' }}>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-yellow-300 font-bold" style={{ fontSize: '18px' }}>ENCYCLOPEDIA ADDED</span>
+                <span className="text-gray-300 text-sm font-bold">Nov 25, 2025</span>
+              </div>
+              
+              {/* News Image */}
+              <div className="mb-4 border-2 border-white/50 overflow-hidden">
+                <img 
+                  src="/assets/guide/encyclopedia_preview.png" 
+                  alt="Encyclopedia Preview"
+                  className="w-full h-48 object-cover"
+                  style={{ imageRendering: 'pixelated' }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </div>
+              
+              <p className="text-white leading-relaxed" style={{ fontSize: '14px' }}>
+                A comprehensive Encyclopedia has been added to the game! Learn about all enemy types, their abilities, lore, and discover pro tips for using your abilities effectively. Access it from the GUIDE button in the top-left corner.
+              </p>
             </div>
           </div>
         </div>
