@@ -46,8 +46,8 @@ export const GAME_BALANCE = {
     baseMovementSpeed: speed(7),
     
     // Starting health
-    startingHealth: 80,
-    startingMaxHealth: 80,
+    startingHealth: 200,
+    startingMaxHealth: 200,
     
     // Starting stats
     startingDamage: 1,
@@ -207,14 +207,50 @@ export const GAME_BALANCE = {
   // HEALTH PICKUP CONFIGURATION
   // ============================================
   healthPickups: {
-    spawnInterval: 15000,         // Spawn every 15 seconds (ms)
+    spawnInterval: 8000,         // Spawn every 8 seconds (ms)
     healAmount: 20,               // HP restored
     size: 30,                     // Pickup size (pixels)
     spawnDistance: {              // Spawn distance from player
-      min: 300,
-      max: 700,
+      min: 200,
+      max: 500,
     },
     despawnDistance: 1000,        // Despawn if too far (units)
+  },
+
+  // ============================================
+  // AMMO CONFIGURATION
+  // ============================================
+  ammo: {
+    maxAmmo: {                    // Max ammo per weapon type per wave
+      pistol: 180,
+      assault_rifle: 400,
+      rifle: 90,
+      shotgun: 80,
+    },
+    pickupAmount: 15,             // Ammo restored per pickup
+    size: 25,                     // Pickup size (pixels)
+    spawnInterval: 10000,         // Spawn every 10 seconds (ms)
+    spawnDistance: {              // Spawn distance from player
+      min: 200,
+      max: 500,
+    },
+    despawnDistance: 1000,        // Despawn if too far (units)
+    dropChance: 0.15,             // 15% chance to drop from enemies
+  },
+
+  // ============================================
+  // VEST CONFIGURATION
+  // ============================================
+  vests: {
+    blueHealthAmount: 60,         // Blue health (armor) given per vest
+    size: 30,                     // Pickup size (pixels)
+    spawnInterval: 45000,         // Spawn every 45 seconds (ms)
+    spawnDistance: {              // Spawn distance from player
+      min: 200,
+      max: 500,
+    },
+    despawnDistance: 1000,        // Despawn if too far (units)
+    dropChance: 0.10,             // 10% chance to drop from enemies
   },
 } as const;
 

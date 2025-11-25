@@ -6,6 +6,7 @@ export interface Position {
 export interface PlayerStats {
   maxHealth: number;
   health: number;
+  blueHealth: number; // Extra health from vests (armor/shield)
   movementSpeed: number;
   damage: number;
   attackSpeed: number;
@@ -110,6 +111,22 @@ export interface HealthPickup {
   id: string;
   position: Position;
   healAmount: number;
+  size: number;
+  life: number; // For animation/pulsing effect
+}
+
+export interface AmmoPickup {
+  id: string;
+  position: Position;
+  ammoAmount: number;
+  size: number;
+  life: number; // For animation/pulsing effect
+}
+
+export interface VestPickup {
+  id: string;
+  position: Position;
+  blueHealthAmount: number;
   size: number;
   life: number; // For animation/pulsing effect
 }

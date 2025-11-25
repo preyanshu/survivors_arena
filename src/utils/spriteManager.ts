@@ -23,6 +23,9 @@ export class SpriteManager {
       slash_effect: '/assets/sprites/slash.png',
       chest_closed: '/assets/sprites/chest_closed.png',
       chest_open: '/assets/sprites/chest_open.png',
+      health_pickup: '/assets/health.png',
+      ammo_pickup: '/assets/ammo.png',
+      vest_pickup: '/assets/vest.png',
     };
 
     // Background should be loaded first and can fail silently (use fallback)

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation, HealthPickup, ActiveAbilityType, ActiveAbilityState } from '../types/game';
+import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation, HealthPickup, AmmoPickup, VestPickup, ActiveAbilityType, ActiveAbilityState } from '../types/game';
 import { getAbilityByType } from '../data/activeAbilities';
 import { PixelIcon } from '../utils/pixelIcons';
 import { WeaponManager } from '../managers/WeaponManager';
@@ -39,6 +39,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     maxHealth: GAME_BALANCE.player.startingMaxHealth,
     health: GAME_BALANCE.player.startingHealth,
+    blueHealth: 0,
     movementSpeed: GAME_BALANCE.player.baseMovementSpeed,
     damage: GAME_BALANCE.player.startingDamage,
     attackSpeed: GAME_BALANCE.player.startingAttackSpeed,
@@ -145,11 +146,17 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const bloodParticlesRef = useRef<BloodParticle[]>([]);
   const slashAnimationsRef = useRef<SlashAnimation[]>([]);
   const healthPickupsRef = useRef<HealthPickup[]>([]);
+  const ammoPickupsRef = useRef<AmmoPickup[]>([]);
+  const vestPickupsRef = useRef<VestPickup[]>([]);
+  const [currentAmmo, setCurrentAmmo] = useState<number>(0);
+  const currentAmmoRef = useRef<number>(0);
   const swordAttackAngleRef = useRef<number | null>(null);
   const swordAttackTimeRef = useRef<number>(0);
   const lastDamageTimeRef = useRef<number>(0);
   const isMouseDownRef = useRef<boolean>(false);
   const lastHealthPickupSpawnRef = useRef<number>(0);
+  const lastAmmoPickupSpawnRef = useRef<number>(0);
+  const lastVestPickupSpawnRef = useRef<number>(0);
   const lastFireRingDamageRef = useRef<number>(0);
   const fireRingAnimationRef = useRef<number>(0);
   const lastShieldBlockSoundRef = useRef<number>(0);
@@ -511,7 +518,12 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
     waveManager.startWave();
     enemyManager.spawnWave(1, playerPos, initialWorldMouse);
-  }, []);
+    
+    // Initialize ammo for starting weapon
+    const maxAmmo = weapon.type === 'sword' ? Infinity : (GAME_BALANCE.ammo.maxAmmo[weapon.type as keyof typeof GAME_BALANCE.ammo.maxAmmo] || 0);
+    setCurrentAmmo(maxAmmo);
+    currentAmmoRef.current = maxAmmo;
+  }, [weapon.type]);
 
   // Cleanup sounds when game ends or component unmounts
   useEffect(() => {
@@ -542,6 +554,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
   const fireWeapon = useCallback(() => {
     if (isGameOver || waveManagerRef.current.isShowingPowerUpSelection() || waveManagerRef.current.isWaveCompleted()) return;
+
+    // Check ammo (sword has unlimited ammo)
+    if (weapon.type !== 'sword' && currentAmmoRef.current <= 0) {
+      return; // Out of ammo, can't fire
+    }
 
     // Convert screen mouse position to world coordinates
     const cameraOffsetX = playerPosRef.current.x - canvasWidth / 2;
@@ -587,6 +604,13 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
     if (newProjectiles.length > 0) {
       projectilesRef.current.push(...newProjectiles);
+      
+      // Decrease ammo (sword has unlimited ammo)
+      if (weapon.type !== 'sword') {
+        const newAmmo = Math.max(0, currentAmmoRef.current - 1);
+        setCurrentAmmo(newAmmo);
+        currentAmmoRef.current = newAmmo;
+      }
       
       // Play pistol sound effect when pistol or assault rifle is fired
       if (isSfxEnabled && (weapon.type === 'pistol' || weapon.type === 'assault_rifle') && pistolSoundRef.current) {
@@ -720,6 +744,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
     waveManager.nextWave();
     enemyManager.spawnWave(waveManager.getCurrentWave(), playerPosRef.current, worldMousePos);
+    
+    // Reset ammo for new wave
+    const maxAmmo = weapon.type === 'sword' ? Infinity : (GAME_BALANCE.ammo.maxAmmo[weapon.type as keyof typeof GAME_BALANCE.ammo.maxAmmo] || 0);
+    setCurrentAmmo(maxAmmo);
+    currentAmmoRef.current = maxAmmo;
   };
 
   useEffect(() => {
@@ -729,6 +758,13 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   useEffect(() => {
     playerStatsRef.current = playerStats;
   }, [playerStats]);
+
+  // Get max ammo for current weapon
+  const getMaxAmmo = useCallback(() => {
+    if (weapon.type === 'sword') return Infinity; // Sword has unlimited ammo
+    const maxAmmoMap = GAME_BALANCE.ammo.maxAmmo;
+    return maxAmmoMap[weapon.type as keyof typeof maxAmmoMap] || 0;
+  }, [weapon.type]);
 
   // Create health pickup at position
   const createHealthPickup = useCallback((position: Position) => {
@@ -740,6 +776,55 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       life: 0, // For pulsing animation
     };
     healthPickupsRef.current.push(healthPickup);
+  }, []);
+
+  // Create ammo pickup at position
+  const createAmmoPickup = useCallback((position: Position) => {
+    const ammoPickup: AmmoPickup = {
+      id: generateId(),
+      position: { ...position },
+      ammoAmount: GAME_BALANCE.ammo.pickupAmount,
+      size: GAME_BALANCE.ammo.size,
+      life: 0, // For pulsing animation
+    };
+    ammoPickupsRef.current.push(ammoPickup);
+  }, []);
+
+  // Create vest pickup at position
+  const createVestPickup = useCallback((position: Position) => {
+    const vestPickup: VestPickup = {
+      id: generateId(),
+      position: { ...position },
+      blueHealthAmount: GAME_BALANCE.vests.blueHealthAmount,
+      size: GAME_BALANCE.vests.size,
+      life: 0, // For pulsing animation
+    };
+    vestPickupsRef.current.push(vestPickup);
+  }, []);
+
+  // Apply damage to player (uses blue health first, then regular health)
+  const applyDamage = useCallback((damage: number, stats: PlayerStats): PlayerStats => {
+    let remainingDamage = damage;
+    let newBlueHealth = stats.blueHealth;
+    let newHealth = stats.health;
+
+    // First, damage blue health
+    if (newBlueHealth > 0) {
+      if (remainingDamage >= newBlueHealth) {
+        remainingDamage -= newBlueHealth;
+        newBlueHealth = 0;
+      } else {
+        newBlueHealth -= remainingDamage;
+        remainingDamage = 0;
+      }
+    }
+
+    // Then, damage regular health
+    if (remainingDamage > 0) {
+      newHealth -= remainingDamage;
+    }
+
+    return { ...stats, blueHealth: newBlueHealth, health: newHealth };
   }, []);
 
   // Create blood particle effect
@@ -1039,9 +1124,19 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               
               // Create blood effect if enemy was killed
               if (result.killed && result.position) {
-                // 25% chance to drop health pickup when enemy is killed
+                // 20% chance to drop health pickup when enemy is killed
                 if (Math.random() < 0.20) {
                   createHealthPickup(result.position);
+                }
+                
+                // Drop ammo pickup from enemies (only if not using sword)
+                if (weapon.type !== 'sword' && Math.random() < GAME_BALANCE.ammo.dropChance) {
+                  createAmmoPickup(result.position);
+                }
+                
+                // Drop vest pickup from enemies
+                if (Math.random() < GAME_BALANCE.vests.dropChance) {
+                  createVestPickup(result.position);
                 }
                 
                 // WEAK enemies always create fire explosion effect on death
@@ -1063,14 +1158,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                       }
                     } else {
                       setPlayerStats((prev) => {
-                        const newHealth = prev.health - result.explosionDamage!;
-                        if (newHealth <= 0) {
+                        const newStats = applyDamage(result.explosionDamage!, prev);
+                        if (newStats.health <= 0) {
                           createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
                           setIsGameOver(true);
-                          return { ...prev, health: 0 };
+                          return { ...newStats, health: 0 };
                         }
                         createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
-                        return { ...prev, health: newHealth };
+                        return newStats;
                       });
                     }
                   }
@@ -1129,9 +1224,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         swordAttackAngleRef.current = null;
       }
 
-      // Spawn health pickups periodically (reduced by half - other half comes from enemy drops)
+      // Spawn health pickups periodically (some come from enemy drops too)
       const healthPickupSpawnTime = Date.now();
-      const healthPickupSpawnInterval = GAME_BALANCE.healthPickups.spawnInterval * 2; // Double the interval to reduce by half
+      const healthPickupSpawnInterval = GAME_BALANCE.healthPickups.spawnInterval * 1.2; // Slightly increased to account for enemy drops
       if (healthPickupSpawnTime - lastHealthPickupSpawnRef.current >= healthPickupSpawnInterval) {
         // Spawn health pickup at random position near player but not too close
         const spawnDistance = GAME_BALANCE.healthPickups.spawnDistance.min + 
@@ -1181,6 +1276,114 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         return dist < GAME_BALANCE.healthPickups.despawnDistance;
       });
 
+      // Spawn ammo pickups periodically (only if not using sword)
+      if (weapon.type !== 'sword') {
+        const ammoPickupSpawnTime = Date.now();
+        const ammoPickupSpawnInterval = GAME_BALANCE.ammo.spawnInterval;
+        if (ammoPickupSpawnTime - lastAmmoPickupSpawnRef.current >= ammoPickupSpawnInterval) {
+          // Spawn ammo pickup at random position near player but not too close
+          const spawnDistance = GAME_BALANCE.ammo.spawnDistance.min + 
+            Math.random() * (GAME_BALANCE.ammo.spawnDistance.max - GAME_BALANCE.ammo.spawnDistance.min);
+          const angle = Math.random() * Math.PI * 2;
+          const ammoPickup: AmmoPickup = {
+            id: generateId(),
+            position: {
+              x: newPlayerPos.x + Math.cos(angle) * spawnDistance,
+              y: newPlayerPos.y + Math.sin(angle) * spawnDistance,
+            },
+            ammoAmount: GAME_BALANCE.ammo.pickupAmount,
+            size: GAME_BALANCE.ammo.size,
+            life: 0, // For pulsing animation
+          };
+          ammoPickupsRef.current.push(ammoPickup);
+          lastAmmoPickupSpawnRef.current = ammoPickupSpawnTime;
+        }
+      }
+
+      // Update ammo pickups animation and check collision with player
+      if (weapon.type !== 'sword') {
+        ammoPickupsRef.current = ammoPickupsRef.current.filter((pickup) => {
+          // Update pulsing animation
+          pickup.life += deltaTime / 1000 * 3; // Pulse speed
+          
+          // Check collision with player
+          if (checkCollision(pickup.position, pickup.size, newPlayerPos, PLAYER_SIZE)) {
+            // Player collected ammo pickup
+            const maxAmmo = getMaxAmmo();
+            const newAmmo = Math.min(maxAmmo, currentAmmoRef.current + pickup.ammoAmount);
+            setCurrentAmmo(newAmmo);
+            currentAmmoRef.current = newAmmo;
+            
+            // Play health pickup sound effect (reuse for ammo)
+            if (isSfxEnabled && healthPickupSoundRef.current) {
+              const sound = healthPickupSoundRef.current.cloneNode() as HTMLAudioElement;
+              sound.volume = 0.3;
+              sound.play().catch(() => {
+                // Ignore autoplay errors
+              });
+            }
+            
+            return false; // Remove pickup
+          }
+          
+          // Remove pickups that are too far from player
+          const dist = distance(pickup.position, newPlayerPos);
+          return dist < GAME_BALANCE.ammo.despawnDistance;
+        });
+      }
+
+      // Spawn vest pickups periodically
+      const vestPickupSpawnTime = Date.now();
+      const vestPickupSpawnInterval = GAME_BALANCE.vests.spawnInterval;
+      if (vestPickupSpawnTime - lastVestPickupSpawnRef.current >= vestPickupSpawnInterval) {
+        // Spawn vest pickup at random position near player but not too close
+        const spawnDistance = GAME_BALANCE.vests.spawnDistance.min + 
+          Math.random() * (GAME_BALANCE.vests.spawnDistance.max - GAME_BALANCE.vests.spawnDistance.min);
+        const angle = Math.random() * Math.PI * 2;
+        const vestPickup: VestPickup = {
+          id: generateId(),
+          position: {
+            x: newPlayerPos.x + Math.cos(angle) * spawnDistance,
+            y: newPlayerPos.y + Math.sin(angle) * spawnDistance,
+          },
+          blueHealthAmount: GAME_BALANCE.vests.blueHealthAmount,
+          size: GAME_BALANCE.vests.size,
+          life: 0, // For pulsing animation
+        };
+        vestPickupsRef.current.push(vestPickup);
+        lastVestPickupSpawnRef.current = vestPickupSpawnTime;
+      }
+
+      // Update vest pickups animation and check collision with player
+      vestPickupsRef.current = vestPickupsRef.current.filter((pickup) => {
+        // Update pulsing animation
+        pickup.life += deltaTime / 1000 * 3; // Pulse speed
+        
+        // Check collision with player
+        if (checkCollision(pickup.position, pickup.size, newPlayerPos, PLAYER_SIZE)) {
+          // Player collected vest pickup
+          setPlayerStats((prev) => ({
+            ...prev,
+            blueHealth: prev.blueHealth + pickup.blueHealthAmount
+          }));
+          
+          // Play health pickup sound effect (reuse for vest)
+          if (isSfxEnabled && healthPickupSoundRef.current) {
+            const sound = healthPickupSoundRef.current.cloneNode() as HTMLAudioElement;
+            sound.volume = 0.3;
+            sound.play().catch(() => {
+              // Ignore autoplay errors
+            });
+          }
+          
+          return false; // Remove pickup
+        }
+        
+        // Remove pickups that are too far from player
+        const dist = distance(pickup.position, newPlayerPos);
+        return dist < GAME_BALANCE.vests.despawnDistance;
+      });
+
       // Fire ring damages nearby enemies (with damage tick rate)
       if (isFireRingActive) {
         const fireRingRadius = 300; // Doubled from 150
@@ -1206,9 +1409,19 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                 newPlayerPos
               );
               if (result.killed && result.position) {
-                // 25% chance to drop health pickup when enemy is killed
+                // 20% chance to drop health pickup when enemy is killed
                 if (Math.random() < 0.20) {
                   createHealthPickup(result.position);
+                }
+                
+                // Drop ammo pickup from enemies (only if not using sword)
+                if (weapon.type !== 'sword' && Math.random() < GAME_BALANCE.ammo.dropChance) {
+                  createAmmoPickup(result.position);
+                }
+                
+                // Drop vest pickup from enemies
+                if (Math.random() < GAME_BALANCE.vests.dropChance) {
+                  createVestPickup(result.position);
                 }
                 
                 // WEAK enemies always create fire explosion effect on death
@@ -1230,14 +1443,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                       }
                     } else {
                       setPlayerStats((prev) => {
-                        const newHealth = prev.health - result.explosionDamage!;
-                        if (newHealth <= 0) {
+                        const newStats = applyDamage(result.explosionDamage!, prev);
+                        if (newStats.health <= 0) {
                           createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
                           setIsGameOver(true);
-                          return { ...prev, health: 0 };
+                          return { ...newStats, health: 0 };
                         }
                         createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.7, 1.5);
-                        return { ...prev, health: newHealth };
+                        return newStats;
                       });
                     }
                   }
@@ -1295,16 +1508,17 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           // Player hit by enemy projectile
           if (currentTime - lastDamageTimeRef.current > 300) {
             setPlayerStats((prev) => {
-              const newHealth = prev.health - proj.damage * 0.3; // Projectiles do 30% of their damage
-              if (newHealth <= 0) {
+              const damage = proj.damage * 0.3; // Projectiles do 30% of their damage
+              const newStats = applyDamage(damage, prev);
+              if (newStats.health <= 0) {
                 // Large blood effect on death
                 createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
                 setIsGameOver(true);
-                return { ...prev, health: 0 };
+                return { ...newStats, health: 0 };
               }
               // Small blood effect when taking damage
               createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.5, 0.6);
-              return { ...prev, health: newHealth };
+              return newStats;
             });
             lastDamageTimeRef.current = currentTime;
           }
@@ -1350,18 +1564,19 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             setPlayerStats((prev) => {
               // Explosion damage is already full damage, regular damage is 25%
               const damageMultiplier = collisionResult.explodedEnemies.length > 0 ? 1.0 : 0.25;
-              const newHealth = prev.health - damage * damageMultiplier;
-              if (newHealth <= 0) {
+              const totalDamage = damage * damageMultiplier;
+              const newStats = applyDamage(totalDamage, prev);
+              if (newStats.health <= 0) {
                 // Large blood effect on death
                 createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
                 setIsGameOver(true);
-                return { ...prev, health: 0 };
+                return { ...newStats, health: 0 };
               }
               // Small blood effect when taking damage (larger for explosions)
               const effectSize = collisionResult.explodedEnemies.length > 0 ? 0.8 : 0.5;
               const effectIntensity = collisionResult.explodedEnemies.length > 0 ? 1.5 : 0.6;
               createBloodEffect(newPlayerPos, PLAYER_SIZE * effectSize, effectIntensity);
-              return { ...prev, health: newHealth };
+              return newStats;
             });
             lastDamageTimeRef.current = currentTime;
           }
@@ -1840,24 +2055,65 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         ctx.save();
         ctx.translate(pickup.position.x, pickup.position.y);
         
-        // Outer glow
-        ctx.shadowBlur = 15;
+        // Bright green circular glow effect
+        ctx.shadowBlur = 25;
         ctx.shadowColor = '#00ff00';
         ctx.fillStyle = '#00ff00';
         ctx.beginPath();
         ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Inner cross/plus symbol
-        ctx.fillStyle = '#ffffff';
+        // Draw main sprite
         ctx.shadowBlur = 0;
-        const crossSize = size * 0.3;
-        const crossWidth = size * 0.15;
+        spriteManager.drawSprite(ctx, 'health_pickup', 0, 0, size, size, 0);
         
-        // Horizontal line
-        ctx.fillRect(-crossSize / 2, -crossWidth / 2, crossSize, crossWidth);
-        // Vertical line
-        ctx.fillRect(-crossWidth / 2, -crossSize / 2, crossWidth, crossSize);
+        ctx.restore();
+      });
+
+      // Draw ammo pickups with pulsing animation (only if not using sword)
+      if (weapon.type !== 'sword') {
+        ammoPickupsRef.current.forEach((pickup) => {
+          const pulse = Math.sin(pickup.life) * 0.3 + 1; // Pulse between 0.7 and 1.3
+          const size = pickup.size * pulse;
+          
+          ctx.save();
+          ctx.translate(pickup.position.x, pickup.position.y);
+          
+          // Bright yellow circular glow effect
+          ctx.shadowBlur = 25;
+          ctx.shadowColor = '#ffaa00';
+          ctx.fillStyle = '#ffaa00';
+          ctx.beginPath();
+          ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Draw main sprite
+          ctx.shadowBlur = 0;
+          spriteManager.drawSprite(ctx, 'ammo_pickup', 0, 0, size, size, 0);
+          
+          ctx.restore();
+        });
+      }
+
+      // Draw vest pickups with pulsing animation
+      vestPickupsRef.current.forEach((pickup) => {
+        const pulse = Math.sin(pickup.life) * 0.3 + 1; // Pulse between 0.7 and 1.3
+        const size = pickup.size * pulse;
+        
+        ctx.save();
+        ctx.translate(pickup.position.x, pickup.position.y);
+        
+        // Bright blue circular glow effect
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = '#0088ff';
+        ctx.fillStyle = '#0088ff';
+        ctx.beginPath();
+        ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw main sprite
+        ctx.shadowBlur = 0;
+        spriteManager.drawSprite(ctx, 'vest_pickup', 0, 0, size, size, 0);
         
         ctx.restore();
       });
@@ -2055,7 +2311,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       );
       ctx.restore(); // Restore camera transform
     },
-    [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities, fireWeapon, createHealthPickup]
+    [keys, mousePos, isGameOver, canvasWidth, canvasHeight, activeAbilities, fireWeapon, createHealthPickup, createAmmoPickup, createVestPickup, applyDamage, getMaxAmmo, weapon.type]
   );
 
   useGameLoop(gameLoop, !isGameOver && !showExitConfirm && !isPaused);
@@ -2198,6 +2454,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         enemiesRemaining={enemyManagerRef.current.getCount()}
         enemiesKilled={enemyManagerRef.current.getKilledCount()}
         targetEnemies={enemyManagerRef.current.getTargetCount()}
+        currentAmmo={currentAmmo}
+        maxAmmo={getMaxAmmo()}
+        weaponType={weapon.type}
       />
 
       {/* Show "Press E to continue" screen when wave is completed */}
