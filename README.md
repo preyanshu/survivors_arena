@@ -66,7 +66,8 @@ Shields that block everything. Flames that burn all around you. Speed that nothi
 
 *Each ability is a legacy. Each legacy has a story.*
 
-![Abilities Preview](public/assets/screenshots/abilities.png)
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/ff90a169-0bb1-42d1-812d-19d7dd7be810" />
+
 
 ### Loot Drops
 
@@ -81,6 +82,9 @@ Your inventory lives in your wallet — not on our servers.
 ### Achievement Badges
 
 Hit milestones. Mint proof. Show off your skill with on-chain achievement NFTs.
+
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/6eb444f9-ff52-449b-bda1-7412f359c514" />
+
 
 ### Weekly Updates
 
