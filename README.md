@@ -16,6 +16,8 @@ Fight through endless hordes of corrupted enemies. Unlock powerful abilities inh
 
 
 <img width="1861" height="995" alt="Screenshot from 2025-11-26 23-37-40" src="https://github.com/user-attachments/assets/17397224-4add-433b-ac1e-462ae238acf0" />
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/184b0adc-3eab-4d9a-96f0-0dc72f0e1b64" />
+
 
 
 ---
