@@ -41,7 +41,8 @@ Every 24 hours, open a chest and mint a random weapon NFT. You might get somethi
 
 **Test your luck. Every. Single. Day.**
 
-![Daily Chest](public/assets/screenshots/daily_chest.png)
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/293031b4-49e5-49de-8dcb-037054e35e41" />
+
 
 ### The Corrupted Horde
 
@@ -51,7 +52,8 @@ The arena is filled with corrupted enemies — each with their own mechanics, be
 
 <img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/1175a047-8076-4e71-8f36-dcba7d9097b3" />
 <img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/5aef0e9c-0fc4-4f16-b8d4-d6568b5042ca" />
-![Uploading image.png…]()
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/3bc62a2c-1c1c-40a5-ad09-e6643dc8c8bd" />
+
 
 
 
@@ -86,11 +88,12 @@ New bosses. New weapons. New mechanics. The arena evolves every week with fresh 
 
 **Expect new bosses, weapons, and mechanics regularly.**
 
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/8b27cd3d-31fd-4de5-8cc9-5372eed74827" />
+
+
 ### Marketplace *(Coming Soon)*
 
 Full player-driven economy. Buy weapons you need. Sell duplicates. Trade with the community.
-
-![Marketplace Preview](public/assets/screenshots/marketplace_preview.png)
 
 ---
 
