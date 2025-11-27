@@ -14,8 +14,9 @@
 
 ## Links
 
-- **Live Demo**: [Coming Soon]
+- **Live Demo**: [arena.preyanshu.me](https://arena.preyanshu.me)
 - **Demo Video**: [YouTube Link]
+- **Wallet**: [OneWallet](https://chromewebstore.google.com/detail/onewallet/cipoflgemgdgkgifhbpjcpjdloagkbgm)
 - **Weapon NFT Contract**: `0xc6c261cb39c87d87c62f0d1fb90b201cff1c9154f1d1c165e87637db44420dfc`
 - **Achievement NFT Contract**: `0x1c6ffbfbb6802ce3fc34265c255c3768883ec8e93b9268fea738912c3817ac1a`
 - **Network**: OneChain Testnet
