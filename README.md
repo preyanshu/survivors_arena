@@ -14,6 +14,7 @@ Fight through endless hordes of corrupted enemies. Unlock powerful abilities inh
 
 **Your skill. Your loot. Your arena.**
 
+
 <img width="1861" height="995" alt="Screenshot from 2025-11-26 23-37-40" src="https://github.com/user-attachments/assets/17397224-4add-433b-ac1e-462ae238acf0" />
 
 
@@ -27,7 +28,10 @@ Pistols. Shotguns. Rifles. Blades. Full-auto death machines. Each weapon class h
 
 *Some weapons are common. Some are legendary. Some are so rare that most players will never see them.*
 
-![Weapons Preview](public/assets/screenshots/weapons.png)
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/a3063b0d-c6d3-47d6-bb30-e641e4e77bc3" />
+
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/5c10c1e6-9fe0-4dd7-8a23-82c4d9de4eac" />
+
 
 ### Five Rarity Tiers
 
@@ -78,6 +82,9 @@ Health. Ammo. Armor. The arena provides — if you can survive long enough to co
 Every weapon is an NFT on OneChain. Mint it. Own it. Transfer it. Trade it.
 
 Your inventory lives in your wallet — not on our servers.
+
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/acda7ba6-122f-48f2-872d-ea2c0e17f567" />
+
 
 ### Achievement Badges
 
