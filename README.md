@@ -14,7 +14,8 @@ Fight through endless hordes of corrupted enemies. Unlock powerful abilities inh
 
 **Your skill. Your loot. Your arena.**
 
-![Gameplay Screenshot](public/assets/screenshots/gameplay.png)
+<img width="1861" height="995" alt="Screenshot from 2025-11-26 23-37-40" src="https://github.com/user-attachments/assets/17397224-4add-433b-ac1e-462ae238acf0" />
+
 
 ---
 
