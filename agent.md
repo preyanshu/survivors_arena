@@ -15,7 +15,7 @@
 ## Player Mechanics
 
 ### Base Stats
-- **Starting Health**: 80 HP
+- **Starting Health**: 200 HP
 - **Starting Movement Speed**: 7 units/frame
 - **Starting Damage Multiplier**: 1.0x
 - **Starting Attack Speed**: 1.0x
@@ -38,11 +38,25 @@
 - Weapon cooldown determines attack rate
 - Damage is calculated as: `weapon.baseDamage * playerStats.damage`
 
-### Health System
-- Health pickups spawn randomly on the battlefield
-- Health pickups heal 30 HP
-- Health pickups spawn every ~15 seconds
-- Health pickups despawn if not collected within range
+### Health & Armor Systems
+- **Health pickups**:
+  - Heal 20 HP instantly
+  - Spawn every ~8 seconds near the player (but outside the visible bubble)
+  - Additional pickups can drop from defeated enemies (20% chance)
+  - Despawn if they drift more than ~1000 units away
+- **Armor (Vests)**:
+  - Vests grant up to **60 blue HP** that absorbs damage before regular health
+  - Random vest pickups spawn every ~45 seconds and can also drop from enemies (10% chance)
+  - Blue HP is capped at 60 and does not persist between runs
+
+### Ammo System
+- All non-sword weapons now use ammo
+- Ammo resets to the weapon’s max value at the start of each wave
+- Ammo pickups:
+  - Spawn every ~10 seconds outside the visible area
+  - Restore 15 ammo (capped by the weapon’s max)
+  - 15% chance to drop from enemies (only if using guns)
+- UI shows current ammo and flashes a **LOW ON AMMO** warning (center-screen) below 25%
 
 ---
 
@@ -50,7 +64,7 @@
 
 ### Weapon Types
 
-There are **5 weapon types**, each with unique characteristics:
+There are **6 weapon types**, each with unique characteristics:
 
 #### 1. **Pistol**
 - **Base Damage**: 25
@@ -88,10 +102,20 @@ There are **5 weapon types**, each with unique characteristics:
 - **Range**: 600 units
 - **Projectile Count**: 1
 - **Description**: High-damage precision weapon with long range
+- **Special**: Piercing bullets
+
+#### 6. **Machine Gun** *(Legendary Exclusive)*
+- **Base Damage**: 18
+- **Base Cooldown**: 50ms (20 shots/second)
+- **Range**: 500 units
+- **Projectile Count**: 1
+- **Description**: Full-auto bullet hose with extremely high DPS
+- **Special**: Only drops as **Legendary** from Daily Chests (≈1% chance)
 
 ### Weapon Rarity System
 
-Each weapon type has **5 rarity tiers**, creating **25 total weapons** (5 types × 5 rarities):
+Each weapon type normally has **5 rarity tiers** (Common → Legendary).  
+The **Machine Gun** is a special case: it only exists as a **Legendary** weapon and cannot roll lower rarities.
 
 #### Rarity Tiers
 
@@ -142,7 +166,8 @@ Each weapon type has **5 rarity tiers**, creating **25 total weapons** (5 types 
 - **Pistol**: 30% chance
 - **Shotgun**: 15% chance
 - **Assault Rifle**: 10% chance
-- **Rifle**: 5% chance (hardest)
+- **Rifle**: 5% chance
+- **Machine Gun**: Appears only through a special Legendary roll (~1% overall)
 
 ---
 
@@ -170,8 +195,8 @@ Active abilities are unlocked through power-up selection and activated with numb
 - **Icon**: Fire
 - **Duration**: 20 seconds
 - **Cooldown**: 45 seconds
-- **Effect**: Damages nearby enemies within 150 units
-- **Damage**: 15 per tick (every 500ms)
+- **Effect**: Damages nearby enemies within 300 units and ignites them
+- **Damage**: 30 per tick (every 500ms) + **burns for 3 seconds** after contact
 - **Visual**: Orange-red fire ring animation around player
 - **Unlock**: Via "Fire Ring Ability" power-up
 
@@ -179,7 +204,7 @@ Active abilities are unlocked through power-up selection and activated with numb
 - **Icon**: Bolt
 - **Duration**: 15 seconds
 - **Cooldown**: 30 seconds
-- **Effect**: Doubles movement speed (2x)
+- **Effect**: +50% movement speed (additive to base speed)
 - **Visual**: Cyan speed lines trailing behind player
 - **Unlock**: Via "Speed Boost Ability" power-up
 
@@ -213,43 +238,15 @@ Power-ups are selected after completing each wave. Choose 1 of 3 random power-up
 
 ### Passive Power-Ups (Stat Boosts)
 
-#### 1. **+30% Movement Speed**
-- Multiplies movement speed by 1.3x
-- Stackable (multiplicative)
+Currently available passives:
 
-#### 2. **+25% Attack Speed**
-- Multiplies attack speed by 1.25x
-- Affects weapon cooldown reduction
-- Stackable (multiplicative)
+1. **+25% Attack Speed** – Multiplies attack speed by 1.25× (affects weapon cooldowns)
+2. **+30% Damage** – Multiplies all weapon damage by 1.3×
+3. **+30 Max HP** – Raises max health by 30 and heals 30 HP instantly
+4. **+30% Knockback** – Multiplies knockback force by 1.3×
+5. **-30% Cooldown** – Adds 0.3 to cooldown reduction (stacking additively)
 
-#### 3. **+30% Damage**
-- Multiplies damage multiplier by 1.3x
-- Stackable (multiplicative)
-
-#### 4. **+30 Max HP**
-- Increases max health by 30
-- Also restores 30 HP immediately
-- Stackable (additive)
-
-#### 5. **+25% Projectile Size**
-- Multiplies projectile size by 1.25x
-- Makes projectiles easier to hit with
-- Stackable (multiplicative)
-
-#### 6. **+30% Knockback**
-- Multiplies knockback by 1.3x
-- Pushes enemies further on hit
-- Stackable (multiplicative)
-
-#### 7. **-30% Cooldown**
-- Adds 0.3 to cooldown reduction (30%)
-- Reduces ability cooldowns
-- Stackable (additive)
-
-#### 8. **+30 HP**
-- Restores 30 HP immediately
-- Cannot exceed max health
-- Instant heal
+*(Legacy passives such as Movement Speed, Projectile Size, and +30 HP have been retired.)*
 
 ### Active Ability Power-Ups
 
@@ -426,6 +423,10 @@ Base stats scale with wave:
 - Chests contain random weapons (excluding default weapons)
 - Weapons saved in localStorage
 - Cooldown tracked in localStorage
+- **Legendary Machine Gun**:
+  - Exclusive to Daily Chests
+  - Only rolls as a Legendary item (~1% overall chance)
+  - Cannot be crafted or obtained elsewhere
 
 #### Weapon Selection
 - Choose weapon before starting game
@@ -435,7 +436,7 @@ Base stats scale with wave:
 
 ### Inventory Management
 - Weapons persist across game sessions (localStorage)
-- Default weapons (Common Sword/Pistol) always available
+- Default weapons (**Common Sword** and **Common Pistol**) always available
 - Additional weapons from crates saved permanently
 
 ### Weapon Rarity Colors (Dark Theme)
@@ -472,6 +473,7 @@ Base stats scale with wave:
 - Orange-red fire ring animation
 - Rotates around player
 - Damages nearby enemies
+- Applies burning shader to enemies touched (flames persist during burn)
 
 #### Speed Boost Active
 - Cyan speed lines trailing behind player
@@ -502,6 +504,8 @@ Base stats scale with wave:
 - Faster movement
 
 ### Projectile Visuals
+- **Ammo Pickups**: Bright yellow glow with ammo sprite
+- **Vest Pickups**: Neon blue glow with vest sprite
 
 #### Normal Enemy Projectiles
 - Orange-red color (#ff4500)
@@ -632,7 +636,10 @@ Final Damage = Weapon Base Damage × Player Damage Stat × (Ability Multipliers)
 ### Strategic Elements
 - **Priority Targets**: STRONG enemies (remove shields)
 - **Dodge Windows**: Charged shots have 2-second warning
-- **Resource Management**: Health pickups are limited
+- **Resource Management**:
+  - Health pickups are limited and heal 20 HP
+  - Vests add temporary blue HP but cap at 60
+  - Ammo must be managed; swapping weapons or collecting drops keeps you firing
 - **Ability Timing**: Cooldowns require strategic use
 
 ### Risk/Reward
@@ -652,5 +659,7 @@ This documentation covers the current state of Survival Arena as of the latest i
 - Homing projectile system
 - Weapon rarity system
 - Active abilities system
-- Daily chest progression
+- Daily chest progression (with Legendary-only Machine Gun)
+- Ammo & vest pickup systems with blue HP cap
+- Fire Ring burn-over-time behavior
 
