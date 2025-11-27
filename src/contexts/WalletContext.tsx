@@ -17,6 +17,7 @@ interface WalletContextType extends WalletState {
   signTransaction: (input: { transaction: string }) => Promise<{ signature: string }>;
   executeTransaction: (transactionBlock: any) => Promise<any>;
   checkChain: () => Promise<void>;
+  ensureConnected: () => Promise<boolean>;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -225,7 +226,100 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     throw new Error('Sign transaction not supported');
   };
 
+  const ensureConnected = async (): Promise<boolean> => {
+    try {
+      const wallet = getWallet();
+      if (!wallet) {
+        console.warn('Wallet not found');
+        return false;
+      }
+
+      const suiProvider = getSuiProvider(wallet);
+      if (!suiProvider) {
+        console.warn('Sui provider not found');
+        return false;
+      }
+
+      // Check if we have accounts/permissions
+      let accounts: any[] = [];
+      
+      // Try to get accounts using getAccounts() method
+      if (typeof suiProvider.getAccounts === 'function') {
+        try {
+          accounts = await suiProvider.getAccounts();
+        } catch (e) {
+          console.log('getAccounts() failed, trying accounts property:', e);
+        }
+      }
+      
+      // Fallback to accounts property
+      if (accounts.length === 0) {
+        accounts = suiProvider.accounts || wallet.accounts || [];
+      }
+
+      // If we have accounts, check if we have the expected address
+      if (accounts.length > 0) {
+        const accountAddress = accounts[0].address || accounts[0];
+        const addressStr = typeof accountAddress === 'string' ? accountAddress : String(accountAddress);
+        
+        // Update state if needed
+        if (!walletState.connected || walletState.address !== addressStr) {
+          setWalletState((prev) => ({
+            ...prev,
+            connected: true,
+            address: addressStr,
+          }));
+          localStorage.setItem(WALLET_STORAGE_KEY, 'true');
+          localStorage.setItem(WALLET_ADDRESS_KEY, addressStr);
+        }
+        
+        return true;
+      }
+
+      // No accounts, try to connect
+      if (typeof suiProvider.connect === 'function') {
+        await suiProvider.connect();
+        
+        // Get accounts after connecting
+        if (typeof suiProvider.getAccounts === 'function') {
+          accounts = await suiProvider.getAccounts();
+        } else {
+          accounts = suiProvider.accounts || wallet.accounts || [];
+        }
+        
+        if (accounts.length > 0) {
+          const accountAddress = accounts[0].address || accounts[0];
+          const addressStr = typeof accountAddress === 'string' ? accountAddress : String(accountAddress);
+          
+          setWalletState((prev) => ({
+            ...prev,
+            connected: true,
+            address: addressStr,
+          }));
+          localStorage.setItem(WALLET_STORAGE_KEY, 'true');
+          localStorage.setItem(WALLET_ADDRESS_KEY, addressStr);
+          
+          // Check chain after connecting
+          await checkChain();
+          
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('ensureConnected failed:', error);
+      return false;
+    }
+  };
+
   const executeTransaction = async (transactionBlock: any) => {
+    // Ensure account is connected before executing transaction
+    const isConnected = await ensureConnected();
+    if (!isConnected) {
+      throw new Error('Wallet account is not connected. Please connect your wallet and try again.');
+    }
+
     const wallet = getWallet();
     const suiProvider = getSuiProvider(wallet);
     if (suiProvider && suiProvider.signAndExecuteTransactionBlock) {
@@ -325,7 +419,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       isWalletInstalled,
       signTransaction,
       executeTransaction,
-      checkChain
+      checkChain,
+      ensureConnected
     }}>
       {children}
     </WalletContext.Provider>

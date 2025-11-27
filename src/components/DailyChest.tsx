@@ -21,7 +21,12 @@ const CLOCK_ID = '0x6';
 const WEAPON_NFT_TYPE = `${PACKAGE_ID}::weapon_nft::WeaponNFT`;
 
 const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
-  const { connected, address, client, signTransaction, executeTransaction, isWalletInstalled } = useOneWallet();
+  const { connected, address, client, signTransaction, executeTransaction, isWalletInstalled, connect, disconnect, installWallet, isCorrectChain } = useOneWallet();
+  
+  const formatAddress = (addr: string | null) => {
+    if (!addr) return '';
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
   const [canOpen, setCanOpen] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [openedWeapon, setOpenedWeapon] = useState<Weapon | null>(null);
@@ -430,6 +435,42 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
       >
         ← BACK
       </button>
+
+      {/* Wallet connection button - top right */}
+      <div className="absolute top-8 right-8 z-20">
+        {connected ? (
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-3">
+              <div className="text-white text-sm font-bold bg-black/70 px-3 py-2 rounded border border-white/30 flex items-center gap-2">
+                {formatAddress(address)}
+                {!isCorrectChain && (
+                  <span className="text-red-400 text-xs font-bold" title="Wrong network">!</span>
+                )}
+              </div>
+              <button
+                onClick={disconnect}
+                className="border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded bg-[#0a4a0a] hover:bg-[#0a5a0a]"
+                style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+              >
+                DISCONNECT
+              </button>
+            </div>
+            {!isCorrectChain && (
+              <div className="text-red-400 text-xs font-bold bg-red-900/50 px-2 py-1 rounded border border-red-400">
+                WRONG NETWORK - SWITCH TO ONECHAIN TESTNET
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={isWalletInstalled() ? connect : installWallet}
+            className="border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded bg-[#1a1a1a] hover:bg-[#2a2a2a]"
+            style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+          >
+            {isWalletInstalled() ? 'CONNECT ONECHAIN WALLET' : 'INSTALL ONECHAIN WALLET'}
+          </button>
+        )}
+      </div>
       
       <div className="border-4 border-white p-5 text-center relative max-w-3xl w-full mx-4" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', zIndex: 10 }}>
         <h1 className="text-white mb-3 font-bold" style={{ fontSize: '28px' }}>DAILY CHEST</h1>

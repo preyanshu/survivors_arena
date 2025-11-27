@@ -12,7 +12,12 @@ interface InventoryProps {
 }
 
 const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
-  const { executeTransaction } = useOneWallet();
+  const { executeTransaction, connected, address, connect, disconnect, installWallet, isWalletInstalled, isCorrectChain } = useOneWallet();
+  
+  const formatAddress = (addr: string | null) => {
+    if (!addr) return '';
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
   const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(playerInventory[0] || null);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
@@ -151,6 +156,42 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
         >
           ← BACK
         </button>
+
+        {/* Wallet connection button - top right */}
+        <div className="absolute top-8 right-8 z-20">
+          {connected ? (
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-3">
+                <div className="text-white text-sm font-bold bg-black/70 px-3 py-2 rounded border border-white/30 flex items-center gap-2">
+                  {formatAddress(address)}
+                  {!isCorrectChain && (
+                    <span className="text-red-400 text-xs font-bold" title="Wrong network">!</span>
+                  )}
+                </div>
+                <button
+                  onClick={disconnect}
+                  className="border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded bg-[#0a4a0a] hover:bg-[#0a5a0a]"
+                  style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+                >
+                  DISCONNECT
+                </button>
+              </div>
+              {!isCorrectChain && (
+                <div className="text-red-400 text-xs font-bold bg-red-900/50 px-2 py-1 rounded border border-red-400">
+                  WRONG NETWORK - SWITCH TO ONECHAIN TESTNET
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={isWalletInstalled() ? connect : installWallet}
+              className="border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded bg-[#1a1a1a] hover:bg-[#2a2a2a]"
+              style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+            >
+              {isWalletInstalled() ? 'CONNECT ONECHAIN WALLET' : 'INSTALL ONECHAIN WALLET'}
+            </button>
+          )}
+        </div>
 
         {/* Left side - Weapon list */}
         <div className="w-1/3 p-8 pt-20 border-r-4 border-white overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>

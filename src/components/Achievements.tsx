@@ -20,9 +20,14 @@ interface OwnedAchievement {
 }
 
 const Achievements = ({ onBack }: AchievementsProps) => {
-  const { connected, address, client } = useOneWallet();
+  const { connected, address, client, connect, disconnect, installWallet, isWalletInstalled, isCorrectChain } = useOneWallet();
   const [ownedAchievements, setOwnedAchievements] = useState<OwnedAchievement[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const formatAddress = (addr: string | null) => {
+    if (!addr) return '';
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
 
   useEffect(() => {
     const fetchAchievements = async () => {
@@ -116,6 +121,42 @@ const Achievements = ({ onBack }: AchievementsProps) => {
       >
         ← BACK
       </button>
+
+      {/* Wallet connection button - top right */}
+      <div className="absolute top-8 right-8 z-20">
+        {connected ? (
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-3">
+              <div className="text-white text-sm font-bold bg-black/70 px-3 py-2 rounded border border-white/30 flex items-center gap-2">
+                {formatAddress(address)}
+                {!isCorrectChain && (
+                  <span className="text-red-400 text-xs font-bold" title="Wrong network">!</span>
+                )}
+              </div>
+              <button
+                onClick={disconnect}
+                className="border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded bg-[#0a4a0a] hover:bg-[#0a5a0a]"
+                style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+              >
+                DISCONNECT
+              </button>
+            </div>
+            {!isCorrectChain && (
+              <div className="text-red-400 text-xs font-bold bg-red-900/50 px-2 py-1 rounded border border-red-400">
+                WRONG NETWORK - SWITCH TO ONECHAIN TESTNET
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={isWalletInstalled() ? connect : installWallet}
+            className="border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded bg-[#1a1a1a] hover:bg-[#2a2a2a]"
+            style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+          >
+            {isWalletInstalled() ? 'CONNECT ONECHAIN WALLET' : 'INSTALL ONECHAIN WALLET'}
+          </button>
+        )}
+      </div>
 
       <div className="border-4 border-white p-8 text-center relative max-w-6xl w-full mx-4 h-[80vh] flex flex-col" style={{ backgroundColor: 'rgba(58, 0, 0, 0.9)', imageRendering: 'pixelated', zIndex: 10 }}>
         <h1 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>ACHIEVEMENTS</h1>
