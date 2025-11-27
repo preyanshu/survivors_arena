@@ -49,7 +49,12 @@ The arena is filled with corrupted enemies — each with their own mechanics, be
 
 *The deeper you go, the more you'll encounter.*
 
-![Enemies Preview](public/assets/screenshots/enemies.png)
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/1175a047-8076-4e71-8f36-dcba7d9097b3" />
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/5aef0e9c-0fc4-4f16-b8d4-d6568b5042ca" />
+![Uploading image.png…]()
+
+
+
 
 ### Abilities of the Fallen
 
