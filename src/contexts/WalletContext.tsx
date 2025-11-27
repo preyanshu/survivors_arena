@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { SuiClient } from '@onelabs/sui/client';
+import AccountChangeModal from '../components/AccountChangeModal';
 
 interface WalletState {
   connected: boolean;
@@ -88,6 +89,13 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     isCorrectChain: false,
   });
   const [walletAvailable, setWalletAvailable] = useState(false);
+  
+  // Account change modal state
+  const [showAccountChangeModal, setShowAccountChangeModal] = useState(false);
+  const [newAccountAddress, setNewAccountAddress] = useState<string | null>(null);
+  const [oldAccountAddress, setOldAccountAddress] = useState<string | null>(null);
+  const previousAddressRef = useRef<string | null>(persistedState.address);
+  const isInitialLoadRef = useRef<boolean>(true);
 
   // OneChain Testnet chain identifier
   const ONECHAIN_TESTNET_CHAIN = 'onechain:testnet'; // Common identifier for OneChain Testnet
@@ -103,7 +111,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
 
   // Check wallet availability
   useEffect(() => {
-    const checkWallet = () => {
+    const checkWallet = async () => {
       const wallet = getWallet();
       if (wallet) {
         setWalletAvailable(true);
@@ -111,13 +119,37 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         
         // Auto-reconnect if persisted or if provider is already connected
         if (suiProvider) {
-          const accounts = suiProvider.accounts || wallet.accounts;
+          let accounts: any[] = [];
+          
+          // Try to get accounts using getAccounts() method
+          if (typeof suiProvider.getAccounts === 'function') {
+            try {
+              accounts = await suiProvider.getAccounts();
+            } catch (e) {
+              console.log('getAccounts() failed, trying accounts property:', e);
+              accounts = suiProvider.accounts || wallet.accounts || [];
+            }
+          } else {
+            accounts = suiProvider.accounts || wallet.accounts || [];
+          }
+          
           if (accounts && accounts.length > 0) {
             const address = accounts[0].address || accounts[0];
             const addressStr = typeof address === 'string' ? address : String(address);
             
+            // Check if address actually changed
+            const previousAddress = previousAddressRef.current;
+            const addressChanged = previousAddress !== addressStr && previousAddress !== null;
+            
             // Only update if state is different (to avoid loops)
             if (!walletState.connected || walletState.address !== addressStr) {
+              // If address changed and we had a previous address, show modal (but not on initial load)
+              if (addressChanged && previousAddress && !isInitialLoadRef.current) {
+                setOldAccountAddress(previousAddress);
+                setNewAccountAddress(addressStr);
+                setShowAccountChangeModal(true);
+              }
+              
               setWalletState((prev) => ({
                 ...prev,
                 connected: true,
@@ -125,11 +157,53 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
               }));
               localStorage.setItem(WALLET_STORAGE_KEY, 'true');
               localStorage.setItem(WALLET_ADDRESS_KEY, addressStr);
+              
+              // Update the ref for next comparison
+              previousAddressRef.current = addressStr;
+              
+              // Mark initial load as complete after first check
+              if (isInitialLoadRef.current) {
+                isInitialLoadRef.current = false;
+              }
+            } else if (isInitialLoadRef.current) {
+              // Even if address didn't change, mark initial load as complete
+              isInitialLoadRef.current = false;
+            }
+          } else {
+            // No accounts - disconnected
+            if (previousAddressRef.current && !isInitialLoadRef.current) {
+              setOldAccountAddress(previousAddressRef.current);
+              setNewAccountAddress(null);
+              setShowAccountChangeModal(true);
+              previousAddressRef.current = null;
+            }
+            setWalletState((prev) => ({
+              ...prev,
+              connected: false,
+              address: null,
+            }));
+            localStorage.removeItem(WALLET_STORAGE_KEY);
+            localStorage.removeItem(WALLET_ADDRESS_KEY);
+            
+            // Mark initial load as complete
+            if (isInitialLoadRef.current) {
+              isInitialLoadRef.current = false;
             }
           }
         }
       } else {
         setWalletAvailable(false);
+        if (previousAddressRef.current && !isInitialLoadRef.current) {
+          setOldAccountAddress(previousAddressRef.current);
+          setNewAccountAddress(null);
+          setShowAccountChangeModal(true);
+          previousAddressRef.current = null;
+        }
+        
+        // Mark initial load as complete
+        if (isInitialLoadRef.current) {
+          isInitialLoadRef.current = false;
+        }
       }
     };
 
@@ -139,7 +213,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     
     // Accounts changed listener
     const handleAccountsChanged = () => {
-      console.log('Account changed event');
+      console.log('Account changed event detected');
       checkWallet();
     };
     
@@ -423,6 +497,16 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       ensureConnected
     }}>
       {children}
+      <AccountChangeModal
+        isOpen={showAccountChangeModal}
+        onClose={() => setShowAccountChangeModal(false)}
+        newAddress={newAccountAddress}
+        oldAddress={oldAccountAddress}
+        currentConnectedAddress={walletState.address}
+        onConnect={connect}
+        isWalletInstalled={isWalletInstalled}
+        installWallet={installWallet}
+      />
     </WalletContext.Provider>
   );
 };
