@@ -2,7 +2,8 @@
 
 *The Grand Colosseum of Valdris has fallen. The Dark Corruption has consumed the kingdom. You are the last survivor — and the arena is your proving ground.*
 
-![Survival Arena Banner](public/assets/sprites/image%20copy%202.png)
+<img width="835" height="623" alt="image" src="https://github.com/user-attachments/assets/ade20321-e17a-42c1-958d-fd24c02b9ff8" />
+
 
 ---
 
