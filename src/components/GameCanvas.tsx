@@ -1077,7 +1077,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       let newPlayerPos = { ...playerPosRef.current };
       // Apply speed boost if active
       const baseSpeed = playerStatsRef.current.movementSpeed;
-      const effectiveSpeed = isSpeedBoostActive ? baseSpeed * 1.5 : baseSpeed;
+      const effectiveSpeed = isSpeedBoostActive ? baseSpeed * 1.5 : baseSpeed; // Doubled from 1.5x to 2.0x
       const speed = effectiveSpeed * (deltaTime / 16);
 
       if (keys['w'] || keys['arrowup']) newPlayerPos.y -= speed;
@@ -1218,7 +1218,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           enemyManager.getEnemies().forEach((enemy) => {
             if (checkCollision(proj.position, proj.size, enemy.position, enemy.size)) {
               // Apply damage boost if active
-              const effectiveDamage = isDamageBoostActive ? proj.damage * 3 : proj.damage;
+              const effectiveDamage = isDamageBoostActive ? proj.damage * 5 : proj.damage; // Increased from 3x to 5x
               
               const result = enemyManager.damageEnemy(
                 enemy.id,
@@ -1469,7 +1469,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           // Player collected vest pickup
           setPlayerStats((prev) => ({
             ...prev,
-            blueHealth: Math.min(60, prev.blueHealth + pickup.blueHealthAmount) // Cap at 60
+            blueHealth: Math.min(120, prev.blueHealth + pickup.blueHealthAmount) // Cap at 120
           }));
           
           // Play health pickup sound effect (reuse for vest)
@@ -1491,8 +1491,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
       // Fire ring damages nearby enemies (with damage tick rate and persistent burn)
       if (isFireRingActive) {
-        const fireRingRadius = 300; // Doubled from 150
-        const fireRingDamage = 30; // Doubled from 15
+        const fireRingRadius = 400; // Increased from 300
+        const fireRingDamage = 60; // Doubled from 30
         const fireRingTickRate = 500; // Damage every 500ms
         const burnDuration = 3000; // Burn lasts 3 seconds
         
@@ -1607,7 +1607,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       }
       
       // Apply burn damage to enemies with active burn timers (even if fire ring is not active)
-      const burnDamage = 30;
+      const burnDamage = 60; // Increased from 30
       const burnTickRate = 500;
       if (!isFireRingActive && currentTime - lastFireRingDamageRef.current >= burnTickRate) {
         enemyManager.getEnemies().forEach((enemy) => {

@@ -46,7 +46,7 @@ const GameUI = ({ playerStats, wave, enemiesRemaining, enemiesKilled, targetEnem
                 <div
                   className="h-full bg-blue-500 transition-all duration-200 shadow-lg"
                   style={{ 
-                    width: `${Math.min(100, (playerStats.blueHealth / 60) * 100)}%`,
+                    width: `${Math.min(100, (playerStats.blueHealth / 120) * 100)}%`,
                     imageRendering: 'pixelated',
                     boxShadow: 'inset 0 0 6px rgba(0, 136, 255, 0.5)'
                   }}

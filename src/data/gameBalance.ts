@@ -204,7 +204,7 @@ export const GAME_BALANCE = {
     shieldRange: 200,             // Range in units
     
     // Freeze effect (from player ability)
-    freezeSpeedMultiplier: 0.5,   // 50% speed reduction
+    freezeSpeedMultiplier: 0.25,   // 75% speed reduction (increased from 50%)
   },
 
   // ============================================
@@ -212,9 +212,9 @@ export const GAME_BALANCE = {
   // ============================================
   waves: {
     // Enemy count scaling
-    enemyCountStart: 12,          // Starting enemy count
-    enemyCountPerWave: 6,         // Added per wave
-    enemyCountMax: 80,            // Maximum enemies per wave
+    enemyCountStart: 8,           // Starting enemy count (reduced from 12)
+    enemyCountPerWave: 4,         // Added per wave (reduced from 6)
+    enemyCountMax: 50,            // Maximum enemies per wave (reduced from 80)
     
     // Enemy type distribution by wave ranges
     distribution: {
@@ -241,7 +241,7 @@ export const GAME_BALANCE = {
   // ============================================
   healthPickups: {
     spawnInterval: 8000,         // Spawn every 8 seconds (ms)
-    healAmount: 20,               // HP restored
+    healAmount: 40,               // HP restored (doubled from 20)
     size: 30,                     // Pickup size (pixels)
     spawnDistance: {              // Spawn distance from player
       min: 200,

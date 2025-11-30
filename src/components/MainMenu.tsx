@@ -41,7 +41,7 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
       title: 'VEST SYSTEM ADDED',
       date: 'Nov 30, 2025',
       image: '/assets/vest.png',
-      description: 'Protective vests are now available! Collect vests to gain up to 60 blue health (armor) that absorbs damage before your regular health. Vests can spawn randomly or be dropped by defeated enemies. Stay protected out there!'
+      description: 'Protective vests are now available! Collect vests to gain up to 120 blue health (armor) that absorbs damage before your regular health. Vests can spawn randomly or be dropped by defeated enemies. Stay protected out there!'
     },
     {
       id: 'ammo_system',
