@@ -28,8 +28,9 @@ export class EnemyManager {
   private onNormalEnemyDied?: () => void;
   private onShieldBlocked?: () => void;
   private onEnemySplit?: () => void;
+  private onEnergyBeamFired?: () => void;
 
-  constructor(canvasWidth: number, canvasHeight: number, onProjectileFired?: () => void, onBerserkerActivated?: () => void, onChargingStarted?: () => void, onChargingStopped?: () => void, onChargedShotFired?: () => void, onWeakEnemyExploded?: () => void, onNormalEnemyDied?: () => void, onShieldBlocked?: () => void, onEnemySplit?: () => void) {
+  constructor(canvasWidth: number, canvasHeight: number, onProjectileFired?: () => void, onBerserkerActivated?: () => void, onChargingStarted?: () => void, onChargingStopped?: () => void, onChargedShotFired?: () => void, onWeakEnemyExploded?: () => void, onNormalEnemyDied?: () => void, onShieldBlocked?: () => void, onEnemySplit?: () => void, onEnergyBeamFired?: () => void) {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
     this.onProjectileFired = onProjectileFired;
@@ -41,6 +42,7 @@ export class EnemyManager {
     this.onNormalEnemyDied = onNormalEnemyDied;
     this.onShieldBlocked = onShieldBlocked;
     this.onEnemySplit = onEnemySplit;
+    this.onEnergyBeamFired = onEnergyBeamFired;
   }
 
   spawnWave(wave: number, playerPos?: Position, mousePos?: Position): void {
@@ -173,12 +175,14 @@ export class EnemyManager {
 
     // Spawn enemies outside visible frame from all directions around the player
     // Prioritize spawning behind the player (opposite of mouse direction)
-    const spawnDistance = 700; // Distance outside visible area
+    // Calculate safe spawn distance - must be well outside visible area
+    const safeMargin = 250; // Large margin to ensure enemies are never visible when spawning
+    const spawnDistance = Math.max(this.canvasWidth, this.canvasHeight) / 2 + safeMargin;
     let x: number, y: number;
 
     if (playerPos) {
       // Calculate visible area bounds (camera view) with extra margin to ensure enemies are completely off-screen
-      const margin = 100; // Extra margin to ensure enemies are fully off-screen
+      const margin = 150; // Extra margin to ensure enemies are fully off-screen
       const viewLeft = playerPos.x - this.canvasWidth / 2 - margin;
       const viewRight = playerPos.x + this.canvasWidth / 2 + margin;
       const viewTop = playerPos.y - this.canvasHeight / 2 - margin;
@@ -267,22 +271,24 @@ export class EnemyManager {
       }
     } else {
       // Fallback to old method if no player position (shouldn't happen)
+      // Spawn far outside visible area
       const side = Math.floor(Math.random() * 4);
+      const farDistance = spawnDistance + 100;
       switch (side) {
         case 0:
           x = Math.random() * this.canvasWidth;
-          y = -50;
+          y = -farDistance;
           break;
         case 1:
-          x = this.canvasWidth + 50;
+          x = this.canvasWidth + farDistance;
           y = Math.random() * this.canvasHeight;
           break;
         case 2:
           x = Math.random() * this.canvasWidth;
-          y = this.canvasHeight + 50;
+          y = this.canvasHeight + farDistance;
           break;
         default:
-          x = -50;
+          x = -farDistance;
           y = Math.random() * this.canvasHeight;
       }
     }
@@ -521,7 +527,7 @@ export class EnemyManager {
         }
         
         // If charging, check if charge is complete
-        if (enemy.majorAttackChargeStartTime && !enemy.majorAttackTeleportTime) {
+        if (enemy.majorAttackChargeStartTime && !enemy.majorAttackTeleportTime && mousePos) {
           if (currentTime - enemy.majorAttackChargeStartTime >= majorAttackChargeTime) {
             // Charge complete - teleport behind player
             const teleportDistance = 400; // Distance behind player
@@ -579,17 +585,19 @@ export class EnemyManager {
     });
 
     // Respawn enemies that are too far from player (behind the player)
+    // Calculate safe spawn distance - must be outside visible area
+    const safeSpawnDistance = Math.max(this.canvasWidth, this.canvasHeight) / 2 + 200; // Always outside visible + 200px buffer
+    
     enemiesToRespawn.forEach((enemy) => {
       // Respawn behind player
       if (mousePos) {
-        const spawnDistance = 700;
         const angle = Math.atan2(mousePos.y - playerPos.y, mousePos.x - playerPos.x);
         const behindAngle = angle + Math.PI; // 180 degrees opposite
         
-        // Spawn behind player with some random offset
+        // Spawn behind player with some random offset, always outside visible area
         const randomOffset = (Math.random() - 0.5) * 400; // Random offset up to 200 units
-        enemy.position.x = playerPos.x + Math.cos(behindAngle) * spawnDistance + Math.cos(behindAngle + Math.PI / 2) * randomOffset;
-        enemy.position.y = playerPos.y + Math.sin(behindAngle) * spawnDistance + Math.sin(behindAngle + Math.PI / 2) * randomOffset;
+        enemy.position.x = playerPos.x + Math.cos(behindAngle) * safeSpawnDistance + Math.cos(behindAngle + Math.PI / 2) * randomOffset;
+        enemy.position.y = playerPos.y + Math.sin(behindAngle) * safeSpawnDistance + Math.sin(behindAngle + Math.PI / 2) * randomOffset;
         
         // Reset enemy state
         if (enemy.chargeStartTime) {
@@ -603,12 +611,11 @@ export class EnemyManager {
         enemy.lastAttackTime = 0;
       } else {
         // Fallback: spawn at a random position behind player (opposite of player's last known direction)
-        const spawnDistance = 700;
         const randomAngle = Math.random() * Math.PI * 2;
         // Spawn in a semi-circle behind player (180 degrees)
         const behindAngle = randomAngle + Math.PI;
-        enemy.position.x = playerPos.x + Math.cos(behindAngle) * spawnDistance;
-        enemy.position.y = playerPos.y + Math.sin(behindAngle) * spawnDistance;
+        enemy.position.x = playerPos.x + Math.cos(behindAngle) * safeSpawnDistance;
+        enemy.position.y = playerPos.y + Math.sin(behindAngle) * safeSpawnDistance;
         
         // Reset enemy state
         if (enemy.chargeStartTime) {
@@ -728,6 +735,11 @@ export class EnemyManager {
       enemyId: enemy.id,
     };
     this.energyBeams.push(beam);
+    
+    // Play energy beam sound effect
+    if (this.onEnergyBeamFired) {
+      this.onEnergyBeamFired();
+    }
   }
 
   private updateEnergyBeams(currentTime: number): void {

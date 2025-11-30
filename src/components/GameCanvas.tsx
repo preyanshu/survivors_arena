@@ -182,6 +182,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const enemyProjectileDestroyedSoundRef = useRef<HTMLAudioElement | null>(null);
   const enemySplitSoundRef = useRef<HTMLAudioElement | null>(null);
   const abilityActivationSoundRef = useRef<HTMLAudioElement | null>(null);
+  const energyBeamSoundRef = useRef<HTMLAudioElement | null>(null);
 
   // Update canvas size on window resize
   useEffect(() => {
@@ -304,7 +305,22 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         });
       }
     };
-    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight, playEnemyProjectileSound, playBerserkerSound, playChargingSound, stopChargingSound, playChargedShotSound, playWeakEnemyBlastSound, playNormalEnemyDeathSound, playShieldBlockSound, playEnemySplitSound);
+    const playEnergyBeamSound = () => {
+      if (isSfxEnabled && energyBeamSoundRef.current) {
+        const sound = energyBeamSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.7;
+        sound.currentTime = 0; // Start from beginning
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+        // Stop after 2 seconds
+        setTimeout(() => {
+          sound.pause();
+          sound.currentTime = 0;
+        }, 2000);
+      }
+    };
+    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight, playEnemyProjectileSound, playBerserkerSound, playChargingSound, stopChargingSound, playChargedShotSound, playWeakEnemyBlastSound, playNormalEnemyDeathSound, playShieldBlockSound, playEnemySplitSound, playEnergyBeamSound);
   }, [canvasWidth, canvasHeight, isSfxEnabled]);
 
   useEffect(() => {
@@ -377,6 +393,11 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     const enemySplitSound = new Audio('/assets/impact-thud-372473.mp3');
     enemySplitSound.volume = 0.3; // Set volume to 30%
     enemySplitSoundRef.current = enemySplitSound;
+
+    // Initialize energy beam sound (LAZER enemy major attack)
+    const energyBeamSound = new Audio('/assets/heavy-beam-weapon-7052.mp3');
+    energyBeamSound.volume = 0.4; // Set volume to 40%
+    energyBeamSoundRef.current = energyBeamSound;
 
     // Initialize ability activation/deactivation sound
     const abilityActivationSound = new Audio('/assets/flame-spell-impact-393919.mp3');
@@ -499,6 +520,23 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       }
     };
     
+    // Create callback for energy beam sound (LAZER enemy major attack)
+    const playEnergyBeamSound = () => {
+      if (isSfxEnabled && energyBeamSoundRef.current) {
+        const sound = energyBeamSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.4;
+        sound.currentTime = 0; // Start from beginning
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+        // Stop after 2 seconds
+        setTimeout(() => {
+          sound.pause();
+          sound.currentTime = 0;
+        }, 2000);
+      }
+    };
+    
     // Store callbacks in refs so they can be used by EnemyManager
     playEnemyProjectileSoundRef.current = playEnemyProjectileSound;
     playBerserkerSoundRef.current = playBerserkerSound;
@@ -509,7 +547,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     playNormalEnemyDeathSoundRef.current = playNormalEnemyDeathSound;
     
     // Update EnemyManager with sound callbacks
-    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight, playEnemyProjectileSound, playBerserkerSound, playChargingSound, stopChargingSound, playChargedShotSound, playWeakEnemyBlastSound, playNormalEnemyDeathSound, playShieldBlockSound, playEnemySplitSound);
+    enemyManagerRef.current = new EnemyManager(canvasWidth, canvasHeight, playEnemyProjectileSound, playBerserkerSound, playChargingSound, stopChargingSound, playChargedShotSound, playWeakEnemyBlastSound, playNormalEnemyDeathSound, playShieldBlockSound, playEnemySplitSound, playEnergyBeamSound);
 
     const waveManager = waveManagerRef.current;
     const enemyManager = enemyManagerRef.current;

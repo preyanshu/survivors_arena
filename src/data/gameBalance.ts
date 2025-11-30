@@ -178,7 +178,7 @@ export const GAME_BALANCE = {
       // LAZER enemy lightning attack
       lightningCooldown: cooldown(3000), // Cooldown between lightning attacks (3 seconds) - affected by gameSpeed
       lightningDuration: 500,            // Duration in milliseconds (0.5 seconds) - instant hit
-      lightningDamage: 25,               // Damage dealt by lightning
+      lightningDamage: 12,               // Damage dealt by lightning (reduced from 25)
       lightningBounceRange: 300,          // Range to find nearby enemies for bouncing
       
       // LAZER enemy major attack (charge -> teleport -> energy beam)
