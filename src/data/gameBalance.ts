@@ -241,7 +241,7 @@ export const GAME_BALANCE = {
   // ============================================
   healthPickups: {
     spawnInterval: 8000,         // Spawn every 8 seconds (ms)
-    healAmount: 40,               // HP restored (doubled from 20)
+    healAmount: 80,               // HP restored (increased from 40)
     size: 30,                     // Pickup size (pixels)
     spawnDistance: {              // Spawn distance from player
       min: 200,

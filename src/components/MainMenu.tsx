@@ -30,6 +30,13 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
   // News entries
   const newsEntries = [
     {
+      id: 'mysterious_lazer_enemy',
+      title: 'MYSTERIOUS THREAT DETECTED',
+      date: 'Dec 2, 2025',
+      image: '/assets/sprites/enemy_lazer.png',
+      description: 'A new, unknown enemy type has been spotted in the higher waves. Survivors report seeing a dark silhouette with an ominous presence. Very little is known about this mysterious foe - it appears only in waves 3 and beyond. Approach with extreme caution. Its true nature and capabilities remain a mystery...'
+    },
+    {
       id: 'legendary_machine_gun',
       title: 'LEGENDARY MACHINE GUN',
       date: 'Dec 1, 2025',
@@ -60,7 +67,7 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
   ];
 
   // Track if user has seen the latest news (stored in localStorage)
-  const LATEST_NEWS_ID = 'legendary_machine_gun';
+  const LATEST_NEWS_ID = 'mysterious_lazer_enemy';
   const [hasUnreadNews, setHasUnreadNews] = useState(() => {
     if (typeof window === 'undefined') return true;
     const lastSeenNews = localStorage.getItem('lastSeenNewsId');
@@ -495,7 +502,10 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
                         src={news.image} 
                         alt={news.title}
                         className="w-full h-48 object-cover"
-                        style={{ imageRendering: 'pixelated' }}
+                        style={{ 
+                          imageRendering: 'pixelated',
+                          filter: news.id === 'mysterious_lazer_enemy' ? 'brightness(0) contrast(1.5)' : 'none'
+                        }}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';

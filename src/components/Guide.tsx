@@ -19,7 +19,7 @@ interface EnemyData {
   id: string;
   name: string;
   title: string;
-  type: 'weak' | 'normal' | 'strong';
+  type: 'weak' | 'normal' | 'strong' | 'lazer';
   image: string;
   hp: string;
   speed: string;
@@ -148,6 +148,34 @@ When wounded, an Overlord enters what survivors call "Berserker Mode" - a state 
           image: '/assets/guide/overlord_berserk.png'
         }
       ]
+    },
+    {
+      id: 'lazer',
+      name: 'UNKNOWN',
+      title: 'The Shadow Threat',
+      type: 'lazer',
+      image: '/assets/sprites/enemy_lazer.png',
+      hp: '???',
+      speed: '???',
+      damage: '???',
+      description: 'A mysterious enemy that appears in higher waves. Very little is known about this dark silhouette. Survivors who have encountered it speak of its ominous presence and unpredictable behavior. It only appears starting from wave 3.',
+      lore: `The first reports came from a survivor who barely escaped wave 3. They spoke of a dark figure that moved unlike any other corrupted - not with the mindless aggression of Swarmers, nor the calculated precision of Hunters, nor the brute force of Overlords.
+
+This entity is different. It watches. It waits. And when it strikes... those who survive refuse to speak of what they saw.
+
+The few who have lived to tell the tale describe it only as a shadow - a black silhouette that seems to absorb light itself. Some claim it moves through the battlefield like lightning. Others say it can appear behind you in an instant, as if it were never in front of you at all.
+
+What is certain is that this threat only appears when the waves grow dangerous. It seems drawn to chaos, to the heat of battle. Whether it is a new form of corruption, an ancient entity awakened, or something else entirely... remains unknown.
+
+Survivors are advised to be extremely cautious when this enemy appears. Its true nature and capabilities are still being discovered.`,
+      abilities: [
+        {
+          name: 'Unknown Abilities',
+          description: 'The full extent of this enemy\'s capabilities remains a mystery.',
+          details: 'Very little is known about how this enemy attacks or behaves. Survivors report seeing strange energy effects and unexpected movements, but the details are unclear. Further encounters may reveal more about its true nature. Approach with extreme caution.',
+          image: '/assets/sprites/enemy_lazer.png'
+        }
+      ]
     }
   ];
 
@@ -197,6 +225,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
       case 'weak': return { bg: '#5a3000', border: '#ff8c00', text: '#ffaa00' };
       case 'normal': return { bg: '#003a00', border: '#00aa00', text: '#00ff00' };
       case 'strong': return { bg: '#5a0000', border: '#ff0000', text: '#ff4444' };
+      case 'lazer': return { bg: '#1a1a1a', border: '#000000', text: '#666666' };
       default: return { bg: '#3a3a3a', border: '#888888', text: '#cccccc' };
     }
   };
@@ -318,7 +347,10 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                           src={enemy.image} 
                           alt={enemy.name}
                           className="w-14 h-14 object-contain"
-                          style={{ imageRendering: 'pixelated' }}
+                          style={{ 
+                            imageRendering: 'pixelated',
+                            filter: enemy.type === 'lazer' ? 'brightness(0) contrast(1.5)' : 'none'
+                          }}
                         />
                         <div className="text-left">
                           <div className="font-bold text-white" style={{ fontSize: '18px' }}>{enemy.name}</div>
@@ -351,7 +383,10 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                           src={selectedEnemyData.image} 
                           alt={selectedEnemyData.name}
                           className="w-32 h-32 object-contain"
-                          style={{ imageRendering: 'pixelated' }}
+                          style={{ 
+                            imageRendering: 'pixelated',
+                            filter: selectedEnemyData.type === 'lazer' ? 'brightness(0) contrast(1.5)' : 'none'
+                          }}
                         />
                       </div>
                       <div className="flex-1">
