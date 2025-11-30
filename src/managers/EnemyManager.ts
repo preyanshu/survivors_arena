@@ -1,10 +1,11 @@
-import { Enemy, Position, EnemyType, Projectile } from '../types/game';
+import { Enemy, Position, EnemyType, Projectile, LaserBeam } from '../types/game';
 import { generateId, normalize, distance } from '../utils/gameUtils';
 import { GAME_BALANCE } from '../data/gameBalance';
 
 export class EnemyManager {
   private enemies: Enemy[] = [];
   private enemyProjectiles: Projectile[] = [];
+  private laserBeams: LaserBeam[] = [];
   private canvasWidth: number;
   private canvasHeight: number;
   private spawnedEnemiesThisWave: number = 0;
@@ -64,23 +65,33 @@ export class EnemyManager {
     // Distribute enemy types based on wave
     // Early waves: more weak enemies
     // Later waves: more strong enemies
+    // LAZER enemies spawn starting from wave 3
+    // BUT: Limit active LAZER enemies to prevent unplayable situations
     const rand = Math.random();
+    
+    // Count currently active LAZER enemies
+    const activeLazerCount = this.enemies.filter(e => e.type === EnemyType.LAZER).length;
+    const maxLazerEnemies = GAME_BALANCE.enemies.attack.maxActiveLazerEnemies;
+    const canSpawnLazer = activeLazerCount < maxLazerEnemies;
     
     const dist = GAME_BALANCE.waves.distribution;
     if (wave <= 3) {
-      // Waves 1-3
+      // Waves 1-3 - small chance of LAZER starting wave 3
+      if (wave >= 3 && rand < 0.05 && canSpawnLazer) return EnemyType.LAZER; // 5% chance in wave 3
       if (rand < dist.waves1to3.weak) return EnemyType.WEAK;
       if (rand < dist.waves1to3.weak + dist.waves1to3.normal) return EnemyType.NORMAL;
       return EnemyType.STRONG;
     } else if (wave <= 6) {
-      // Waves 4-6
-      if (rand < dist.waves4to6.weak) return EnemyType.WEAK;
-      if (rand < dist.waves4to6.weak + dist.waves4to6.normal) return EnemyType.NORMAL;
+      // Waves 4-6 - more LAZER enemies (only if under limit)
+      if (rand < 0.1 && canSpawnLazer) return EnemyType.LAZER; // 10% chance
+      if (rand < 0.1 + dist.waves4to6.weak) return EnemyType.WEAK;
+      if (rand < 0.1 + dist.waves4to6.weak + dist.waves4to6.normal) return EnemyType.NORMAL;
       return EnemyType.STRONG;
     } else {
-      // Waves 7+
-      if (rand < dist.waves7Plus.weak) return EnemyType.WEAK;
-      if (rand < dist.waves7Plus.weak + dist.waves7Plus.normal) return EnemyType.NORMAL;
+      // Waves 7+ - even more LAZER enemies (only if under limit)
+      if (rand < 0.15 && canSpawnLazer) return EnemyType.LAZER; // 15% chance
+      if (rand < 0.15 + dist.waves7Plus.weak) return EnemyType.WEAK;
+      if (rand < 0.15 + dist.waves7Plus.weak + dist.waves7Plus.normal) return EnemyType.NORMAL;
       return EnemyType.STRONG;
     }
   }
@@ -108,6 +119,13 @@ export class EnemyManager {
           speed: baseSpeed * config.strong.speedMultiplier,
           damage: Math.floor(baseDamage * config.strong.damageMultiplier),
           size: config.strong.size,
+        };
+      case EnemyType.LAZER:
+        return {
+          health: Math.max(4, Math.floor(baseHealth * config.lazer.healthMultiplier)), // Minimum 4 health
+          speed: baseSpeed * config.lazer.speedMultiplier,
+          damage: Math.floor(baseDamage * config.lazer.damageMultiplier),
+          size: config.lazer.size,
         };
       default:
         return {
@@ -348,16 +366,23 @@ export class EnemyManager {
         }
       }
 
-      const direction = normalize({
-        x: playerPos.x - enemy.position.x,
-        y: playerPos.y - enemy.position.y,
-      });
+      // LAZER enemies don't move while charging or firing laser beam
+      if (enemy.type === EnemyType.LAZER && 
+          ((enemy.chargeStartTime && !enemy.laserBeamStartTime) || 
+           (enemy.laserBeamStartTime && currentTime < enemy.laserBeamEndTime!))) {
+        // Enemy stands still while charging or firing - skip movement
+      } else {
+        const direction = normalize({
+          x: playerPos.x - enemy.position.x,
+          y: playerPos.y - enemy.position.y,
+        });
 
-      // Apply berserker speed multiplier
-      const berserkerSpeedMultiplier = enemy.isBerserker ? 1.0 : 1.0; // Already applied above
-      const moveSpeed = enemy.speed * speedMultiplier * berserkerSpeedMultiplier * (deltaTime / 16);
-      enemy.position.x += direction.x * moveSpeed;
-      enemy.position.y += direction.y * moveSpeed;
+        // Apply berserker speed multiplier
+        const berserkerSpeedMultiplier = enemy.isBerserker ? 1.0 : 1.0; // Already applied above
+        const moveSpeed = enemy.speed * speedMultiplier * berserkerSpeedMultiplier * (deltaTime / 16);
+        enemy.position.x += direction.x * moveSpeed;
+        enemy.position.y += direction.y * moveSpeed;
+      }
 
       // Normal enemies shoot projectiles at the player
       if (enemy.type === EnemyType.NORMAL) {
@@ -418,6 +443,59 @@ export class EnemyManager {
           enemy.chargeTargetPos = undefined;
         }
       }
+
+      // LAZER enemies fire laser beams that divide the ground
+      if (enemy.type === EnemyType.LAZER) {
+        // Clean up expired laser beam state
+        if (enemy.laserBeamEndTime && currentTime >= enemy.laserBeamEndTime) {
+          enemy.laserBeamStartTime = undefined;
+          enemy.laserBeamAngle = undefined;
+          enemy.laserBeamEndTime = undefined;
+          enemy.chargeStartTime = undefined; // Clear charge state
+          enemy.chargeTargetPos = undefined;
+        }
+        
+        const distToPlayer = distance(enemy.position, playerPos);
+        const laserCooldown = attackConfig.laserBeamCooldown;
+        const laserChargeTime = attackConfig.laserBeamChargeTime;
+        
+        // Attack if within range and not already firing
+        if (distToPlayer <= attackRange && !enemy.laserBeamStartTime) {
+          // If not charging and cooldown is ready, start charging
+          if (!enemy.chargeStartTime && 
+              (!enemy.lastAttackTime || currentTime - enemy.lastAttackTime >= laserCooldown)) {
+            // Start charging and lock target position
+            enemy.chargeStartTime = currentTime;
+            enemy.chargeTargetPos = { ...playerPos }; // Lock target position when charging starts
+          }
+          
+          // If charging and charge time is complete, fire laser beam at locked target
+          if (enemy.chargeStartTime && currentTime - enemy.chargeStartTime >= laserChargeTime) {
+            // Use locked target position, not current player position
+            const targetPos = enemy.chargeTargetPos || playerPos;
+            const angle = Math.atan2(
+              targetPos.y - enemy.position.y,
+              targetPos.x - enemy.position.x
+            );
+            
+            enemy.laserBeamStartTime = currentTime;
+            enemy.laserBeamAngle = angle;
+            enemy.laserBeamEndTime = currentTime + attackConfig.laserBeamDuration;
+            enemy.lastAttackTime = currentTime;
+            enemy.chargeStartTime = undefined; // Reset charge
+            enemy.chargeTargetPos = undefined; // Reset target
+            
+            // Create laser beam
+            this.createLaserBeam(enemy, angle, currentTime);
+          }
+        } else {
+          // Out of range, cancel charge
+          if (enemy.chargeStartTime) {
+            enemy.chargeStartTime = undefined;
+            enemy.chargeTargetPos = undefined;
+          }
+        }
+      }
     });
 
     // Respawn enemies that are too far from player (behind the player)
@@ -467,6 +545,32 @@ export class EnemyManager {
 
     // Update enemy projectiles
     this.updateEnemyProjectiles(deltaTime, playerPos);
+    
+    // Update laser beams (remove expired ones)
+    this.updateLaserBeams(currentTime);
+  }
+
+  private createLaserBeam(enemy: Enemy, angle: number, startTime: number): void {
+    const attackConfig = GAME_BALANCE.enemies.attack;
+    const beam: LaserBeam = {
+      id: generateId(),
+      startPosition: { ...enemy.position },
+      angle: angle,
+      startTime: startTime,
+      endTime: startTime + attackConfig.laserBeamDuration,
+      damage: attackConfig.laserBeamDamage,
+      enemyId: enemy.id,
+    };
+    this.laserBeams.push(beam);
+  }
+
+  private updateLaserBeams(currentTime: number): void {
+    // Remove expired laser beams
+    this.laserBeams = this.laserBeams.filter(beam => currentTime < beam.endTime);
+  }
+
+  getLaserBeams(): LaserBeam[] {
+    return this.laserBeams;
   }
 
   private shootChargedShot(enemy: Enemy, playerPos: Position): void {
@@ -784,6 +888,7 @@ export class EnemyManager {
   clear(): void {
     this.enemies = [];
     this.enemyProjectiles = [];
+    this.laserBeams = [];
     this.spawnedEnemiesThisWave = 0;
     this.targetEnemyCount = 0;
     this.currentWave = 0;

@@ -126,6 +126,12 @@ export const GAME_BALANCE = {
       damageMultiplier: 1.5,      // 150% of base damage
       size: 140,
     },
+    lazer: {
+      healthMultiplier: 0.1,     // 4 health (10% of base 40 = 4)
+      speedMultiplier: 0.8,      // 80% of base speed (slower)
+      damageMultiplier: 1.2,      // 120% of base damage
+      size: 120,
+    },
     
     // Enemy attack configuration
     attack: {
@@ -136,18 +142,18 @@ export const GAME_BALANCE = {
       projectileSize: 20,        // Projectile size (pixels)
       
       // STRONG enemy charged shot
-      chargeTimeStart: cooldown(2000),     // Starting charge time (ms) - affected by gameSpeed
-      chargeTimeMin: cooldown(1000),       // Minimum charge time (ms) - affected by gameSpeed
+      chargeTimeStart: cooldown(1500),     // Starting charge time (ms) - affected by gameSpeed
+      chargeTimeMin: cooldown(800),       // Minimum charge time (ms) - affected by gameSpeed
       chargeTimeReductionPerWave: cooldown(100), // Reduction per wave (ms) - affected by gameSpeed
       chargeCooldown: cooldown(3000),      // Cooldown after firing (ms) - affected by gameSpeed
-      chargedProjectileSpeed: speed(25), // Charged shot speed (very fast) - affected by gameSpeed
+      chargedProjectileSpeed: speed(30), // Charged shot speed (very fast) - affected by gameSpeed
       chargedProjectileSize: 50,  // Charged shot size (pixels)
-      chargedDamageMultiplier: 1.2, // 120% of base damage
+      chargedDamageMultiplier: 1.6, // 120% of base damage
       
       // Berserker mode (STRONG enemies < 70% health)
       berserkerSpeedMultiplier: 1.8,    // 180% speed increase
       berserkerSizeMultiplier: 1.3,     // 130% size increase
-      berserkerChargeTimeMultiplier: 0.5, // 50% charge time
+      berserkerChargeTimeMultiplier: 0.3, // 50% charge time
       berserkerCooldownMultiplier: 0.6,   // 60% cooldown (40% reduction)
       
       // Projectile count scaling by wave
@@ -168,6 +174,15 @@ export const GAME_BALANCE = {
       // Homing projectile properties
       homingProjectileSpeed: speed(8),   // Slower than normal projectiles - affected by gameSpeed
       homingProjectileSize: 20,
+      
+      // LAZER enemy laser beam attack
+      laserBeamChargeTime: cooldown(1200), // Charging time before firing (1.2 seconds) - affected by gameSpeed
+      laserBeamDuration: 1800,            // Duration in milliseconds (1.8 seconds)
+      laserBeamCooldown: cooldown(4000), // Cooldown between laser attacks (4 seconds) - affected by gameSpeed
+      laserBeamDamage: 1.2,              // Damage per frame while in beam (increased)
+      laserBeamWidth: 24,                // Width of laser beam in pixels (increased for more intensity)
+      laserBeamKnockback: 100,            // Knockback force when hit by laser beam (pushes player left/right)
+      maxActiveLazerEnemies: 3,          // Maximum number of LAZER enemies that can be active at once
     },
     
     // Shield range for STRONG enemies

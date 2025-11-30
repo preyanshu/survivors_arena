@@ -163,6 +163,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const playerPosRef = useRef<Position>(playerPos);
   const playerStatsRef = useRef<PlayerStats>(playerStats);
   const spritesLoadedRef = useRef<boolean>(false);
+  const screenShakeRef = useRef<{ x: number; y: number; intensity: number; endTime: number } | null>(null);
+  const lastLaserBeamCountRef = useRef<number>(0);
   const pistolSoundRef = useRef<HTMLAudioElement | null>(null);
   const swordSoundRef = useRef<HTMLAudioElement | null>(null);
   const rifleSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -1047,9 +1049,71 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       setPlayerPos(newPlayerPos);
       playerPosRef.current = newPlayerPos;
 
+      // Update screen shake (for laser beam effects)
+      const activeLaserBeamsForShake = enemyManager.getLaserBeams();
+      const currentLaserCount = activeLaserBeamsForShake.length;
+      
+      // Trigger shake when new laser beam is created
+      if (currentLaserCount > lastLaserBeamCountRef.current) {
+        // New laser beam created - trigger intense shake
+        screenShakeRef.current = {
+          x: 0,
+          y: 0,
+          intensity: 15, // Strong shake intensity
+          endTime: currentTime + 1800, // Shake for duration of laser beam
+        };
+      }
+      lastLaserBeamCountRef.current = currentLaserCount;
+      
+      // Update screen shake - keep shaking while any laser beam is active
+      const hasActiveLaserBeams = activeLaserBeamsForShake.some(beam => currentTime < beam.endTime);
+      
+      if (hasActiveLaserBeams) {
+        // Keep shaking while laser beams are active
+        if (!screenShakeRef.current || currentTime >= screenShakeRef.current.endTime) {
+          screenShakeRef.current = {
+            x: 0,
+            y: 0,
+            intensity: 12, // Continuous shake intensity
+            endTime: currentTime + 100, // Will be extended while beams are active
+          };
+        }
+        
+        // Extend shake duration while beams are active
+        const maxBeamEndTime = Math.max(...activeLaserBeamsForShake.map(b => b.endTime), currentTime);
+        screenShakeRef.current.endTime = maxBeamEndTime;
+        
+        // Calculate shake intensity (stronger at start, gradually decreases)
+        const oldestBeam = activeLaserBeamsForShake.reduce((oldest, beam) => 
+          beam.startTime < oldest.startTime ? beam : oldest, activeLaserBeamsForShake[0]);
+        const beamAge = currentTime - oldestBeam.startTime;
+        const totalDuration = 1800;
+        const shakeProgress = Math.min(1.0, beamAge / totalDuration);
+        // Start strong, fade slightly but stay intense
+        const currentIntensity = screenShakeRef.current.intensity * (1.0 - shakeProgress * 0.3);
+        
+        // Random shake offset with some smoothing
+        screenShakeRef.current.x = (Math.random() - 0.5) * currentIntensity;
+        screenShakeRef.current.y = (Math.random() - 0.5) * currentIntensity;
+      } else {
+        // No active beams - fade out shake
+        if (screenShakeRef.current && currentTime < screenShakeRef.current.endTime) {
+          const timeRemaining = screenShakeRef.current.endTime - currentTime;
+          const fadeProgress = Math.max(0, 1.0 - timeRemaining / 200); // Fade out over 200ms
+          const currentIntensity = screenShakeRef.current.intensity * (1.0 - fadeProgress);
+          
+          screenShakeRef.current.x = (Math.random() - 0.5) * currentIntensity;
+          screenShakeRef.current.y = (Math.random() - 0.5) * currentIntensity;
+        } else {
+          screenShakeRef.current = null;
+        }
+      }
+
       // Calculate world mouse position for enemy spawning direction
-      const cameraOffsetX = newPlayerPos.x - canvasWidth / 2;
-      const cameraOffsetY = newPlayerPos.y - canvasHeight / 2;
+      const shakeOffsetX = screenShakeRef.current ? screenShakeRef.current.x : 0;
+      const shakeOffsetY = screenShakeRef.current ? screenShakeRef.current.y : 0;
+      const cameraOffsetX = newPlayerPos.x - canvasWidth / 2 + shakeOffsetX;
+      const cameraOffsetY = newPlayerPos.y - canvasHeight / 2 + shakeOffsetY;
       const worldMousePos = {
         x: mousePos.x + cameraOffsetX,
         y: mousePos.y + cameraOffsetY,
@@ -1544,6 +1608,75 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         }
       }
 
+      // Check collision with laser beams (player getting hit)
+      const laserBeams = enemyManager.getLaserBeams();
+      laserBeams.forEach((beam) => {
+        if (currentTime >= beam.endTime) return; // Beam expired
+        
+        // Check if player is on the "damage side" of the laser beam
+        // The laser divides the ground - player takes damage on one side only
+        // Calculate which side of the line the player is on
+        const dx = Math.cos(beam.angle);
+        const dy = Math.sin(beam.angle);
+        
+        // Vector from beam start to player
+        const toPlayerX = newPlayerPos.x - beam.startPosition.x;
+        const toPlayerY = newPlayerPos.y - beam.startPosition.y;
+        
+        // Cross product to determine which side of the line player is on
+        const crossProduct = dx * toPlayerY - dy * toPlayerX;
+        
+        // If cross product is positive, player is on one side; negative = other side
+        // We'll damage player on the "positive" side (right side of the beam direction)
+        const isOnDamageSide = crossProduct > 0;
+        
+        // Check if player is close enough to the beam line (within beam width)
+        // Distance from point to line
+        const distanceToLine = Math.abs(dx * toPlayerY - dy * toPlayerX);
+        const beamWidth = GAME_BALANCE.enemies.attack.laserBeamWidth;
+        const isNearBeam = distanceToLine < beamWidth + PLAYER_SIZE / 2;
+        
+        if (isOnDamageSide && isNearBeam) {
+          // Shield blocks all damage
+          if (isShieldActive) {
+            return;
+          }
+          
+          // Player is on the damage side of the beam - take continuous damage
+          if (currentTime - lastDamageTimeRef.current > 50) { // Damage every 50ms while in beam
+            setPlayerStats((prev) => {
+              const damage = beam.damage;
+              const newStats = applyDamage(damage, prev);
+              if (newStats.health <= 0) {
+                createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                setIsGameOver(true);
+                return { ...newStats, health: 0 };
+              }
+              // Small blood effect when taking damage
+              createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.3, 0.4);
+              return newStats;
+            });
+            lastDamageTimeRef.current = currentTime;
+            
+            // Apply knockback - push player perpendicular to beam (left or right)
+            const knockbackForce = GAME_BALANCE.enemies.attack.laserBeamKnockback;
+            // Perpendicular direction (90 degrees rotated from beam direction)
+            // If beam goes at angle θ, perpendicular is θ + π/2
+            const perpendicularAngle = beam.angle + Math.PI / 2;
+            // Push player away from the beam line (in the direction they're already on)
+            const knockbackDirection = isOnDamageSide ? 1 : -1; // Push further away from beam
+            const knockbackX = Math.cos(perpendicularAngle) * knockbackForce * knockbackDirection;
+            const knockbackY = Math.sin(perpendicularAngle) * knockbackForce * knockbackDirection;
+            
+            // Apply knockback to player position
+            newPlayerPos.x += knockbackX;
+            newPlayerPos.y += knockbackY;
+            setPlayerPos(newPlayerPos);
+            playerPosRef.current = newPlayerPos;
+          }
+        }
+      });
+
       // Check collision with enemy projectiles (player getting hit)
       // Get fresh copy since some may have been destroyed by player bullets
       const remainingEnemyProjectiles = enemyManager.getEnemyProjectiles();
@@ -1716,6 +1849,96 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
+      // Draw laser beams (divide the ground) - INTENSE VERSION
+      const activeLaserBeams = enemyManager.getLaserBeams();
+      const currentTimeForBeams = Date.now();
+      activeLaserBeams.forEach((beam) => {
+        if (currentTimeForBeams >= beam.endTime) return; // Beam expired
+        
+        ctx.save();
+        
+        // Calculate beam end position (extend to edge of screen)
+        const maxDistance = Math.max(canvas.width, canvas.height) * 3; // Extend far beyond screen
+        const endX = beam.startPosition.x + Math.cos(beam.angle) * maxDistance;
+        const endY = beam.startPosition.y + Math.sin(beam.angle) * maxDistance;
+        
+        // Calculate time remaining for fade effect
+        const timeRemaining = beam.endTime - currentTimeForBeams;
+        const fadeAlpha = Math.min(1.0, timeRemaining / 300); // Fade out in last 300ms
+        
+        // MUCH MORE INTENSE laser beam
+        const baseBeamWidth = GAME_BALANCE.enemies.attack.laserBeamWidth;
+        const beamWidth = baseBeamWidth * 2.5; // Much thicker beam
+        
+        // Pulsing effect for intensity
+        const pulseTime = currentTimeForBeams / 50;
+        const pulseIntensity = 0.8 + Math.sin(pulseTime) * 0.2; // Pulse between 0.8 and 1.0
+        
+        // OUTERMOST GLOW - Massive red glow
+        ctx.strokeStyle = `rgba(255, 0, 0, ${fadeAlpha * 0.4 * pulseIntensity})`;
+        ctx.lineWidth = beamWidth + 80;
+        ctx.shadowBlur = 60;
+        ctx.shadowColor = 'rgba(255, 0, 0, 1)';
+        ctx.globalCompositeOperation = 'screen';
+        ctx.beginPath();
+        ctx.moveTo(beam.startPosition.x, beam.startPosition.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        // OUTER GLOW - Bright red
+        ctx.strokeStyle = `rgba(255, 50, 50, ${fadeAlpha * 0.5 * pulseIntensity})`;
+        ctx.lineWidth = beamWidth + 50;
+        ctx.shadowBlur = 50;
+        ctx.shadowColor = 'rgba(255, 100, 100, 1)';
+        ctx.beginPath();
+        ctx.moveTo(beam.startPosition.x, beam.startPosition.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        // MIDDLE GLOW - Orange-red
+        ctx.strokeStyle = `rgba(255, 100, 0, ${fadeAlpha * 0.7 * pulseIntensity})`;
+        ctx.lineWidth = beamWidth + 30;
+        ctx.shadowBlur = 40;
+        ctx.shadowColor = 'rgba(255, 150, 0, 1)';
+        ctx.beginPath();
+        ctx.moveTo(beam.startPosition.x, beam.startPosition.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        // MAIN BEAM - Bright orange
+        ctx.strokeStyle = `rgba(255, 150, 50, ${fadeAlpha * 0.95 * pulseIntensity})`;
+        ctx.lineWidth = beamWidth;
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = 'rgba(255, 200, 0, 1)';
+        ctx.beginPath();
+        ctx.moveTo(beam.startPosition.x, beam.startPosition.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        // INNER CORE - Bright yellow-white
+        ctx.strokeStyle = `rgba(255, 255, 150, ${fadeAlpha * pulseIntensity})`;
+        ctx.lineWidth = beamWidth * 0.5;
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = 'rgba(255, 255, 255, 1)';
+        ctx.beginPath();
+        ctx.moveTo(beam.startPosition.x, beam.startPosition.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        // INNERMOST CORE - Pure white
+        ctx.strokeStyle = `rgba(255, 255, 255, ${fadeAlpha * pulseIntensity})`;
+        ctx.lineWidth = beamWidth * 0.25;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = 'rgba(255, 255, 255, 1)';
+        ctx.beginPath();
+        ctx.moveTo(beam.startPosition.x, beam.startPosition.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+      });
+
       // Draw enemy projectiles (red/orange colored balls, blue for homing, dark red for charged)
       enemyManager.getEnemyProjectiles().forEach((proj) => {
         const angle = Math.atan2(proj.velocity.y, proj.velocity.x);
@@ -1822,6 +2045,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             case 'strong':
               spriteName = 'enemy_strong';
               break;
+            case 'lazer':
+              spriteName = 'enemy_lazer'; // LAZER enemy sprite
+              break;
           }
         }
 
@@ -1836,6 +2062,53 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           ctx.beginPath();
           ctx.arc(0, 0, enemy.size / 2 + 5, 0, Math.PI * 2);
           ctx.stroke();
+          ctx.restore();
+        }
+
+        // Draw charge effect for LAZER enemies - red solid bright line
+        if (enemy.type === 'lazer' && enemy.chargeStartTime && !enemy.laserBeamStartTime) {
+          const currentTime = Date.now();
+          const chargeTime = GAME_BALANCE.enemies.attack.laserBeamChargeTime;
+          const chargeProgress = Math.min((currentTime - enemy.chargeStartTime) / chargeTime, 1);
+          const pulseIntensity = 0.7 + (chargeProgress * 0.3); // Pulse from 0.7 to 1.0
+          
+          // Use locked target position (where player was when charge started), not current position
+          const targetPos = enemy.chargeTargetPos || playerPosRef.current;
+          
+          // Calculate angle to locked target
+          const angle = Math.atan2(
+            targetPos.y - enemy.position.y,
+            targetPos.x - enemy.position.x
+          );
+          
+          // Draw bright red solid line showing where laser will fire
+          const maxDistance = Math.max(canvas.width, canvas.height) * 3;
+          const endX = enemy.position.x + Math.cos(angle) * maxDistance;
+          const endY = enemy.position.y + Math.sin(angle) * maxDistance;
+          
+          ctx.save();
+          // Bright red solid line
+          ctx.strokeStyle = `rgba(255, 0, 0, ${pulseIntensity})`;
+          ctx.lineWidth = 8;
+          ctx.shadowBlur = 30;
+          ctx.shadowColor = 'rgba(255, 0, 0, 1)';
+          ctx.globalCompositeOperation = 'screen';
+          ctx.beginPath();
+          ctx.moveTo(enemy.position.x, enemy.position.y);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          
+          // Inner bright core
+          ctx.strokeStyle = `rgba(255, 100, 100, ${pulseIntensity})`;
+          ctx.lineWidth = 4;
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = 'rgba(255, 150, 150, 1)';
+          ctx.beginPath();
+          ctx.moveTo(enemy.position.x, enemy.position.y);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          
+          ctx.globalCompositeOperation = 'source-over';
           ctx.restore();
         }
 
@@ -1941,6 +2214,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         }
 
         // Draw enemy sprite without rotation (angle = 0 to keep sprite straight)
+        // If sprite not found, LAZER enemies will fallback to glowing circle
         spriteManager.drawSprite(
           ctx,
           spriteName,

@@ -19,6 +19,7 @@ export enum EnemyType {
   WEAK = 'weak',
   NORMAL = 'normal',
   STRONG = 'strong',
+  LAZER = 'lazer',
 }
 
 export interface Enemy {
@@ -40,6 +41,9 @@ export interface Enemy {
   baseSize?: number; // Original size before berserker mode
   isBurning?: boolean; // If true, enemy is being burned by fire ring
   burnEndTime?: number; // Timestamp when burn effect expires (for persistent burn)
+  laserBeamStartTime?: number; // When laser beam attack started (for LAZER enemies)
+  laserBeamAngle?: number; // Angle of the laser beam (locked when attack starts)
+  laserBeamEndTime?: number; // When laser beam expires
 }
 
 export interface Projectile {
@@ -131,6 +135,16 @@ export interface VestPickup {
   blueHealthAmount: number;
   size: number;
   life: number; // For animation/pulsing effect
+}
+
+export interface LaserBeam {
+  id: string;
+  startPosition: Position; // Enemy position when beam was fired
+  angle: number; // Angle of the beam (in radians)
+  startTime: number; // When beam was created
+  endTime: number; // When beam expires
+  damage: number; // Damage per frame while in beam
+  enemyId: string; // ID of enemy that created this beam
 }
 
 export enum ActiveAbilityType {
