@@ -1,4 +1,4 @@
-import { Enemy, Position, EnemyType, Projectile, LaserBeam } from '../types/game';
+import { Enemy, Position, EnemyType, Projectile, LaserBeam, LightningBeam, EnergyBeam } from '../types/game';
 import { generateId, normalize, distance } from '../utils/gameUtils';
 import { GAME_BALANCE } from '../data/gameBalance';
 
@@ -6,9 +6,12 @@ export class EnemyManager {
   private enemies: Enemy[] = [];
   private enemyProjectiles: Projectile[] = [];
   private laserBeams: LaserBeam[] = [];
+  private lightningBeams: LightningBeam[] = [];
+  private energyBeams: EnergyBeam[] = [];
   private canvasWidth: number;
   private canvasHeight: number;
   private spawnedEnemiesThisWave: number = 0;
+  private spawnedLazerEnemiesThisWave: number = 0; // Track lazer enemies spawned this wave (for testing)
   private targetEnemyCount: number = 0;
   private currentWave: number = 0;
   private lastSpawnTime: number = 0;
@@ -42,6 +45,7 @@ export class EnemyManager {
   spawnWave(wave: number, playerPos?: Position, mousePos?: Position): void {
     // Reset counter for new wave
     this.spawnedEnemiesThisWave = 0;
+    this.spawnedLazerEnemiesThisWave = 0; // Reset lazer enemy counter
     this.currentWave = wave;
     this.lastSpawnTime = Date.now();
     
@@ -62,6 +66,15 @@ export class EnemyManager {
   }
 
   private getEnemyType(wave: number): EnemyType {
+    // TESTING: Spawn only 1 LAZER enemy in wave 1, rest are normal
+    if (wave === 1) {
+      if (this.spawnedLazerEnemiesThisWave < 1) {
+        return EnemyType.LAZER;
+      }
+      // After 1 lazer enemy, spawn normal enemies
+      return EnemyType.NORMAL;
+    }
+    
     // Distribute enemy types based on wave
     // Early waves: more weak enemies
     // Later waves: more strong enemies
@@ -283,6 +296,11 @@ export class EnemyManager {
     }
 
     this.spawnedEnemiesThisWave++;
+    
+    // Track lazer enemies spawned this wave (for testing in wave 1)
+    if (enemyType === EnemyType.LAZER) {
+      this.spawnedLazerEnemiesThisWave++;
+    }
 
     this.enemies.push({
       id: generateId(),
@@ -366,11 +384,11 @@ export class EnemyManager {
         }
       }
 
-      // LAZER enemies don't move while charging or firing laser beam
+      // LAZER enemies don't move while charging major attack or firing energy beam
       if (enemy.type === EnemyType.LAZER && 
-          ((enemy.chargeStartTime && !enemy.laserBeamStartTime) || 
-           (enemy.laserBeamStartTime && currentTime < enemy.laserBeamEndTime!))) {
-        // Enemy stands still while charging or firing - skip movement
+          ((enemy.majorAttackChargeStartTime && !enemy.majorAttackTeleportTime) || 
+           (enemy.majorAttackBeamStartTime && currentTime < enemy.majorAttackBeamEndTime!))) {
+        // Enemy stands still while charging major attack or firing energy beam - skip movement
       } else {
         const direction = normalize({
           x: playerPos.x - enemy.position.x,
@@ -444,55 +462,90 @@ export class EnemyManager {
         }
       }
 
-      // LAZER enemies fire laser beams that divide the ground
+      // LAZER enemies fire lightning that bounces between nearby enemies
       if (enemy.type === EnemyType.LAZER) {
-        // Clean up expired laser beam state
-        if (enemy.laserBeamEndTime && currentTime >= enemy.laserBeamEndTime) {
-          enemy.laserBeamStartTime = undefined;
-          enemy.laserBeamAngle = undefined;
-          enemy.laserBeamEndTime = undefined;
-          enemy.chargeStartTime = undefined; // Clear charge state
-          enemy.chargeTargetPos = undefined;
+        // Clean up expired lightning state
+        if (enemy.lightningBeamEndTime && currentTime >= enemy.lightningBeamEndTime) {
+          enemy.lightningBeamStartTime = undefined;
+          enemy.lightningBeamPath = undefined;
+          enemy.lightningBeamEndTime = undefined;
         }
         
         const distToPlayer = distance(enemy.position, playerPos);
-        const laserCooldown = attackConfig.laserBeamCooldown;
-        const laserChargeTime = attackConfig.laserBeamChargeTime;
+        const lightningCooldown = attackConfig.lightningCooldown;
         
-        // Attack if within range and not already firing
-        if (distToPlayer <= attackRange && !enemy.laserBeamStartTime) {
-          // If not charging and cooldown is ready, start charging
-          if (!enemy.chargeStartTime && 
-              (!enemy.lastAttackTime || currentTime - enemy.lastAttackTime >= laserCooldown)) {
-            // Start charging and lock target position
-            enemy.chargeStartTime = currentTime;
-            enemy.chargeTargetPos = { ...playerPos }; // Lock target position when charging starts
-          }
-          
-          // If charging and charge time is complete, fire laser beam at locked target
-          if (enemy.chargeStartTime && currentTime - enemy.chargeStartTime >= laserChargeTime) {
-            // Use locked target position, not current player position
-            const targetPos = enemy.chargeTargetPos || playerPos;
-            const angle = Math.atan2(
-              targetPos.y - enemy.position.y,
-              targetPos.x - enemy.position.x
+        // Clean up expired major attack state
+        if (enemy.majorAttackBeamEndTime && currentTime >= enemy.majorAttackBeamEndTime) {
+          enemy.majorAttackChargeStartTime = undefined;
+          enemy.majorAttackTeleportTime = undefined;
+          enemy.majorAttackBeamStartTime = undefined;
+          enemy.majorAttackBeamEndTime = undefined;
+          enemy.majorAttackBeamAngle = undefined;
+        }
+        
+        const majorAttackCooldown = attackConfig.majorAttackCooldown;
+        const majorAttackChargeTime = attackConfig.majorAttackChargeTime;
+        const majorAttackBeamDuration = attackConfig.majorAttackBeamDuration;
+        
+        // Major attack: charge -> teleport -> energy beam
+        // Check if major attack is ready (separate cooldown from lightning)
+        const lastMajorAttackTime = enemy.majorAttackBeamEndTime ? enemy.majorAttackBeamEndTime : 0;
+        const canUseMajorAttack = !enemy.majorAttackChargeStartTime && 
+                                  !enemy.majorAttackTeleportTime && 
+                                  !enemy.majorAttackBeamStartTime &&
+                                  (currentTime - lastMajorAttackTime >= majorAttackCooldown);
+        
+        if (canUseMajorAttack && distToPlayer <= attackRange * 1.5) {
+          // Start charging for major attack
+          enemy.majorAttackChargeStartTime = currentTime;
+        }
+        
+        // If charging, check if charge is complete
+        if (enemy.majorAttackChargeStartTime && !enemy.majorAttackTeleportTime) {
+          if (currentTime - enemy.majorAttackChargeStartTime >= majorAttackChargeTime) {
+            // Charge complete - teleport behind player
+            const teleportDistance = 400; // Distance behind player
+            const angle = Math.atan2(mousePos.y - playerPos.y, mousePos.x - playerPos.x);
+            const behindAngle = angle + Math.PI; // 180 degrees opposite
+            
+            // Teleport behind player
+            enemy.position.x = playerPos.x + Math.cos(behindAngle) * teleportDistance;
+            enemy.position.y = playerPos.y + Math.sin(behindAngle) * teleportDistance;
+            
+            enemy.majorAttackTeleportTime = currentTime;
+            
+            // Immediately start energy beam
+            const beamAngle = Math.atan2(
+              playerPos.y - enemy.position.y,
+              playerPos.x - enemy.position.x
             );
             
-            enemy.laserBeamStartTime = currentTime;
-            enemy.laserBeamAngle = angle;
-            enemy.laserBeamEndTime = currentTime + attackConfig.laserBeamDuration;
-            enemy.lastAttackTime = currentTime;
-            enemy.chargeStartTime = undefined; // Reset charge
-            enemy.chargeTargetPos = undefined; // Reset target
+            enemy.majorAttackBeamStartTime = currentTime;
+            enemy.majorAttackBeamAngle = beamAngle;
+            enemy.majorAttackBeamEndTime = currentTime + majorAttackBeamDuration;
             
-            // Create laser beam
-            this.createLaserBeam(enemy, angle, currentTime);
+            // Create energy beam (use current enemy position after teleport)
+            this.createEnergyBeam(enemy, beamAngle, currentTime);
           }
-        } else {
-          // Out of range, cancel charge
-          if (enemy.chargeStartTime) {
-            enemy.chargeStartTime = undefined;
-            enemy.chargeTargetPos = undefined;
+        }
+        
+        // Regular lightning attack (only if not using major attack)
+        if (!enemy.majorAttackChargeStartTime && !enemy.majorAttackBeamStartTime) {
+          // Attack if within range and not already firing (no charge time, only cooldown)
+          if (distToPlayer <= attackRange && !enemy.lightningBeamStartTime) {
+            // Check cooldown and fire immediately
+            if (!enemy.lastAttackTime || currentTime - enemy.lastAttackTime >= lightningCooldown) {
+              // Create lightning path: enemy -> nearby enemies -> player
+              const lightningPath = this.createLightningPath(enemy, playerPos);
+              
+              enemy.lightningBeamStartTime = currentTime;
+              enemy.lightningBeamPath = lightningPath;
+              enemy.lightningBeamEndTime = currentTime + attackConfig.lightningDuration;
+              enemy.lastAttackTime = currentTime;
+              
+              // Create lightning beam
+              this.createLightningBeam(enemy, lightningPath, currentTime);
+            }
           }
         }
       }
@@ -548,6 +601,12 @@ export class EnemyManager {
     
     // Update laser beams (remove expired ones)
     this.updateLaserBeams(currentTime);
+    
+    // Update lightning beams (remove expired ones)
+    this.updateLightningBeams(currentTime);
+    
+    // Update energy beams (remove expired ones)
+    this.updateEnergyBeams(currentTime);
   }
 
   private createLaserBeam(enemy: Enemy, angle: number, startTime: number): void {
@@ -571,6 +630,86 @@ export class EnemyManager {
 
   getLaserBeams(): LaserBeam[] {
     return this.laserBeams;
+  }
+
+  private createLightningPath(enemy: Enemy, playerPos: Position): Position[] {
+    const path: Position[] = [enemy.position]; // Start from enemy
+    
+    // Find nearby enemies (excluding self and other lazer enemies)
+    const lightningRange = GAME_BALANCE.enemies.attack.lightningBounceRange || 300;
+    const nearbyEnemies = this.enemies.filter(e => 
+      e.id !== enemy.id && 
+      e.type !== EnemyType.LAZER &&
+      distance(enemy.position, e.position) <= lightningRange
+    );
+    
+    // Sort by distance and take up to 3 nearby enemies for bouncing
+    nearbyEnemies.sort((a, b) => 
+      distance(enemy.position, a.position) - distance(enemy.position, b.position)
+    );
+    const bounceEnemies = nearbyEnemies.slice(0, 3);
+    
+    // Create zigzag path through nearby enemies
+    let currentPos = enemy.position;
+    const usedEnemies = new Set<string>();
+    
+    for (const bounceEnemy of bounceEnemies) {
+      if (!usedEnemies.has(bounceEnemy.id)) {
+        path.push(bounceEnemy.position);
+        currentPos = bounceEnemy.position;
+        usedEnemies.add(bounceEnemy.id);
+      }
+    }
+    
+    // Always end at player
+    path.push(playerPos);
+    
+    return path;
+  }
+
+  private createLightningBeam(enemy: Enemy, path: Position[], startTime: number): void {
+    const attackConfig = GAME_BALANCE.enemies.attack;
+    const beam: LightningBeam = {
+      id: generateId(),
+      path: path,
+      startTime: startTime,
+      endTime: startTime + attackConfig.lightningDuration,
+      damage: attackConfig.lightningDamage,
+      enemyId: enemy.id,
+    };
+    this.lightningBeams.push(beam);
+  }
+
+  private updateLightningBeams(currentTime: number): void {
+    // Remove expired lightning beams
+    this.lightningBeams = this.lightningBeams.filter(beam => currentTime < beam.endTime);
+  }
+
+  getLightningBeams(): LightningBeam[] {
+    return this.lightningBeams;
+  }
+
+  private createEnergyBeam(enemy: Enemy, angle: number, startTime: number): void {
+    const attackConfig = GAME_BALANCE.enemies.attack;
+    const beam: EnergyBeam = {
+      id: generateId(),
+      startPosition: { ...enemy.position }, // Use current enemy position (after teleport)
+      angle: angle,
+      startTime: startTime,
+      endTime: startTime + attackConfig.majorAttackBeamDuration,
+      damage: attackConfig.majorAttackBeamDamage,
+      enemyId: enemy.id,
+    };
+    this.energyBeams.push(beam);
+  }
+
+  private updateEnergyBeams(currentTime: number): void {
+    // Remove expired energy beams
+    this.energyBeams = this.energyBeams.filter(beam => currentTime < beam.endTime);
+  }
+
+  getEnergyBeams(): EnergyBeam[] {
+    return this.energyBeams;
   }
 
   private shootChargedShot(enemy: Enemy, playerPos: Position): void {
@@ -889,7 +1028,10 @@ export class EnemyManager {
     this.enemies = [];
     this.enemyProjectiles = [];
     this.laserBeams = [];
+    this.lightningBeams = [];
+    this.energyBeams = [];
     this.spawnedEnemiesThisWave = 0;
+    this.spawnedLazerEnemiesThisWave = 0;
     this.targetEnemyCount = 0;
     this.currentWave = 0;
     this.lastSpawnTime = 0;

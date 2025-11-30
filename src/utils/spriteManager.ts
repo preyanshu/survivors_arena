@@ -19,6 +19,8 @@ export class SpriteManager {
       enemy_weak: '/assets/sprites/enemy_weak.png',
       enemy_normal: '/assets/sprites/enemy_normal.png',
       enemy_strong: '/assets/sprites/enemy_strong.png',
+      enemy_lazer: '/assets/sprites/enemy_lazer.png',
+      lazer_beam: '/assets/Untitled.png', // Energy beam sprite sheet (12 frames)
       projectile: '/assets/sprites/projectile.png',
       background: '/assets/sprites/background.png',
       slash_effect: '/assets/sprites/slash.png',
@@ -242,6 +244,36 @@ export class SpriteManager {
         ctx.beginPath();
         ctx.arc(32, 32, 16, 0, Math.PI * 2);
         ctx.fill();
+        break;
+
+      case 'enemy_lazer':
+        // Create a purple/pink circle with laser-like effects (lazer enemy)
+        ctx.fillStyle = '#9b59b6';
+        ctx.beginPath();
+        ctx.arc(32, 32, 26, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#8e44ad';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        // Add inner glow
+        ctx.fillStyle = '#bb8fce';
+        ctx.beginPath();
+        ctx.arc(32, 32, 18, 0, Math.PI * 2);
+        ctx.fill();
+        // Add laser-like lines
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 4; i++) {
+          const angle = (i / 4) * Math.PI * 2;
+          const x1 = 32 + Math.cos(angle) * 18;
+          const y1 = 32 + Math.sin(angle) * 18;
+          const x2 = 32 + Math.cos(angle) * 26;
+          const y2 = 32 + Math.sin(angle) * 26;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
         break;
 
       case 'projectile':

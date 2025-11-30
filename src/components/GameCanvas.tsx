@@ -7,7 +7,7 @@ import { EnemyManager } from '../managers/EnemyManager';
 import { WaveManager } from '../managers/WaveManager';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { useKeyboard } from '../hooks/useKeyboard';
-import { checkCollision, generateId, distance } from '../utils/gameUtils';
+import { checkCollision, generateId, distance, distanceToLineSegment } from '../utils/gameUtils';
 import { spriteManager } from '../utils/spriteManager';
 import { GAME_BALANCE } from '../data/gameBalance';
 import { useMusic } from '../contexts/MusicContext';
@@ -165,6 +165,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const spritesLoadedRef = useRef<boolean>(false);
   const screenShakeRef = useRef<{ x: number; y: number; intensity: number; endTime: number } | null>(null);
   const lastLaserBeamCountRef = useRef<number>(0);
+  // Energy beam sprite sheet animation frame counter
+  const energyBeamFrameRef = useRef<number>(0);
   const pistolSoundRef = useRef<HTMLAudioElement | null>(null);
   const swordSoundRef = useRef<HTMLAudioElement | null>(null);
   const rifleSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -538,6 +540,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       cleanupAllSounds();
     };
   }, [isGameOver, cleanupAllSounds]);
+
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const canvas = canvasRef.current;
@@ -1049,45 +1052,45 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       setPlayerPos(newPlayerPos);
       playerPosRef.current = newPlayerPos;
 
-      // Update screen shake (for laser beam effects)
-      const activeLaserBeamsForShake = enemyManager.getLaserBeams();
-      const currentLaserCount = activeLaserBeamsForShake.length;
+      // Update screen shake (for lightning effects)
+      const activeLightningBeamsForShake = enemyManager.getLightningBeams();
+      const currentLightningCount = activeLightningBeamsForShake.length;
       
-      // Trigger shake when new laser beam is created
-      if (currentLaserCount > lastLaserBeamCountRef.current) {
-        // New laser beam created - trigger intense shake
+      // Trigger shake when new lightning is created
+      if (currentLightningCount > lastLaserBeamCountRef.current) {
+        // New lightning created - trigger shake
         screenShakeRef.current = {
           x: 0,
           y: 0,
-          intensity: 15, // Strong shake intensity
-          endTime: currentTime + 1800, // Shake for duration of laser beam
+          intensity: 8, // Moderate shake intensity for lightning
+          endTime: currentTime + 500, // Shake for duration of lightning
         };
       }
-      lastLaserBeamCountRef.current = currentLaserCount;
+      lastLaserBeamCountRef.current = currentLightningCount;
       
-      // Update screen shake - keep shaking while any laser beam is active
-      const hasActiveLaserBeams = activeLaserBeamsForShake.some(beam => currentTime < beam.endTime);
+      // Update screen shake - keep shaking while any lightning is active
+      const hasActiveLightning = activeLightningBeamsForShake.some(beam => currentTime < beam.endTime);
       
-      if (hasActiveLaserBeams) {
-        // Keep shaking while laser beams are active
+      if (hasActiveLightning) {
+        // Keep shaking while lightning is active
         if (!screenShakeRef.current || currentTime >= screenShakeRef.current.endTime) {
           screenShakeRef.current = {
             x: 0,
             y: 0,
-            intensity: 12, // Continuous shake intensity
-            endTime: currentTime + 100, // Will be extended while beams are active
+            intensity: 6, // Continuous shake intensity
+            endTime: currentTime + 100, // Will be extended while lightning is active
           };
         }
         
-        // Extend shake duration while beams are active
-        const maxBeamEndTime = Math.max(...activeLaserBeamsForShake.map(b => b.endTime), currentTime);
+        // Extend shake duration while lightning is active
+        const maxBeamEndTime = Math.max(...activeLightningBeamsForShake.map(b => b.endTime), currentTime);
         screenShakeRef.current.endTime = maxBeamEndTime;
         
         // Calculate shake intensity (stronger at start, gradually decreases)
-        const oldestBeam = activeLaserBeamsForShake.reduce((oldest, beam) => 
-          beam.startTime < oldest.startTime ? beam : oldest, activeLaserBeamsForShake[0]);
+        const oldestBeam = activeLightningBeamsForShake.reduce((oldest, beam) => 
+          beam.startTime < oldest.startTime ? beam : oldest, activeLightningBeamsForShake[0]);
         const beamAge = currentTime - oldestBeam.startTime;
-        const totalDuration = 1800;
+        const totalDuration = 500;
         const shakeProgress = Math.min(1.0, beamAge / totalDuration);
         // Start strong, fade slightly but stay intense
         const currentIntensity = screenShakeRef.current.intensity * (1.0 - shakeProgress * 0.3);
@@ -1608,7 +1611,104 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         }
       }
 
-      // Check collision with laser beams (player getting hit)
+      // Check collision with lightning beams (player getting hit)
+      const lightningBeams = enemyManager.getLightningBeams();
+      lightningBeams.forEach((beam) => {
+        if (currentTime >= beam.endTime) return; // Lightning expired
+        
+        // Check if player is in the lightning path
+        if (beam.path.length < 2) return;
+        
+        // Check if player is near any segment of the lightning path
+        const playerSize = PLAYER_SIZE;
+        const hitRadius = playerSize / 2 + 25; // Slightly larger than player for easier hit
+        
+        for (let i = 0; i < beam.path.length - 1; i++) {
+          const start = beam.path[i];
+          const end = beam.path[i + 1];
+          
+          // Check distance from player to line segment
+          const distToSegment = distanceToLineSegment(
+            newPlayerPos,
+            start,
+            end
+          );
+          
+          if (distToSegment <= hitRadius) {
+            // Shield blocks all damage
+            if (isShieldActive) {
+              return;
+            }
+            
+            // Player hit by lightning (one-time damage)
+            if (currentTime - lastDamageTimeRef.current > 100) { // Prevent multiple hits in same frame
+              setPlayerStats((prev) => {
+                const damage = beam.damage;
+                const newStats = applyDamage(damage, prev);
+                if (newStats.health <= 0) {
+                  createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                  setIsGameOver(true);
+                  return { ...newStats, health: 0 };
+                }
+                // Small blood effect when taking damage
+                createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.3, 0.4);
+                return newStats;
+              });
+              lastDamageTimeRef.current = currentTime;
+            }
+            break; // Only hit once per lightning
+          }
+        }
+      });
+      
+      // Check collision with energy beams (major attack from LAZER enemies)
+      const energyBeams = enemyManager.getEnergyBeams();
+      energyBeams.forEach((beam) => {
+        if (currentTime >= beam.endTime) return; // Beam expired
+        
+        // Check if player is in the energy beam
+        const dx = Math.cos(beam.angle);
+        const dy = Math.sin(beam.angle);
+        
+        // Vector from beam start to player
+        const toPlayerX = newPlayerPos.x - beam.startPosition.x;
+        const toPlayerY = newPlayerPos.y - beam.startPosition.y;
+        
+        // Distance from point to line
+        const distanceToLine = Math.abs(dx * toPlayerY - dy * toPlayerX);
+        const beamWidth = GAME_BALANCE.enemies.attack.majorAttackBeamWidth;
+        const isInBeam = distanceToLine < beamWidth / 2 + PLAYER_SIZE / 2;
+        
+        // Check if player is in front of the beam (not behind it)
+        const dotProduct = toPlayerX * dx + toPlayerY * dy;
+        const isInFront = dotProduct > 0;
+        
+        if (isInBeam && isInFront) {
+          // Shield blocks all damage
+          if (isShieldActive) {
+            return;
+          }
+          
+          // Player is in the beam - take continuous damage
+          if (currentTime - lastDamageTimeRef.current > 50) { // Damage every 50ms while in beam
+            setPlayerStats((prev) => {
+              const damage = beam.damage;
+              const newStats = applyDamage(damage, prev);
+              if (newStats.health <= 0) {
+                createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                setIsGameOver(true);
+                return { ...newStats, health: 0 };
+              }
+              // Small blood effect when taking damage
+              createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.3, 0.4);
+              return newStats;
+            });
+            lastDamageTimeRef.current = currentTime;
+          }
+        }
+      });
+      
+      // Check collision with laser beams (legacy, for other enemies if any)
       const laserBeams = enemyManager.getLaserBeams();
       laserBeams.forEach((beam) => {
         if (currentTime >= beam.endTime) return; // Beam expired
@@ -1849,7 +1949,193 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         );
       });
 
-      // Draw laser beams (divide the ground) - INTENSE VERSION
+      // Draw lightning beams (zigzag between enemies)
+      const activeLightningBeams = enemyManager.getLightningBeams();
+      const currentTimeForLightning = Date.now();
+      activeLightningBeams.forEach((beam) => {
+        if (currentTimeForLightning >= beam.endTime) return; // Lightning expired
+        
+        ctx.save();
+        
+        // Calculate time remaining for fade effect
+        const timeRemaining = beam.endTime - currentTimeForLightning;
+        const fadeAlpha = Math.min(1.0, timeRemaining / 200); // Fade out in last 200ms
+        
+        // Lightning properties - thin and crisp
+        const lightningWidth = 2; // Thin line
+        const zigzagOffset = 8; // Smaller zigzag for crisp look
+        
+        // Draw zigzag lightning path
+        if (beam.path.length >= 2) {
+          for (let i = 0; i < beam.path.length - 1; i++) {
+            const start = beam.path[i];
+            const end = beam.path[i + 1];
+            
+            // Create jagged lightning effect with more segments for realism
+            const segments = 8; // More segments for smoother zigzag
+            const points: Position[] = [start];
+            
+            for (let j = 1; j < segments; j++) {
+              const t = j / segments;
+              const baseX = start.x + (end.x - start.x) * t;
+              const baseY = start.y + (end.y - start.y) * t;
+              
+              // Add perpendicular offset for zigzag
+              const dx = end.x - start.x;
+              const dy = end.y - start.y;
+              const len = Math.sqrt(dx * dx + dy * dy);
+              const perpX = -dy / len;
+              const perpY = dx / len;
+              
+              // Random jagged pattern for realistic lightning
+              const randomOffset = (Math.random() - 0.5) * 2; // -1 to 1
+              const offset = Math.sin(j * Math.PI * 1.5) * zigzagOffset * (0.5 + Math.abs(randomOffset));
+              points.push({
+                x: baseX + perpX * offset,
+                y: baseY + perpY * offset
+              });
+            }
+            points.push(end);
+            
+            // Draw thin, crisp blue lightning (matching homing orb color)
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Subtle outer glow - blue like homing orb
+            ctx.strokeStyle = `rgba(0, 170, 255, ${fadeAlpha * 0.4})`; // #00aaff with alpha
+            ctx.lineWidth = lightningWidth + 3;
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = 'rgba(0, 170, 255, 0.8)'; // #00aaff
+            ctx.globalCompositeOperation = 'screen';
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let k = 1; k < points.length; k++) {
+              ctx.lineTo(points[k].x, points[k].y);
+            }
+            ctx.stroke();
+            
+            // Main lightning - bright blue like homing orb, thin
+            ctx.strokeStyle = `rgba(0, 170, 255, ${fadeAlpha * 0.95})`; // #00aaff
+            ctx.lineWidth = lightningWidth + 1;
+            ctx.shadowBlur = 2;
+            ctx.shadowColor = 'rgba(0, 170, 255, 1)'; // #00aaff
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let k = 1; k < points.length; k++) {
+              ctx.lineTo(points[k].x, points[k].y);
+            }
+            ctx.stroke();
+            
+            // Inner core - lighter blue like homing orb inner glow, very thin
+            ctx.strokeStyle = `rgba(102, 204, 255, ${fadeAlpha})`; // #66ccff
+            ctx.lineWidth = lightningWidth;
+            ctx.shadowBlur = 1;
+            ctx.shadowColor = 'rgba(102, 204, 255, 1)'; // #66ccff
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let k = 1; k < points.length; k++) {
+              ctx.lineTo(points[k].x, points[k].y);
+            }
+            ctx.stroke();
+          }
+        }
+        
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+      });
+      
+      // Draw energy beams using sprite sheet animation
+      const activeEnergyBeams = enemyManager.getEnergyBeams();
+      const currentTimeForEnergyBeams = Date.now();
+      
+      // Update sprite sheet animation frame (12 frames, ~83ms per frame for smooth animation)
+      const frameInterval = 83; // ~12fps animation
+      energyBeamFrameRef.current = Math.floor(currentTimeForEnergyBeams / frameInterval) % 12;
+      
+      activeEnergyBeams.forEach((beam) => {
+        if (currentTimeForEnergyBeams >= beam.endTime) return; // Beam expired
+        
+        const beamSprite = spriteManager.getSprite('lazer_beam');
+        if (!beamSprite || !beamSprite.complete) return;
+        
+        ctx.save();
+        
+        // Sprite sheet info: 12 frames horizontally, 3 rows vertically
+        // Total: 1612px width x 519px height
+        const totalFrames = 12;
+        const totalRows = 3;
+        const frameWidth = beamSprite.naturalWidth / totalFrames; // ~134px per frame
+        const rowHeight = beamSprite.naturalHeight / totalRows; // ~173px per row
+        const currentFrame = energyBeamFrameRef.current;
+        const selectedRow = 1; // Use middle row (0, 1, or 2)
+        
+        // Scale factor to make beam bigger
+        const scale = 1; // Make beam larger for visibility
+        const scaledWidth = frameWidth * scale;
+        const scaledHeight = rowHeight * scale;
+        
+        // Calculate time remaining for fade effect
+        const timeRemaining = beam.endTime - currentTimeForEnergyBeams;
+        const fadeAlpha = Math.min(1.0, timeRemaining / 300);
+        
+        ctx.globalAlpha = fadeAlpha;
+        
+        // Move to beam start position and rotate
+        ctx.translate(beam.startPosition.x, beam.startPosition.y);
+        ctx.rotate(beam.angle);
+        
+        // Draw the current frame multiple times to make beam longer (without stretching)
+        // Repeat the frame to double/triple the length
+        const repeatCount = 9; // Draw frame 9 times for 9x length (triple the previous)
+        const totalBeamLength = repeatCount * scaledWidth;
+        const yOffset = 0; // Same offset as sprites
+        
+        // Draw solid colored beam BEHIND the sprite - thin beam matching laser core
+        const beamThickness = 34; // Thin beam to match the laser core
+        const beamCenterY = yOffset; // Center of beam
+        
+        // Create gradient for the beam (blue -> cyan -> yellow -> cyan -> blue)
+        const gradient = ctx.createLinearGradient(0, beamCenterY - beamThickness, 0, beamCenterY + beamThickness);
+        gradient.addColorStop(0, 'rgba(0, 100, 255, 0)');      // Transparent blue edge
+        gradient.addColorStop(0.2, 'rgba(0, 200, 255, 0.6)');  // Cyan
+        gradient.addColorStop(0.4, 'rgba(100, 255, 255, 0.8)');// Light cyan
+        gradient.addColorStop(0.5, 'rgba(255, 255, 200, 1)');  // Bright yellow-white core
+        gradient.addColorStop(0.6, 'rgba(100, 255, 255, 0.8)');// Light cyan
+        gradient.addColorStop(0.8, 'rgba(0, 200, 255, 0.6)');  // Cyan
+        gradient.addColorStop(1, 'rgba(0, 100, 255, 0)');      // Transparent blue edge
+        
+        // Draw outer glow
+        ctx.shadowColor = '#00BFFF';
+        ctx.shadowBlur = 20;
+        
+        // Draw the gradient beam
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, beamCenterY - beamThickness, totalBeamLength, beamThickness * 2);
+        
+        // Draw bright core line
+        ctx.shadowColor = '#FFFF00';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = 'rgba(255, 255, 220, 0.9)';
+        ctx.fillRect(0, beamCenterY - 2, totalBeamLength, 4); // Thin bright core
+        
+        // Reset shadow for sprite drawing
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+        
+        // Draw sprite frames on top
+        for (let i = 0; i < repeatCount; i++) {
+          ctx.drawImage(
+            beamSprite,
+            currentFrame * frameWidth, selectedRow * rowHeight, frameWidth, rowHeight, // Source: one frame from one row
+            i * scaledWidth, -scaledHeight / 2 - 30, scaledWidth, scaledHeight // Destination: each segment placed side by side
+          );
+        }
+        
+        ctx.globalAlpha = 1.0;
+        ctx.restore();
+      });
+      
+      // Draw laser beams (legacy, for other enemies if any)
       const activeLaserBeams = enemyManager.getLaserBeams();
       const currentTimeForBeams = Date.now();
       activeLaserBeams.forEach((beam) => {
@@ -2065,50 +2351,36 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           ctx.restore();
         }
 
-        // Draw charge effect for LAZER enemies - red solid bright line
-        if (enemy.type === 'lazer' && enemy.chargeStartTime && !enemy.laserBeamStartTime) {
+        // Draw charge effect for LAZER enemies major attack
+        if (enemy.type === 'lazer' && enemy.majorAttackChargeStartTime && !enemy.majorAttackTeleportTime) {
           const currentTime = Date.now();
-          const chargeTime = GAME_BALANCE.enemies.attack.laserBeamChargeTime;
-          const chargeProgress = Math.min((currentTime - enemy.chargeStartTime) / chargeTime, 1);
-          const pulseIntensity = 0.7 + (chargeProgress * 0.3); // Pulse from 0.7 to 1.0
-          
-          // Use locked target position (where player was when charge started), not current position
-          const targetPos = enemy.chargeTargetPos || playerPosRef.current;
-          
-          // Calculate angle to locked target
-          const angle = Math.atan2(
-            targetPos.y - enemy.position.y,
-            targetPos.x - enemy.position.x
-          );
-          
-          // Draw bright red solid line showing where laser will fire
-          const maxDistance = Math.max(canvas.width, canvas.height) * 3;
-          const endX = enemy.position.x + Math.cos(angle) * maxDistance;
-          const endY = enemy.position.y + Math.sin(angle) * maxDistance;
+          const chargeTime = GAME_BALANCE.enemies.attack.majorAttackChargeTime;
+          const chargeProgress = Math.min((currentTime - enemy.majorAttackChargeStartTime) / chargeTime, 1);
+          const pulseIntensity = 0.6 + (chargeProgress * 0.4); // Pulse from 0.6 to 1.0
           
           ctx.save();
-          // Bright red solid line
-          ctx.strokeStyle = `rgba(255, 0, 0, ${pulseIntensity})`;
-          ctx.lineWidth = 8;
-          ctx.shadowBlur = 30;
-          ctx.shadowColor = 'rgba(255, 0, 0, 1)';
-          ctx.globalCompositeOperation = 'screen';
+          ctx.translate(enemy.position.x, enemy.position.y);
+          
+          // Pulsing blue glow that intensifies as charge progresses
+          ctx.fillStyle = `rgba(0, 170, 255, ${pulseIntensity * 0.4})`; // Blue glow matching lightning
+          ctx.strokeStyle = `rgba(0, 170, 255, ${pulseIntensity})`;
+          ctx.lineWidth = 3 + (chargeProgress * 2);
+          ctx.shadowBlur = 15 + (chargeProgress * 10);
+          ctx.shadowColor = `rgba(0, 170, 255, ${pulseIntensity})`;
+          
+          // Pulsing circle that grows as charge progresses
+          const chargeRadius = (enemy.size / 2) + (chargeProgress * 20);
           ctx.beginPath();
-          ctx.moveTo(enemy.position.x, enemy.position.y);
-          ctx.lineTo(endX, endY);
+          ctx.arc(0, 0, chargeRadius, 0, Math.PI * 2);
+          ctx.fill();
           ctx.stroke();
           
           // Inner bright core
-          ctx.strokeStyle = `rgba(255, 100, 100, ${pulseIntensity})`;
-          ctx.lineWidth = 4;
-          ctx.shadowBlur = 20;
-          ctx.shadowColor = 'rgba(255, 150, 150, 1)';
+          ctx.fillStyle = `rgba(102, 204, 255, ${pulseIntensity * 0.6})`; // Lighter blue
           ctx.beginPath();
-          ctx.moveTo(enemy.position.x, enemy.position.y);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
+          ctx.arc(0, 0, (enemy.size / 2) * (0.7 + chargeProgress * 0.3), 0, Math.PI * 2);
+          ctx.fill();
           
-          ctx.globalCompositeOperation = 'source-over';
           ctx.restore();
         }
 
@@ -2687,6 +2959,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           ref={canvasRef}
           className="cursor-crosshair w-full h-full"
         />
+
 
         {/* Pause button - top center */}
         {(() => {

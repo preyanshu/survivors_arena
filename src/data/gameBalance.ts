@@ -127,10 +127,10 @@ export const GAME_BALANCE = {
       size: 140,
     },
     lazer: {
-      healthMultiplier: 0.1,     // 4 health (10% of base 40 = 4)
-      speedMultiplier: 0.8,      // 80% of base speed (slower)
-      damageMultiplier: 1.2,      // 120% of base damage
-      size: 120,
+      healthMultiplier: 0.2,     // 8 health (20% of base 40 = 8, increased for more strength)
+      speedMultiplier: 1.0,      // 100% of base speed (increased from 0.8)
+      damageMultiplier: 1.3,     // 130% of base damage (increased from 1.2)
+      size: 210,                  // Larger villain for better presence
     },
     
     // Enemy attack configuration
@@ -175,14 +175,27 @@ export const GAME_BALANCE = {
       homingProjectileSpeed: speed(8),   // Slower than normal projectiles - affected by gameSpeed
       homingProjectileSize: 20,
       
-      // LAZER enemy laser beam attack
+      // LAZER enemy lightning attack
+      lightningCooldown: cooldown(3000), // Cooldown between lightning attacks (3 seconds) - affected by gameSpeed
+      lightningDuration: 500,            // Duration in milliseconds (0.5 seconds) - instant hit
+      lightningDamage: 25,               // Damage dealt by lightning
+      lightningBounceRange: 300,          // Range to find nearby enemies for bouncing
+      
+      // LAZER enemy major attack (charge -> teleport -> energy beam)
+      majorAttackCooldown: cooldown(8000), // Cooldown between major attacks (8 seconds) - affected by gameSpeed
+      majorAttackChargeTime: cooldown(2000), // Charging time before teleport (2 seconds) - affected by gameSpeed
+      majorAttackBeamDuration: 1500,      // Duration of energy beam in milliseconds (1.5 seconds)
+      majorAttackBeamDamage: 2.5,         // Damage per frame while in beam (heavy attack)
+      majorAttackBeamWidth: 40,           // Width of energy beam in pixels
+      maxActiveLazerEnemies: 3,          // Maximum number of LAZER enemies that can be active at once
+      
+      // Legacy laser beam config (kept for compatibility)
       laserBeamChargeTime: cooldown(1200), // Charging time before firing (1.2 seconds) - affected by gameSpeed
       laserBeamDuration: 1800,            // Duration in milliseconds (1.8 seconds)
       laserBeamCooldown: cooldown(4000), // Cooldown between laser attacks (4 seconds) - affected by gameSpeed
       laserBeamDamage: 1.2,              // Damage per frame while in beam (increased)
       laserBeamWidth: 24,                // Width of laser beam in pixels (increased for more intensity)
       laserBeamKnockback: 100,            // Knockback force when hit by laser beam (pushes player left/right)
-      maxActiveLazerEnemies: 3,          // Maximum number of LAZER enemies that can be active at once
     },
     
     // Shield range for STRONG enemies
