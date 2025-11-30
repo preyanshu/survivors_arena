@@ -49,6 +49,7 @@ export interface Enemy {
   majorAttackBeamStartTime?: number; // When energy beam starts (for LAZER enemies)
   majorAttackBeamEndTime?: number; // When energy beam ends (for LAZER enemies)
   majorAttackBeamAngle?: number; // Angle of the energy beam
+  lastMajorAttackEndTime?: number; // Persistent: when last major attack ended (for cooldown tracking)
 }
 
 export interface Projectile {

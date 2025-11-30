@@ -182,11 +182,13 @@ export const GAME_BALANCE = {
       lightningBounceRange: 300,          // Range to find nearby enemies for bouncing
       
       // LAZER enemy major attack (charge -> teleport -> energy beam)
-      majorAttackCooldown: cooldown(8000), // Cooldown between major attacks (8 seconds) - affected by gameSpeed
+      majorAttackCooldown: cooldown(14000), // Cooldown between major attacks (8 seconds) - affected by gameSpeed
       majorAttackChargeTime: cooldown(2000), // Charging time before teleport (2 seconds) - affected by gameSpeed
-      majorAttackBeamDuration: 1500,      // Duration of energy beam in milliseconds (1.5 seconds)
-      majorAttackBeamDamage: 2.5,         // Damage per frame while in beam (heavy attack)
-      majorAttackBeamWidth: 40,           // Width of energy beam in pixels
+      majorAttackBeamDuration: 2000,      // Duration of energy beam in milliseconds (2 seconds)
+      majorAttackBeamDamage: 8,           // Massive damage per hit (heavy attack)
+      majorAttackBeamWidth: 37,           // Width of energy beam in pixels
+      majorAttackBeamKnockback: 150,      // Massive knockback force when hit by energy beam
+      majorAttackScreenShake: 15,         // Screen shake intensity during major attack
       maxActiveLazerEnemies: 3,          // Maximum number of LAZER enemies that can be active at once
       
       // Legacy laser beam config (kept for compatibility)

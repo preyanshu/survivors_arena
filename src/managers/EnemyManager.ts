@@ -11,7 +11,8 @@ export class EnemyManager {
   private canvasWidth: number;
   private canvasHeight: number;
   private spawnedEnemiesThisWave: number = 0;
-  private spawnedLazerEnemiesThisWave: number = 0; // Track lazer enemies spawned this wave (for testing)
+  private spawnedLazerEnemiesThisWave: number = 0; // Track lazer enemies spawned this wave
+  private lastGlobalMajorAttackTime: number = 0; // Global cooldown for LAZER major attacks
   private targetEnemyCount: number = 0;
   private currentWave: number = 0;
   private lastSpawnTime: number = 0;
@@ -66,15 +67,6 @@ export class EnemyManager {
   }
 
   private getEnemyType(wave: number): EnemyType {
-    // TESTING: Spawn only 1 LAZER enemy in wave 1, rest are normal
-    if (wave === 1) {
-      if (this.spawnedLazerEnemiesThisWave < 1) {
-        return EnemyType.LAZER;
-      }
-      // After 1 lazer enemy, spawn normal enemies
-      return EnemyType.NORMAL;
-    }
-    
     // Distribute enemy types based on wave
     // Early waves: more weak enemies
     // Later waves: more strong enemies
@@ -476,6 +468,9 @@ export class EnemyManager {
         
         // Clean up expired major attack state
         if (enemy.majorAttackBeamEndTime && currentTime >= enemy.majorAttackBeamEndTime) {
+          // Store when attack ended for cooldown tracking (persistent, don't clear)
+          enemy.lastMajorAttackEndTime = currentTime;
+          
           enemy.majorAttackChargeStartTime = undefined;
           enemy.majorAttackTeleportTime = undefined;
           enemy.majorAttackBeamStartTime = undefined;
@@ -489,15 +484,40 @@ export class EnemyManager {
         
         // Major attack: charge -> teleport -> energy beam
         // Check if major attack is ready (separate cooldown from lightning)
-        const lastMajorAttackTime = enemy.majorAttackBeamEndTime ? enemy.majorAttackBeamEndTime : 0;
+        // Use persistent lastMajorAttackEndTime for proper cooldown tracking
+        const lastMajorAttackTime = enemy.lastMajorAttackEndTime || 0;
+        
+        // Check if enemy is visible on screen (within player's viewport)
+        const halfWidth = this.canvasWidth / 2;
+        const halfHeight = this.canvasHeight / 2;
+        const isEnemyVisible = enemy.position.x >= playerPos.x - halfWidth &&
+                               enemy.position.x <= playerPos.x + halfWidth &&
+                               enemy.position.y >= playerPos.y - halfHeight &&
+                               enemy.position.y <= playerPos.y + halfHeight;
+        
+        // Check if any other LAZER enemy is currently using major attack (charging, teleporting, or firing)
+        const anyLazerUsingMajorAttack = this.enemies.some(e => 
+          e.type === EnemyType.LAZER && 
+          e.id !== enemy.id && 
+          (e.majorAttackChargeStartTime || e.majorAttackTeleportTime || e.majorAttackBeamStartTime)
+        );
+        
+        // Global cooldown between major attacks (3 seconds between different LAZER enemies)
+        const globalMajorAttackCooldown = 3000;
+        const globalCooldownReady = currentTime - this.lastGlobalMajorAttackTime >= globalMajorAttackCooldown;
+        
         const canUseMajorAttack = !enemy.majorAttackChargeStartTime && 
                                   !enemy.majorAttackTeleportTime && 
                                   !enemy.majorAttackBeamStartTime &&
-                                  (currentTime - lastMajorAttackTime >= majorAttackCooldown);
+                                  (currentTime - lastMajorAttackTime >= majorAttackCooldown) &&
+                                  isEnemyVisible && // Only use major attack if visible to player
+                                  !anyLazerUsingMajorAttack && // Only one LAZER can use major attack at a time
+                                  globalCooldownReady; // Global cooldown between major attacks
         
         if (canUseMajorAttack && distToPlayer <= attackRange * 1.5) {
           // Start charging for major attack
           enemy.majorAttackChargeStartTime = currentTime;
+          this.lastGlobalMajorAttackTime = currentTime; // Update global cooldown
         }
         
         // If charging, check if charge is complete
@@ -513,8 +533,15 @@ export class EnemyManager {
             enemy.position.y = playerPos.y + Math.sin(behindAngle) * teleportDistance;
             
             enemy.majorAttackTeleportTime = currentTime;
-            
-            // Immediately start energy beam
+            // Beam will start after delay (see below)
+          }
+        }
+        
+        // After teleport, wait 500ms before firing beam (gives player time to react)
+        const beamWindupDelay = 500; // Half second delay after teleport
+        if (enemy.majorAttackTeleportTime && !enemy.majorAttackBeamStartTime) {
+          if (currentTime - enemy.majorAttackTeleportTime >= beamWindupDelay) {
+            // Calculate beam angle towards current player position
             const beamAngle = Math.atan2(
               playerPos.y - enemy.position.y,
               playerPos.x - enemy.position.x
@@ -524,7 +551,7 @@ export class EnemyManager {
             enemy.majorAttackBeamAngle = beamAngle;
             enemy.majorAttackBeamEndTime = currentTime + majorAttackBeamDuration;
             
-            // Create energy beam (use current enemy position after teleport)
+            // Create energy beam
             this.createEnergyBeam(enemy, beamAngle, currentTime);
           }
         }
@@ -1032,6 +1059,7 @@ export class EnemyManager {
     this.energyBeams = [];
     this.spawnedEnemiesThisWave = 0;
     this.spawnedLazerEnemiesThisWave = 0;
+    this.lastGlobalMajorAttackTime = 0;
     this.targetEnemyCount = 0;
     this.currentWave = 0;
     this.lastSpawnTime = 0;

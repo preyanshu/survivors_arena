@@ -2,7 +2,7 @@ import { PowerUp } from '../types/game';
 import { POWER_UPS } from '../data/powerups';
 
 export class WaveManager {
-  private currentWave: number = 1;
+  private currentWave: number = 4; // TESTING: Start from wave 4
   private waveInProgress: boolean = false;
   private waveCompleted: boolean = false; // Wave cleared, waiting for E press
   private showingPowerUpSelection: boolean = false;
@@ -51,7 +51,7 @@ export class WaveManager {
   }
 
   reset(): void {
-    this.currentWave = 1;
+    this.currentWave = 4; // TESTING: Start from wave 4
     this.waveInProgress = false;
     this.waveCompleted = false;
     this.showingPowerUpSelection = false;

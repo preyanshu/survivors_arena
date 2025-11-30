@@ -1663,6 +1663,18 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       
       // Check collision with energy beams (major attack from LAZER enemies)
       const energyBeams = enemyManager.getEnergyBeams();
+      
+      // Add screen shake while any energy beam is active
+      if (energyBeams.length > 0 && energyBeams.some(b => currentTime < b.endTime)) {
+        const shakeIntensity = GAME_BALANCE.enemies.attack.majorAttackScreenShake;
+        screenShakeRef.current = {
+          x: (Math.random() - 0.5) * shakeIntensity,
+          y: (Math.random() - 0.5) * shakeIntensity,
+          intensity: shakeIntensity,
+          endTime: currentTime + 100, // Will be extended while beam is active
+        };
+      }
+      
       energyBeams.forEach((beam) => {
         if (currentTime >= beam.endTime) return; // Beam expired
         
@@ -1684,25 +1696,65 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const isInFront = dotProduct > 0;
         
         if (isInBeam && isInFront) {
-          // Shield blocks all damage
-          if (isShieldActive) {
-            return;
-          }
+          // Wait 300ms after beam starts before knockback/damage can occur (visual sync)
+          const beamActiveTime = currentTime - beam.startTime;
+          const knockbackDelay = 300; // 300ms delay before knockback starts
           
-          // Player is in the beam - take continuous damage
-          if (currentTime - lastDamageTimeRef.current > 50) { // Damage every 50ms while in beam
-            setPlayerStats((prev) => {
-              const damage = beam.damage;
-              const newStats = applyDamage(damage, prev);
-              if (newStats.health <= 0) {
-                createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
-                setIsGameOver(true);
-                return { ...newStats, health: 0 };
-              }
-              // Small blood effect when taking damage
-              createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.3, 0.4);
-              return newStats;
-            });
+          if (beamActiveTime >= knockbackDelay && currentTime - lastDamageTimeRef.current > 200) {
+            // Apply MASSIVE knockback - push player left or right (randomly if centered)
+            const knockbackForce = GAME_BALANCE.enemies.attack.majorAttackBeamKnockback;
+            
+            // Perpendicular direction to beam (left or right)
+            const perpendicularAngle = beam.angle + Math.PI / 2;
+            
+            // Determine knockback direction - always knock left or right
+            // Use beam angle to determine perpendicular, then pick random or based on player position
+            const crossProduct = dx * toPlayerY - dy * toPlayerX;
+            let knockbackDirection: number;
+            
+            // If player is within the beam width from center line, use random direction
+            const beamHalfWidth = GAME_BALANCE.enemies.attack.majorAttackBeamWidth / 2;
+            if (Math.abs(crossProduct) < beamHalfWidth) {
+              // Player is in the beam center area - random direction (always knocks)
+              knockbackDirection = Math.random() < 0.5 ? 1 : -1;
+            } else {
+              // Push player further away from beam center
+              knockbackDirection = crossProduct > 0 ? 1 : -1;
+            }
+            
+            const knockbackX = Math.cos(perpendicularAngle) * knockbackForce * knockbackDirection;
+            const knockbackY = Math.sin(perpendicularAngle) * knockbackForce * knockbackDirection;
+            
+            // Apply knockback to player position
+            newPlayerPos.x += knockbackX;
+            newPlayerPos.y += knockbackY;
+            setPlayerPos(newPlayerPos);
+            playerPosRef.current = newPlayerPos;
+            
+            // Extra intense screen shake on hit
+            screenShakeRef.current = {
+              x: (Math.random() - 0.5) * 25,
+              y: (Math.random() - 0.5) * 25,
+              intensity: 25,
+              endTime: currentTime + 300,
+            };
+            
+            // Only apply damage if shield is NOT active
+            if (!isShieldActive) {
+              setPlayerStats((prev) => {
+                const damage = beam.damage;
+                const newStats = applyDamage(damage, prev);
+                if (newStats.health <= 0) {
+                  createBloodEffect(newPlayerPos, PLAYER_SIZE, 5);
+                  setIsGameOver(true);
+                  return { ...newStats, health: 0 };
+                }
+                // Big blood effect for massive damage
+                createBloodEffect(newPlayerPos, PLAYER_SIZE * 0.8, 2);
+                return newStats;
+              });
+            }
+            
             lastDamageTimeRef.current = currentTime;
           }
         }
@@ -2351,37 +2403,281 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           ctx.restore();
         }
 
-        // Draw charge effect for LAZER enemies major attack
+        // Draw THUNDER charge effect for LAZER enemies major attack
         if (enemy.type === 'lazer' && enemy.majorAttackChargeStartTime && !enemy.majorAttackTeleportTime) {
           const currentTime = Date.now();
           const chargeTime = GAME_BALANCE.enemies.attack.majorAttackChargeTime;
           const chargeProgress = Math.min((currentTime - enemy.majorAttackChargeStartTime) / chargeTime, 1);
-          const pulseIntensity = 0.6 + (chargeProgress * 0.4); // Pulse from 0.6 to 1.0
+          const pulseIntensity = 0.6 + (chargeProgress * 0.4);
           
           ctx.save();
           ctx.translate(enemy.position.x, enemy.position.y);
           
-          // Pulsing blue glow that intensifies as charge progresses
-          ctx.fillStyle = `rgba(0, 170, 255, ${pulseIntensity * 0.4})`; // Blue glow matching lightning
-          ctx.strokeStyle = `rgba(0, 170, 255, ${pulseIntensity})`;
-          ctx.lineWidth = 3 + (chargeProgress * 2);
-          ctx.shadowBlur = 15 + (chargeProgress * 10);
-          ctx.shadowColor = `rgba(0, 170, 255, ${pulseIntensity})`;
+          // Helper function to draw a proper zigzag lightning bolt
+          const drawLightningBolt = (startX: number, startY: number, endX: number, endY: number, branches: boolean = true) => {
+            const points: {x: number, y: number}[] = [{x: startX, y: startY}];
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const segments = Math.max(4, Math.floor(length / 15)); // More segments for longer bolts
+            
+            // Generate zigzag points
+            for (let i = 1; i < segments; i++) {
+              const t = i / segments;
+              const baseX = startX + dx * t;
+              const baseY = startY + dy * t;
+              
+              // Perpendicular direction for zigzag
+              const perpX = -dy / length;
+              const perpY = dx / length;
+              
+              // Sharp zigzag - alternate sides with randomness
+              const zigzagAmount = (i % 2 === 0 ? 1 : -1) * (10 + Math.random() * 20);
+              points.push({
+                x: baseX + perpX * zigzagAmount,
+                y: baseY + perpY * zigzagAmount
+              });
+            }
+            points.push({x: endX, y: endY});
+            
+            // Draw the main bolt path
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+              ctx.lineTo(points[i].x, points[i].y);
+            }
+            
+            // Outer glow
+            ctx.strokeStyle = `rgba(0, 80, 200, ${pulseIntensity * 0.4})`;
+            ctx.lineWidth = 8;
+            ctx.stroke();
+            
+            // Middle glow
+            ctx.strokeStyle = `rgba(0, 150, 255, ${pulseIntensity * 0.7})`;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Bright core
+            ctx.strokeStyle = `rgba(180, 230, 255, ${pulseIntensity})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // White hot center
+            ctx.strokeStyle = `rgba(255, 255, 255, ${pulseIntensity * 0.9})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Draw branches from some points
+            if (branches && points.length > 3) {
+              for (let i = 1; i < points.length - 1; i++) {
+                if (Math.random() < 0.4) { // 40% chance of branch
+                  const branchAngle = Math.atan2(dy, dx) + (Math.random() - 0.5) * Math.PI * 0.8;
+                  const branchLength = 15 + Math.random() * 25;
+                  const branchEndX = points[i].x + Math.cos(branchAngle) * branchLength;
+                  const branchEndY = points[i].y + Math.sin(branchAngle) * branchLength;
+                  
+                  // Small branch bolt
+                  ctx.beginPath();
+                  ctx.moveTo(points[i].x, points[i].y);
+                  const midX = points[i].x + Math.cos(branchAngle) * branchLength * 0.5 + (Math.random() - 0.5) * 10;
+                  const midY = points[i].y + Math.sin(branchAngle) * branchLength * 0.5 + (Math.random() - 0.5) * 10;
+                  ctx.lineTo(midX, midY);
+                  ctx.lineTo(branchEndX, branchEndY);
+                  
+                  ctx.strokeStyle = `rgba(0, 150, 255, ${pulseIntensity * 0.5})`;
+                  ctx.lineWidth = 2;
+                  ctx.stroke();
+                  ctx.strokeStyle = `rgba(200, 240, 255, ${pulseIntensity * 0.8})`;
+                  ctx.lineWidth = 1;
+                  ctx.stroke();
+                }
+              }
+            }
+          };
           
-          // Pulsing circle that grows as charge progresses
-          const chargeRadius = (enemy.size / 2) + (chargeProgress * 20);
-          ctx.beginPath();
-          ctx.arc(0, 0, chargeRadius, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
+          ctx.shadowColor = 'rgba(0, 170, 255, 0.9)';
+          ctx.shadowBlur = 20 + chargeProgress * 15;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'bevel';
           
-          // Inner bright core
-          ctx.fillStyle = `rgba(102, 204, 255, ${pulseIntensity * 0.6})`; // Lighter blue
-          ctx.beginPath();
-          ctx.arc(0, 0, (enemy.size / 2) * (0.7 + chargeProgress * 0.3), 0, Math.PI * 2);
-          ctx.fill();
+          // Draw main lightning bolts shooting outward from enemy
+          const numBolts = 4 + Math.floor(chargeProgress * 4);
+          const innerRadius = enemy.size / 3;
+          const outerRadius = (enemy.size / 2) + 40 + (chargeProgress * 50);
+          
+          // Use time-based seed for flickering effect (bolts change every ~100ms)
+          const flickerSeed = Math.floor(currentTime / 80);
+          
+          for (let i = 0; i < numBolts; i++) {
+            // Slight random angle offset that changes with time for flickering
+            const baseAngle = (i / numBolts) * Math.PI * 2;
+            const angleOffset = Math.sin(flickerSeed + i * 1.7) * 0.3;
+            const angle = baseAngle + angleOffset;
+            
+            const startX = Math.cos(angle) * innerRadius;
+            const startY = Math.sin(angle) * innerRadius;
+            const endX = Math.cos(angle) * outerRadius;
+            const endY = Math.sin(angle) * outerRadius;
+            
+            drawLightningBolt(startX, startY, endX, endY, true);
+          }
+          
+          // Draw some random arcing bolts between points around the enemy
+          const numArcs = Math.floor(chargeProgress * 3);
+          for (let i = 0; i < numArcs; i++) {
+            const angle1 = Math.random() * Math.PI * 2;
+            const angle2 = angle1 + (Math.random() * 0.8 + 0.4) * (Math.random() < 0.5 ? 1 : -1);
+            const radius = (enemy.size / 2) + 10 + Math.random() * 30;
+            
+            const arcStartX = Math.cos(angle1) * radius;
+            const arcStartY = Math.sin(angle1) * radius;
+            const arcEndX = Math.cos(angle2) * radius;
+            const arcEndY = Math.sin(angle2) * radius;
+            
+            drawLightningBolt(arcStartX, arcStartY, arcEndX, arcEndY, false);
+          }
+          
+          // Draw electric sparks/particles
+          const numSparks = 5 + Math.floor(chargeProgress * 10);
+          for (let i = 0; i < numSparks; i++) {
+            const sparkAngle = Math.random() * Math.PI * 2;
+            const sparkDist = (enemy.size / 2) + Math.random() * 50;
+            const sparkX = Math.cos(sparkAngle) * sparkDist;
+            const sparkY = Math.sin(sparkAngle) * sparkDist;
+            
+            // Draw spark as small cross/star
+            ctx.strokeStyle = `rgba(200, 240, 255, ${0.6 + Math.random() * 0.4})`;
+            ctx.lineWidth = 1.5;
+            const sparkSize = 3 + Math.random() * 4;
+            
+            ctx.beginPath();
+            ctx.moveTo(sparkX - sparkSize, sparkY);
+            ctx.lineTo(sparkX + sparkSize, sparkY);
+            ctx.moveTo(sparkX, sparkY - sparkSize);
+            ctx.lineTo(sparkX, sparkY + sparkSize);
+            ctx.stroke();
+          }
           
           ctx.restore();
+        }
+        
+        // Draw THUNDER teleport effect for LAZER enemies (when they just teleported)
+        if (enemy.type === 'lazer' && enemy.majorAttackTeleportTime) {
+          const currentTime = Date.now();
+          const timeSinceTeleport = currentTime - enemy.majorAttackTeleportTime;
+          const teleportEffectDuration = 500; // Effect lasts 500ms
+          
+          if (timeSinceTeleport < teleportEffectDuration) {
+            const effectProgress = timeSinceTeleport / teleportEffectDuration;
+            const fadeOut = 1 - effectProgress;
+            
+            ctx.save();
+            ctx.translate(enemy.position.x, enemy.position.y);
+            
+            ctx.shadowColor = 'rgba(0, 170, 255, 0.9)';
+            ctx.shadowBlur = 30 * fadeOut;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'bevel';
+            
+            // Helper to draw teleport lightning bolt
+            const drawTeleportBolt = (startX: number, startY: number, endX: number, endY: number) => {
+              const points: {x: number, y: number}[] = [{x: startX, y: startY}];
+              const dx = endX - startX;
+              const dy = endY - startY;
+              const length = Math.sqrt(dx * dx + dy * dy);
+              const segments = Math.max(3, Math.floor(length / 20));
+              
+              for (let i = 1; i < segments; i++) {
+                const t = i / segments;
+                const baseX = startX + dx * t;
+                const baseY = startY + dy * t;
+                const perpX = -dy / length;
+                const perpY = dx / length;
+                const zigzag = (i % 2 === 0 ? 1 : -1) * (8 + Math.random() * 15) * fadeOut;
+                points.push({x: baseX + perpX * zigzag, y: baseY + perpY * zigzag});
+              }
+              points.push({x: endX, y: endY});
+              
+              ctx.beginPath();
+              ctx.moveTo(points[0].x, points[0].y);
+              for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+              }
+              
+              ctx.strokeStyle = `rgba(0, 80, 200, ${fadeOut * 0.4})`;
+              ctx.lineWidth = 7;
+              ctx.stroke();
+              ctx.strokeStyle = `rgba(0, 150, 255, ${fadeOut * 0.7})`;
+              ctx.lineWidth = 4;
+              ctx.stroke();
+              ctx.strokeStyle = `rgba(180, 230, 255, ${fadeOut})`;
+              ctx.lineWidth = 2;
+              ctx.stroke();
+              ctx.strokeStyle = `rgba(255, 255, 255, ${fadeOut * 0.8})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            };
+            
+            // Draw lightning bolts shooting outward (explosion effect)
+            const numOutwardBolts = 8;
+            const outerRadius = (enemy.size / 2) + 30 + (effectProgress * 80);
+            
+            for (let i = 0; i < numOutwardBolts; i++) {
+              const angle = (i / numOutwardBolts) * Math.PI * 2 + effectProgress * 1.5;
+              const innerR = enemy.size / 4;
+              const startX = Math.cos(angle) * innerR;
+              const startY = Math.sin(angle) * innerR;
+              const endX = Math.cos(angle) * outerRadius;
+              const endY = Math.sin(angle) * outerRadius;
+              
+              drawTeleportBolt(startX, startY, endX, endY);
+            }
+            
+            // Draw vertical lightning strikes from above (like teleporting in)
+            const numVerticalBolts = 3;
+            for (let i = 0; i < numVerticalBolts; i++) {
+              const offsetX = (i - 1) * 25 + (Math.random() - 0.5) * 10;
+              const topY = -120 * fadeOut;
+              const bottomY = 30 * fadeOut;
+              
+              drawTeleportBolt(offsetX, topY, offsetX + (Math.random() - 0.5) * 20, bottomY);
+            }
+            
+            // Draw bright flash in center that fades
+            if (effectProgress < 0.3) {
+              const flashIntensity = (0.3 - effectProgress) / 0.3;
+              const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, enemy.size / 2);
+              gradient.addColorStop(0, `rgba(200, 240, 255, ${flashIntensity * 0.8})`);
+              gradient.addColorStop(0.5, `rgba(0, 150, 255, ${flashIntensity * 0.4})`);
+              gradient.addColorStop(1, 'rgba(0, 100, 255, 0)');
+              ctx.fillStyle = gradient;
+              ctx.beginPath();
+              ctx.arc(0, 0, enemy.size / 2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            
+            // Electric sparks
+            const numSparks = Math.floor(8 * fadeOut);
+            for (let i = 0; i < numSparks; i++) {
+              const sparkAngle = Math.random() * Math.PI * 2;
+              const sparkDist = (enemy.size / 2) + Math.random() * 60 * fadeOut;
+              const sparkX = Math.cos(sparkAngle) * sparkDist;
+              const sparkY = Math.sin(sparkAngle) * sparkDist;
+              
+              ctx.strokeStyle = `rgba(200, 240, 255, ${fadeOut})`;
+              ctx.lineWidth = 1.5;
+              const sparkSize = 4 + Math.random() * 5;
+              
+              ctx.beginPath();
+              ctx.moveTo(sparkX - sparkSize, sparkY);
+              ctx.lineTo(sparkX + sparkSize, sparkY);
+              ctx.moveTo(sparkX, sparkY - sparkSize);
+              ctx.lineTo(sparkX, sparkY + sparkSize);
+              ctx.stroke();
+            }
+            
+            ctx.restore();
+          }
         }
 
         // Draw charge effect for STRONG enemies charging their shot
