@@ -2986,7 +2986,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       const currentTimeForExplosions = Date.now();
       explosionsRef.current = explosionsRef.current.filter((explosion) => {
         const elapsed = currentTimeForExplosions - explosion.startTime;
-        const explosionDuration = 600; // 600ms total animation duration (50ms per frame for 12 frames)
+        const explosionDuration = 600; // 600ms total animation duration (100ms per frame for 6 frames)
         
         if (elapsed >= explosionDuration) {
           return false; // Remove expired explosions
@@ -2997,14 +2997,26 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         
         ctx.save();
         
-        // Sprite sheet has 12 frames horizontally
-        const totalFrames = 12;
-        const frameWidth = bombSprite.naturalWidth / 12; // Divide image width by 12
-        const frameHeight = bombSprite.naturalHeight;
+        // Sprite sheet has 6 frames with specific positions from JSON
+        const totalFrames = 6;
+        const frameData = [
+          { x: 0, width: 163, height: 198 },
+          { x: 163, width: 163, height: 198 },
+          { x: 326, width: 163, height: 198 },
+          { x: 652, width: 163, height: 198 },
+          { x: 815, width: 163, height: 198 },
+          { x: 978, width: 163, height: 198 },
+        ];
         
         // Calculate current frame (0 to totalFrames-1) based on elapsed time
-        const frameInterval = explosionDuration / totalFrames; // ~50ms per frame
+        const frameInterval = explosionDuration / totalFrames; // ~100ms per frame
         const currentFrame = Math.min(Math.floor(elapsed / frameInterval), totalFrames - 1);
+        
+        // Get frame data for current frame
+        const frame = frameData[currentFrame];
+        const sourceX = frame.x;
+        const sourceWidth = frame.width;
+        const sourceHeight = frame.height;
         
         // Calculate alpha for fade effect
         const alpha = 1.0 - (elapsed / explosionDuration);
@@ -3015,11 +3027,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         const drawSize = explosion.size;
         ctx.translate(explosion.position.x, explosion.position.y);
         
-        // Calculate source x position
-        const sourceX = currentFrame * frameWidth;
-        
         // Maintain aspect ratio of the sprite frame
-        const frameAspectRatio = frameWidth / frameHeight;
+        const frameAspectRatio = sourceWidth / sourceHeight;
         let drawWidth = drawSize;
         let drawHeight = drawSize;
         
@@ -3034,10 +3043,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         
         ctx.drawImage(
           bombSprite,
-          sourceX, // Source x
+          sourceX, // Source x (exact frame position from JSON)
           0, // Source y
-          frameWidth, // Source width
-          frameHeight, // Source height
+          sourceWidth, // Source width (exact frame width from JSON)
+          sourceHeight, // Source height (exact frame height from JSON)
           -drawWidth / 2, // Destination x
           -drawHeight / 2, // Destination y
           drawWidth, // Destination width
