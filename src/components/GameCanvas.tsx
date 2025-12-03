@@ -46,6 +46,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     projectileSize: GAME_BALANCE.player.startingProjectileSize,
     knockback: GAME_BALANCE.player.startingKnockback,
     cooldownReduction: GAME_BALANCE.player.startingCooldownReduction,
+    abilityCooldownReduction: GAME_BALANCE.player.startingAbilityCooldownReduction,
   });
 
   const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
@@ -396,7 +397,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
 
     // Initialize energy beam sound (LAZER enemy major attack)
     const energyBeamSound = new Audio('/assets/heavy-beam-weapon-7052.mp3');
-    energyBeamSound.volume = 0.4; // Set volume to 40%
+    energyBeamSound.volume = 0.8; // Set volume to 80%
     energyBeamSoundRef.current = energyBeamSound;
 
     // Initialize ability activation/deactivation sound
@@ -524,7 +525,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     const playEnergyBeamSound = () => {
       if (isSfxEnabled && energyBeamSoundRef.current) {
         const sound = energyBeamSoundRef.current.cloneNode() as HTMLAudioElement;
-        sound.volume = 0.4;
+        sound.volume = 0.8;
         sound.currentTime = 0; // Start from beginning
         sound.play().catch(() => {
           // Ignore autoplay errors
@@ -961,10 +962,12 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             
             // Activate ability
             const newAbilities = [...prev];
+            // Apply ability cooldown reduction
+            const adjustedCooldown = abilityData.cooldown * (1 - playerStatsRef.current.abilityCooldownReduction);
             newAbilities[abilityIndex] = {
               ...ability,
               endTime: currentTime + abilityData.duration,
-              cooldownEndTime: currentTime + abilityData.duration + abilityData.cooldown,
+              cooldownEndTime: currentTime + abilityData.duration + adjustedCooldown,
             };
             
             // Play ability activation sound
@@ -3490,7 +3493,9 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           const isActive = currentTime < ability.endTime;
           const isOnCooldown = currentTime < ability.cooldownEndTime;
           const cooldownRemaining = Math.max(0, ability.cooldownEndTime - currentTime);
-          const cooldownPercent = isOnCooldown ? (cooldownRemaining / abilityData.cooldown) * 100 : 0;
+          // Calculate adjusted cooldown for display (accounting for ability cooldown reduction)
+          const adjustedCooldown = abilityData.cooldown * (1 - playerStats.abilityCooldownReduction);
+          const cooldownPercent = isOnCooldown ? (cooldownRemaining / adjustedCooldown) * 100 : 0;
           const durationRemaining = isActive ? Math.max(0, ability.endTime - currentTime) : 0;
           const durationPercent = isActive ? (durationRemaining / abilityData.duration) * 100 : 0;
           const secondsRemaining = Math.ceil(durationRemaining / 1000);

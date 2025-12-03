@@ -12,7 +12,8 @@ export interface PlayerStats {
   attackSpeed: number;
   projectileSize: number;
   knockback: number;
-  cooldownReduction: number;
+  cooldownReduction: number; // Reduces weapon cooldown
+  abilityCooldownReduction: number; // Reduces ability cooldown
 }
 
 export enum EnemyType {

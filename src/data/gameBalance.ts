@@ -55,6 +55,7 @@ export const GAME_BALANCE = {
     startingProjectileSize: 1,
     startingKnockback: 10,
     startingCooldownReduction: 0,
+    startingAbilityCooldownReduction: 0,
     
     // Player sprite size (pixels)
     size: 120,

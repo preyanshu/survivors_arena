@@ -7,7 +7,7 @@ export const POWER_UPS: PowerUp[] = [
     description: 'Attack more frequently',
     effect: (stats: PlayerStats) => ({
       ...stats,
-      attackSpeed: stats.attackSpeed * 1.25,
+      cooldownReduction: stats.cooldownReduction + 0.25, // Reduces weapon cooldown by 25%
     }),
   },
   {
@@ -44,7 +44,7 @@ export const POWER_UPS: PowerUp[] = [
     description: 'Reduce ability cooldowns',
     effect: (stats: PlayerStats) => ({
       ...stats,
-      cooldownReduction: stats.cooldownReduction + 0.3,
+      abilityCooldownReduction: stats.abilityCooldownReduction + 0.3, // Reduces ability cooldown by 30%
     }),
   },
   // Ability power-ups
