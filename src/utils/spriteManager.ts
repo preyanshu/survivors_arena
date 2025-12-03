@@ -7,7 +7,7 @@ export class SpriteManager {
 
   async loadSprites(): Promise<void> {
     const spritePaths = {
-      player: '/assets/sprites/player.png',
+      player: '/assets/sprites/spritesheet (1).png', // Player walking animation sprite sheet (12 frames)
       gun: '/assets/sprites/gun.png', // Fallback for old code
       weapon_pistol: '/assets/sprites/weapon_pistol.png',
       weapon_shotgun: '/assets/sprites/weapon_shotgun.png',
