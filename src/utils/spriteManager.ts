@@ -21,6 +21,7 @@ export class SpriteManager {
       enemy_strong: '/assets/sprites/enemy_strong.png',
       enemy_lazer: '/assets/sprites/enemy_lazer.png',
       lazer_beam: '/assets/Untitled.png', // Energy beam sprite sheet (12 frames)
+      bomb_explosion: '/assets/sprites/bomb_sprites.png', // Bomb explosion sprite sheet
       projectile: '/assets/sprites/projectile.png',
       background: '/assets/sprites/background.png',
       slash_effect: '/assets/sprites/slash.png',

@@ -144,6 +144,13 @@ export interface VestPickup {
   life: number; // For animation/pulsing effect
 }
 
+export interface Explosion {
+  id: string;
+  position: Position;
+  startTime: number;
+  size: number;
+}
+
 export interface LaserBeam {
   id: string;
   startPosition: Position; // Enemy position when beam was fired

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation, HealthPickup, AmmoPickup, VestPickup, ActiveAbilityType, ActiveAbilityState } from '../types/game';
+import { Weapon, PlayerStats, Projectile, PowerUp, Position, BloodParticle, SlashAnimation, HealthPickup, AmmoPickup, VestPickup, ActiveAbilityType, ActiveAbilityState, Explosion } from '../types/game';
 import { getAbilityByType } from '../data/activeAbilities';
 import { PixelIcon } from '../utils/pixelIcons';
 import { WeaponManager } from '../managers/WeaponManager';
@@ -149,6 +149,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const healthPickupsRef = useRef<HealthPickup[]>([]);
   const ammoPickupsRef = useRef<AmmoPickup[]>([]);
   const vestPickupsRef = useRef<VestPickup[]>([]);
+  const explosionsRef = useRef<Explosion[]>([]);
   const [currentAmmo, setCurrentAmmo] = useState<number>(0);
   const currentAmmoRef = useRef<number>(0);
   const swordAttackAngleRef = useRef<number | null>(null);
@@ -897,27 +898,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   }, []);
 
   const createFireExplosion = useCallback((position: Position, size: number, intensity: number = 1) => {
-    const particleCount = Math.floor(size / 4 * intensity); // Reduced particle count for less intense explosions
-    
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.6;
-      const speed = (2 + Math.random() * 3) * intensity; // Reduced speed
-      
-      bloodParticlesRef.current.push({
-        id: `fire-${Date.now()}-${Math.random()}`,
-        position: { 
-          x: position.x + (Math.random() - 0.5) * size * 0.2, // Smaller spawn area
-          y: position.y + (Math.random() - 0.5) * size * 0.2
-        },
-        velocity: {
-          x: Math.cos(angle) * speed,
-          y: Math.sin(angle) * speed,
-        },
-        size: 3 + Math.random() * 4, // Smaller particles
-        life: 1.0,
-        maxLife: 0.8, // Shorter lifetime for less lingering effect
-      });
-    }
+    // Create sprite-based explosion animation instead of particles
+    const explosionId = `explosion-${Date.now()}-${Math.random()}`;
+    explosionsRef.current.push({
+      id: explosionId,
+      position: { ...position },
+      startTime: Date.now(),
+      size: size * intensity,
+    });
   }, []);
 
   // Handle E key press to continue to power-up selection or activate abilities
@@ -1249,7 +1237,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                 
                 // WEAK enemies always create fire explosion effect on death
                 if (result.exploded) {
-                  createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
+                  createFireExplosion(result.position, enemy.size * 1.8, 1.5); // Fire explosion effect
                   // Apply explosion damage to player if explosionDamage > 0 (player was in range)
                   if (result.explosionDamage && result.explosionDamage > 0) {
                     if (isShieldActive) {
@@ -1547,7 +1535,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
                 
                 // WEAK enemies always create fire explosion effect on death
                 if (result.exploded) {
-                  createFireExplosion(result.position, enemy.size * 1.2, 1.5); // Smaller, less intense fire explosion
+                  createFireExplosion(result.position, enemy.size * 1.8, 1.5); // Fire explosion effect
                   // Apply explosion damage to player if explosionDamage > 0 (player was in range)
                   if (result.explosionDamage && result.explosionDamage > 0) {
                     if (isShieldActive) {
@@ -1933,7 +1921,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         // Handle weak enemy explosions on contact
         collisionResult.explodedEnemies.forEach((exploded) => {
           // Create fire explosion effect
-          createFireExplosion(exploded.position, 60, 1.5);
+          createFireExplosion(exploded.position, 90, 1.5); // Larger explosion effect
         });
         
         if (damage > 0) {
@@ -2992,6 +2980,73 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
             ctx.fill();
           }
         }
+      });
+
+      // Draw explosions using bomb sprite sheet
+      const currentTimeForExplosions = Date.now();
+      explosionsRef.current = explosionsRef.current.filter((explosion) => {
+        const elapsed = currentTimeForExplosions - explosion.startTime;
+        const explosionDuration = 600; // 600ms total animation duration (50ms per frame for 12 frames)
+        
+        if (elapsed >= explosionDuration) {
+          return false; // Remove expired explosions
+        }
+        
+        const bombSprite = spriteManager.getSprite('bomb_explosion');
+        if (!bombSprite || !bombSprite.complete) return true; // Keep if sprite not loaded yet
+        
+        ctx.save();
+        
+        // Sprite sheet has 12 frames horizontally
+        const totalFrames = 12;
+        const frameWidth = bombSprite.naturalWidth / 12; // Divide image width by 12
+        const frameHeight = bombSprite.naturalHeight;
+        
+        // Calculate current frame (0 to totalFrames-1) based on elapsed time
+        const frameInterval = explosionDuration / totalFrames; // ~50ms per frame
+        const currentFrame = Math.min(Math.floor(elapsed / frameInterval), totalFrames - 1);
+        
+        // Calculate alpha for fade effect
+        const alpha = 1.0 - (elapsed / explosionDuration);
+        
+        ctx.globalAlpha = alpha;
+        
+        // Draw the current frame - maintain aspect ratio
+        const drawSize = explosion.size;
+        ctx.translate(explosion.position.x, explosion.position.y);
+        
+        // Calculate source x position
+        const sourceX = currentFrame * frameWidth;
+        
+        // Maintain aspect ratio of the sprite frame
+        const frameAspectRatio = frameWidth / frameHeight;
+        let drawWidth = drawSize;
+        let drawHeight = drawSize;
+        
+        // Adjust to maintain aspect ratio
+        if (frameAspectRatio > 1) {
+          // Frame is wider than tall
+          drawHeight = drawWidth / frameAspectRatio;
+        } else {
+          // Frame is taller than wide
+          drawWidth = drawHeight * frameAspectRatio;
+        }
+        
+        ctx.drawImage(
+          bombSprite,
+          sourceX, // Source x
+          0, // Source y
+          frameWidth, // Source width
+          frameHeight, // Source height
+          -drawWidth / 2, // Destination x
+          -drawHeight / 2, // Destination y
+          drawWidth, // Destination width
+          drawHeight // Destination height
+        );
+        
+        ctx.restore();
+        
+        return true; // Keep this explosion
       });
 
       // Draw health pickups with pulsing animation
