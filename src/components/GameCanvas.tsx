@@ -169,10 +169,6 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   const lastLaserBeamCountRef = useRef<number>(0);
   // Energy beam sprite sheet animation frame counter
   const energyBeamFrameRef = useRef<number>(0);
-  // Player walking animation tracking
-  const playerWalkingFrameRef = useRef<number>(0);
-  const lastPlayerMoveTimeRef = useRef<number>(0);
-  const isPlayerMovingRef = useRef<boolean>(false);
   const pistolSoundRef = useRef<HTMLAudioElement | null>(null);
   const swordSoundRef = useRef<HTMLAudioElement | null>(null);
   const rifleSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -1075,38 +1071,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       const effectiveSpeed = isSpeedBoostActive ? baseSpeed * 1.5 : baseSpeed; // Doubled from 1.5x to 2.0x
       const speed = effectiveSpeed * (deltaTime / 16);
 
-      // Track if player is moving
-      isPlayerMovingRef.current = false;
-      
-      if (keys['w'] || keys['arrowup']) {
-        newPlayerPos.y -= speed;
-        isPlayerMovingRef.current = true;
-      }
-      if (keys['s'] || keys['arrowdown']) {
-        newPlayerPos.y += speed;
-        isPlayerMovingRef.current = true;
-      }
-      if (keys['a'] || keys['arrowleft']) {
-        newPlayerPos.x -= speed;
-        isPlayerMovingRef.current = true;
-      }
-      if (keys['d'] || keys['arrowright']) {
-        newPlayerPos.x += speed;
-        isPlayerMovingRef.current = true;
-      }
-
-      // Update walking animation frame when moving
-      if (isPlayerMovingRef.current) {
-        const walkFrameInterval = 100; // 100ms per frame
-        const timeSinceLastMove = currentTime - lastPlayerMoveTimeRef.current;
-        if (timeSinceLastMove >= walkFrameInterval) {
-          playerWalkingFrameRef.current = (playerWalkingFrameRef.current + 1) % 12; // 12 frames
-          lastPlayerMoveTimeRef.current = currentTime;
-        }
-      } else {
-        // Reset to first frame when not moving
-        playerWalkingFrameRef.current = 0;
-      }
+      if (keys['w'] || keys['arrowup']) newPlayerPos.y -= speed;
+      if (keys['s'] || keys['arrowdown']) newPlayerPos.y += speed;
+      if (keys['a'] || keys['arrowleft']) newPlayerPos.x -= speed;
+      if (keys['d'] || keys['arrowright']) newPlayerPos.x += speed;
 
       // No boundary clamping - infinite world
 
@@ -3306,67 +3274,16 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         ctx.restore();
       }
 
-      // Draw player sprite with walking animation
-      const playerSprite = spriteManager.getSprite('player');
-      if (playerSprite && playerSprite.complete) {
-        ctx.save();
-        ctx.translate(newPlayerPos.x, newPlayerPos.y);
-        
-        // Player walking animation sprite sheet has 12 frames
-        const frameData = [
-          { x: 1, width: 148, height: 186 },
-          { x: 151, width: 148, height: 186 },
-          { x: 301, width: 148, height: 186 },
-          { x: 451, width: 148, height: 186 },
-          { x: 601, width: 148, height: 186 },
-          { x: 751, width: 148, height: 186 },
-          { x: 901, width: 148, height: 186 },
-          { x: 1051, width: 148, height: 186 },
-          { x: 1201, width: 148, height: 186 },
-          { x: 1351, width: 148, height: 186 },
-          { x: 1501, width: 148, height: 186 },
-          { x: 1651, width: 148, height: 186 },
-        ];
-        
-        const currentFrame = playerWalkingFrameRef.current;
-        const frame = frameData[currentFrame];
-        
-        // Maintain aspect ratio
-        const frameAspectRatio = frame.width / frame.height;
-        let drawWidth = PLAYER_SIZE;
-        let drawHeight = PLAYER_SIZE;
-        
-        if (frameAspectRatio > 1) {
-          drawHeight = drawWidth / frameAspectRatio;
-        } else {
-          drawWidth = drawHeight * frameAspectRatio;
-        }
-        
-        ctx.drawImage(
-          playerSprite,
-          frame.x, // Source x
-          1, // Source y (from JSON, y: 1)
-          frame.width, // Source width
-          frame.height, // Source height
-          -drawWidth / 2, // Destination x
-          -drawHeight / 2, // Destination y
-          drawWidth, // Destination width
-          drawHeight // Destination height
-        );
-        
-        ctx.restore();
-      } else {
-        // Fallback to old method if sprite not loaded
-        spriteManager.drawSprite(
-          ctx,
-          'player',
-          newPlayerPos.x,
-          newPlayerPos.y,
-          PLAYER_SIZE,
-          PLAYER_SIZE,
-          0
-        );
-      }
+      // Draw player sprite (no rotation - always facing same direction)
+      spriteManager.drawSprite(
+        ctx,
+        'player',
+        newPlayerPos.x,
+        newPlayerPos.y,
+        PLAYER_SIZE,
+        PLAYER_SIZE,
+        0 // No rotation for player
+      );
 
       // Draw weapon sprite that rotates with mouse aim
       // Offset weapon slightly to the right to look like player is holding it
