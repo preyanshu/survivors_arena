@@ -113,25 +113,10 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
     <>
       <style>{`
         .menu-button {
-          background-color: #5a0000;
+          transition: all 0.2s ease;
         }
         .menu-button:hover {
-          background-color: #7a0000;
-        }
-        .wallet-button {
-          background-color: #1a1a1a;
-          border: 2px solid #4a4a4a;
-        }
-        .wallet-button:hover {
-          background-color: #2a2a2a;
-          border-color: #6a6a6a;
-        }
-        .wallet-button.connected {
-          background-color: #0a4a0a;
-          border-color: #2a7a2a;
-        }
-        .wallet-button.connected:hover {
-          background-color: #0a5a0a;
+          transform: translateY(-2px) scale(1.02);
         }
       `}</style>
       <div 
@@ -155,18 +140,23 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
               handleButtonInteraction(); // Register interaction
               toggleMusic();
             }}
-            className="border-2 border-white/50 py-2 px-3 text-white font-bold transition-all rounded bg-black/70 hover:bg-black/90 w-12 h-12 flex items-center justify-center"
+            className="hud-button w-12 h-12 flex items-center justify-center"
             style={{ 
               fontSize: '24px',
               imageRendering: 'pixelated',
-              opacity: isMusicEnabled ? 1 : 0.5
+              opacity: isMusicEnabled ? 1 : 0.5,
+              borderColor: 'rgba(0, 200, 255, 0.5)'
             }}
             title={isMusicEnabled ? 'Music ON - Click to turn off' : 'Music OFF - Click to turn on'}
           >
             {isMusicEnabled ? '🎵' : '🔇'}
           </button>
-          <span className="text-white font-bold text-sm bg-black/50 px-2 py-1 rounded border border-white/20" style={{ imageRendering: 'pixelated' }}>
-            MUSIC {isMusicEnabled ? 'ON' : 'OFF'}
+          <span className="hud-panel px-2 py-1 relative" style={{ imageRendering: 'pixelated' }}>
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
+            <span className="hud-text font-bold text-sm">MUSIC {isMusicEnabled ? 'ON' : 'OFF'}</span>
           </span>
         </div>
 
@@ -177,18 +167,23 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
               handleButtonInteraction(); // Register interaction
               toggleSfx();
             }}
-            className="border-2 border-white/50 py-2 px-3 text-white font-bold transition-all rounded bg-black/70 hover:bg-black/90 w-12 h-12 flex items-center justify-center"
+            className="hud-button w-12 h-12 flex items-center justify-center"
             style={{ 
               fontSize: '24px',
               imageRendering: 'pixelated',
-              opacity: isSfxEnabled ? 1 : 0.5
+              opacity: isSfxEnabled ? 1 : 0.5,
+              borderColor: 'rgba(0, 200, 255, 0.5)'
             }}
             title={isSfxEnabled ? 'SFX ON - Click to turn off' : 'SFX OFF - Click to turn on'}
           >
             {isSfxEnabled ? '🔊' : '🔈'}
           </button>
-          <span className="text-white font-bold text-sm bg-black/50 px-2 py-1 rounded border border-white/20" style={{ imageRendering: 'pixelated' }}>
-            SFX {isSfxEnabled ? 'ON' : 'OFF'}
+          <span className="hud-panel px-2 py-1 relative" style={{ imageRendering: 'pixelated' }}>
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
+            <span className="hud-text font-bold text-sm">SFX {isSfxEnabled ? 'ON' : 'OFF'}</span>
           </span>
         </div>
 
@@ -199,17 +194,22 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
               handleButtonInteraction();
               onGuide();
             }}
-            className="border-2 border-white/50 py-2 px-3 text-white font-bold transition-all rounded bg-black/70 hover:bg-black/90 w-12 h-12 flex items-center justify-center"
+            className="hud-button w-12 h-12 flex items-center justify-center"
             style={{ 
               fontSize: '24px',
-              imageRendering: 'pixelated'
+              imageRendering: 'pixelated',
+              borderColor: 'rgba(0, 200, 255, 0.5)'
             }}
             title="Encyclopedia / Guide"
           >
             📖
           </button>
-          <span className="text-white font-bold text-sm bg-black/50 px-2 py-1 rounded border border-white/20" style={{ imageRendering: 'pixelated' }}>
-            GUIDE
+          <span className="hud-panel px-2 py-1 relative" style={{ imageRendering: 'pixelated' }}>
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
+            <span className="hud-text font-bold text-sm">GUIDE</span>
           </span>
         </div>
 
@@ -218,10 +218,11 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
           <div className="relative">
             <button
               onClick={handleOpenNews}
-              className="border-2 border-white/50 py-2 px-3 text-white font-bold transition-all rounded bg-black/70 hover:bg-black/90 w-12 h-12 flex items-center justify-center"
+              className="hud-button w-12 h-12 flex items-center justify-center"
               style={{ 
                 fontSize: '24px',
-                imageRendering: 'pixelated'
+                imageRendering: 'pixelated',
+                borderColor: 'rgba(0, 200, 255, 0.5)'
               }}
               title="Latest News"
             >
@@ -235,8 +236,12 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
               />
             )}
           </div>
-          <span className="text-white font-bold text-sm bg-black/50 px-2 py-1 rounded border border-white/20" style={{ imageRendering: 'pixelated' }}>
-            NEWS
+          <span className="hud-panel px-2 py-1 relative" style={{ imageRendering: 'pixelated' }}>
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
+            <span className="hud-text font-bold text-sm">NEWS</span>
           </span>
         </div>
       </div>
@@ -246,33 +251,43 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
         {connected ? (
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-3">
-              <div className="text-white text-sm font-bold bg-black/70 px-3 py-2 rounded border border-white/30 flex items-center gap-2">
-                {formatAddress(address)}
-                {!isCorrectChain && (
-                  <span className="text-red-400 text-xs font-bold" title="Wrong network">!</span>
-                )}
+              <div className="hud-panel px-3 py-2 relative">
+                <div className="hud-corner hud-corner-tl"></div>
+                <div className="hud-corner hud-corner-tr"></div>
+                <div className="hud-corner hud-corner-bl"></div>
+                <div className="hud-corner hud-corner-br"></div>
+                <div className="hud-text text-sm font-bold flex items-center gap-2">
+                  {formatAddress(address)}
+                  {!isCorrectChain && (
+                    <span className="hud-text-danger text-xs font-bold" title="Wrong network">!</span>
+                  )}
+                </div>
               </div>
               <button
                 onClick={disconnect}
-                className="wallet-button connected border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded"
-                style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+                className="hud-button py-2 px-4 text-sm font-bold"
+                style={{ fontSize: '14px', imageRendering: 'pixelated', borderColor: 'rgba(0, 255, 136, 0.5)' }}
               >
-                DISCONNECT
+                <span className="hud-text-success">DISCONNECT</span>
               </button>
             </div>
             {!isCorrectChain && (
-              <div className="text-red-400 text-xs font-bold bg-red-900/50 px-2 py-1 rounded border border-red-400">
-                WRONG NETWORK - SWITCH TO ONECHAIN TESTNET
+              <div className="hud-panel px-2 py-1 relative">
+                <div className="hud-corner hud-corner-tl"></div>
+                <div className="hud-corner hud-corner-tr"></div>
+                <div className="hud-corner hud-corner-bl"></div>
+                <div className="hud-corner hud-corner-br"></div>
+                <div className="hud-text-danger text-xs font-bold">WRONG NETWORK - SWITCH TO ONECHAIN TESTNET</div>
               </div>
             )}
           </div>
         ) : (
           <button
             onClick={isWalletInstalled() ? connect : installWallet}
-            className="wallet-button border-2 border-white/50 py-2 px-4 text-white text-sm font-bold transition-all rounded"
-            style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+            className="hud-button py-2 px-4 text-sm font-bold"
+            style={{ fontSize: '14px', imageRendering: 'pixelated', borderColor: 'rgba(0, 200, 255, 0.5)' }}
           >
-            {isWalletInstalled() ? 'CONNECT ONECHAIN WALLET' : 'INSTALL ONECHAIN WALLET'}
+            <span className="hud-text">{isWalletInstalled() ? 'CONNECT ONECHAIN WALLET' : 'INSTALL ONECHAIN WALLET'}</span>
           </button>
         )}
       </div>
@@ -301,32 +316,33 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
         <div className="relative">
           <button
             onClick={() => handleMenuClick(onPlay)}
-            className="border-4 border-white py-6 px-12 text-white transition-all w-80 font-bold menu-button"
+            className="hud-button py-6 px-12 w-80 font-bold menu-button"
             style={{ 
               fontSize: '24px',
-              imageRendering: 'pixelated'
+              imageRendering: 'pixelated',
+              borderColor: 'rgba(0, 200, 255, 0.6)'
             }}
           >
-            PLAY
+            <span className="hud-text-accent">PLAY</span>
           </button>
           
           {/* Trophy icon button - positioned to the right, slightly upward */}
           <button
             onClick={onAchievements}
-            className="absolute -right-20 -top-4 text-yellow-400 hover:text-yellow-200 hover:scale-110 transition-all p-2 text-6xl cursor-pointer"
+            className="absolute -right-20 -top-4 hud-text-warning hover:scale-110 transition-all p-2 text-6xl cursor-pointer"
             style={{ 
               background: 'transparent',
               border: 'none',
               fontSize: '60px',
               lineHeight: '1',
               transform: 'scale(1)',
-              filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.5))'
+              filter: 'drop-shadow(0 0 3px rgba(255, 170, 0, 0.6))'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.filter = 'drop-shadow(4px 4px 0px rgba(0,0,0,0.5)) brightness(1.2)';
+              e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(255, 170, 0, 0.9)) brightness(1.2)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.filter = 'drop-shadow(2px 2px 0px rgba(0,0,0,0.5))';
+              e.currentTarget.style.filter = 'drop-shadow(0 0 3px rgba(255, 170, 0, 0.6))';
             }}
             title="Achievements"
           >
@@ -336,62 +352,69 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
 
         <button
           onClick={() => handleMenuClick(onInventory)}
-          className="border-4 border-white py-6 px-12 text-white transition-all w-80 font-bold menu-button"
+          className="hud-button py-6 px-12 w-80 font-bold menu-button"
           style={{ 
             fontSize: '24px',
-            imageRendering: 'pixelated'
+            imageRendering: 'pixelated',
+            borderColor: 'rgba(0, 200, 255, 0.6)'
           }}
         >
-          INVENTORY
+          <span className="hud-text">INVENTORY</span>
         </button>
 
         <button
           onClick={() => handleMenuClick(onDailyChest)}
-          className="border-4 border-white py-6 px-12 text-white transition-all w-80 font-bold menu-button"
+          className="hud-button py-6 px-12 w-80 font-bold menu-button"
           style={{ 
             fontSize: '24px',
-            imageRendering: 'pixelated'
+            imageRendering: 'pixelated',
+            borderColor: 'rgba(0, 200, 255, 0.6)'
           }}
         >
-          DAILY CHEST
+          <span className="hud-text">DAILY CHEST</span>
         </button>
 
         <button
           onClick={() => setShowComingSoon(true)}
-          className="border-4 border-white py-6 px-12 text-white transition-all w-80 font-bold menu-button"
+          className="hud-button py-6 px-12 w-80 font-bold menu-button"
           style={{ 
             fontSize: '24px',
-            imageRendering: 'pixelated'
+            imageRendering: 'pixelated',
+            borderColor: 'rgba(0, 200, 255, 0.6)'
           }}
         >
-          MARKETPLACE
+          <span className="hud-text">MARKETPLACE</span>
         </button>
       </div>
 
       {/* Controls Info - Bottom Center */}
       <div className="absolute bottom-8 left-0 right-0 text-center z-10 pointer-events-none">
-        <div className="inline-block bg-black/70 border-2 border-white/30 p-4 rounded text-white/80">
-          <p className="text-sm font-bold mb-2 text-yellow-400">CONTROLS</p>
+        <div className="hud-panel p-4 relative inline-block">
+          <div className="hud-corner hud-corner-tl"></div>
+          <div className="hud-corner hud-corner-tr"></div>
+          <div className="hud-corner hud-corner-bl"></div>
+          <div className="hud-corner hud-corner-br"></div>
+          <p className="hud-text-warning text-sm font-bold mb-2">CONTROLS</p>
           <div className="flex gap-8 text-xs">
             <div className="flex flex-col items-center">
-              <span className="font-bold text-white">WASD</span>
-              <span>MOVE</span>
+              <span className="hud-text font-bold">WASD</span>
+              <span className="hud-text-accent">MOVE</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-bold text-white">MOUSE</span>
-              <span>AIM</span>
+              <span className="hud-text font-bold">MOUSE</span>
+              <span className="hud-text-accent">AIM</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-bold text-white">L-CLICK</span>
-              <span>SHOOT</span>
+              <span className="hud-text font-bold">L-CLICK</span>
+              <span className="hud-text-accent">SHOOT</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-bold text-white">1 - 5</span>
-              <span>ABILITIES</span>
+              <span className="hud-text font-bold">1 - 5</span>
+              <span className="hud-text-accent">ABILITIES</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-bold text-white">E</span>
-              <span>INTERACT</span>
+              <span className="hud-text font-bold">E</span>
+              <span className="hud-text-accent">INTERACT</span>
             </div>
           </div>
         </div>
@@ -411,27 +434,31 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
           onClick={() => setShowChainWarning(false)}
         >
           <div 
-            className="bg-gray-900 border-4 border-red-500 p-8 max-w-md w-full mx-4 relative"
+            className="hud-panel p-8 max-w-md w-full mx-4 relative"
             onClick={(e) => e.stopPropagation()}
-            style={{ fontFamily: "'Pixelify Sans', sans-serif" }}
+            style={{ fontFamily: "'Pixelify Sans', sans-serif', borderColor: 'rgba(255, 68, 68, 0.6)" }}
           >
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
             <h2 
-              className="text-red-400 text-2xl font-bold mb-4 text-center"
+              className="hud-text-danger text-2xl font-bold mb-4 text-center"
               style={{ imageRendering: 'pixelated' }}
             >
               WRONG NETWORK
             </h2>
             
-            <p className="text-white text-lg mb-4 text-center">
+            <p className="hud-text text-lg mb-4 text-center">
               Your wallet is connected to the wrong network.
             </p>
             
-            <p className="text-yellow-300 text-base mb-6 text-center font-bold">
-              Please switch to <span className="text-cyan-300">OneChain Testnet</span> in your wallet settings.
+            <p className="hud-text-warning text-base mb-6 text-center font-bold">
+              Please switch to <span className="hud-text-accent">OneChain Testnet</span> in your wallet settings.
             </p>
 
             {chainId && (
-              <p className="text-gray-400 text-sm mb-6 text-center">
+              <p className="hud-text-accent text-sm mb-6 text-center">
                 Current network: {chainId}
               </p>
             )}
@@ -442,17 +469,17 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
                   setShowChainWarning(false);
                   checkChain();
                 }}
-                className="border-2 border-white py-2 px-6 text-white font-bold transition-all bg-gray-800 hover:bg-gray-700"
-                style={{ fontSize: '16px', imageRendering: 'pixelated' }}
+                className="hud-button py-2 px-6 font-bold"
+                style={{ fontSize: '16px', imageRendering: 'pixelated', borderColor: 'rgba(0, 200, 255, 0.5)' }}
               >
-                CHECK AGAIN
+                <span className="hud-text">CHECK AGAIN</span>
               </button>
               <button
                 onClick={() => setShowChainWarning(false)}
-                className="border-2 border-white py-2 px-6 text-white font-bold transition-all bg-red-800 hover:bg-red-700"
-                style={{ fontSize: '16px', imageRendering: 'pixelated' }}
+                className="hud-button py-2 px-6 font-bold"
+                style={{ fontSize: '16px', imageRendering: 'pixelated', borderColor: 'rgba(255, 68, 68, 0.5)' }}
               >
-                CLOSE
+                <span className="hud-text-danger">CLOSE</span>
               </button>
             </div>
           </div>
@@ -466,21 +493,25 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
           onClick={() => setShowNews(false)}
         >
           <div 
-            className="border-4 border-white p-6 max-w-xl w-full mx-4 relative max-h-[80vh] overflow-y-auto"
+            className="hud-panel p-6 max-w-xl w-full mx-4 relative max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
-            style={{ fontFamily: "'Pixelify Sans', sans-serif", backgroundColor: '#3a0000' }}
+            style={{ fontFamily: "'Pixelify Sans', sans-serif" }}
           >
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
             {/* Close button */}
             <button
               onClick={() => setShowNews(false)}
-              className="absolute top-4 right-4 text-white hover:text-red-400 transition-colors font-bold"
+              className="absolute top-4 right-4 hud-text hover:hud-text-danger transition-colors font-bold"
               style={{ fontSize: '24px', imageRendering: 'pixelated' }}
             >
               ✕
             </button>
 
             <h2 
-              className="text-white text-2xl font-bold mb-6 text-center border-b-4 border-white pb-4"
+              className="hud-text-accent text-2xl font-bold mb-6 text-center border-b-2 border-cyan-500/50 pb-4"
               style={{ imageRendering: 'pixelated' }}
             >
               LATEST NEWS
@@ -489,15 +520,23 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
             {/* News Entries */}
             <div className="space-y-4">
               {newsEntries.map((news) => (
-                <div key={news.id} className="border-4 border-white p-4" style={{ backgroundColor: '#5a0000' }}>
+                <div key={news.id} className="hud-panel p-4 relative">
+                  <div className="hud-corner hud-corner-tl"></div>
+                  <div className="hud-corner hud-corner-tr"></div>
+                  <div className="hud-corner hud-corner-bl"></div>
+                  <div className="hud-corner hud-corner-br"></div>
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-yellow-300 font-bold" style={{ fontSize: '18px' }}>{news.title}</span>
-                    <span className="text-gray-300 text-sm font-bold">{news.date}</span>
+                    <span className="hud-text-warning font-bold" style={{ fontSize: '18px' }}>{news.title}</span>
+                    <span className="hud-text-accent text-sm font-bold">{news.date}</span>
                   </div>
                   
                   {/* News Image */}
                   {news.image && (
-                    <div className="mb-4 border-2 border-white/50 overflow-hidden">
+                    <div className="mb-4 hud-panel p-2 relative overflow-hidden">
+                      <div className="hud-corner hud-corner-tl"></div>
+                      <div className="hud-corner hud-corner-tr"></div>
+                      <div className="hud-corner hud-corner-bl"></div>
+                      <div className="hud-corner hud-corner-br"></div>
                       <img 
                         src={news.image} 
                         alt={news.title}
@@ -514,7 +553,7 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
                     </div>
                   )}
                   
-                  <p className="text-white leading-relaxed" style={{ fontSize: '14px' }}>
+                  <p className="hud-text leading-relaxed" style={{ fontSize: '14px' }}>
                     {news.description}
                   </p>
                 </div>
@@ -531,22 +570,26 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
           onClick={() => setShowComingSoon(false)}
         >
           <div 
-            className="bg-gray-900 border-4 border-yellow-500 p-8 max-w-md w-full mx-4 relative"
+            className="hud-panel p-8 max-w-md w-full mx-4 relative"
             onClick={(e) => e.stopPropagation()}
-            style={{ fontFamily: "'Pixelify Sans', sans-serif" }}
+            style={{ fontFamily: "'Pixelify Sans', sans-serif', borderColor: 'rgba(255, 170, 0, 0.6)" }}
           >
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
             <h2 
-              className="text-yellow-400 text-2xl font-bold mb-4 text-center"
+              className="hud-text-warning text-2xl font-bold mb-4 text-center"
               style={{ imageRendering: 'pixelated' }}
             >
               MARKETPLACE
             </h2>
             
-            <p className="text-white text-lg mb-6 text-center font-bold">
+            <p className="hud-text text-lg mb-6 text-center font-bold">
               COMING SOON
             </p>
             
-            <p className="text-gray-300 text-base mb-6 text-center">
+            <p className="hud-text-accent text-base mb-6 text-center">
               The marketplace feature is under development. 
               Check back soon to buy and sell weapons!
             </p>
@@ -554,10 +597,10 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
             <div className="flex justify-center">
               <button
                 onClick={() => setShowComingSoon(false)}
-                className="border-2 border-white py-2 px-8 text-white font-bold transition-all bg-gray-800 hover:bg-gray-700"
-                style={{ fontSize: '16px', imageRendering: 'pixelated' }}
+                className="hud-button py-2 px-8 font-bold"
+                style={{ fontSize: '16px', imageRendering: 'pixelated', borderColor: 'rgba(0, 200, 255, 0.5)' }}
               >
-                CLOSE
+                <span className="hud-text">CLOSE</span>
               </button>
             </div>
           </div>

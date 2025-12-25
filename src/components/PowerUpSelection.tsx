@@ -53,19 +53,15 @@ const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionP
 
   return (
     <>
-      <style>{`
-        .powerup-card {
-          background-color: #5a0000;
-        }
-        .powerup-card:hover {
-          background-color: #7a0000;
-        }
-      `}</style>
       <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-      <div className="border-4 border-white p-12 max-w-6xl shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated' }}>
+      <div className="hud-panel p-12 max-w-6xl shadow-2xl relative" style={{ imageRendering: 'pixelated' }}>
+        <div className="hud-corner hud-corner-tl"></div>
+        <div className="hud-corner hud-corner-tr"></div>
+        <div className="hud-corner hud-corner-bl"></div>
+        <div className="hud-corner hud-corner-br"></div>
         <div className="text-center mb-8">
-          <h2 className="text-white mb-4 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>LEVEL UP!</h2>
-          <p className="text-yellow-300 font-bold" style={{ fontSize: '24px' }}>WAVE {wave} COMPLETE</p>
+          <h2 className="hud-text-success mb-4 font-bold" style={{ fontSize: '48px' }}>LEVEL UP!</h2>
+          <p className="hud-text-warning font-bold" style={{ fontSize: '24px' }}>WAVE {wave} COMPLETE</p>
         </div>
 
         <div className="flex gap-6 justify-center flex-wrap">
@@ -73,26 +69,41 @@ const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionP
             <button
               key={powerUp.id}
               onClick={() => onSelectPowerUp(powerUp)}
-              className="border-4 border-white p-6 w-72 transition-all shadow-lg hover:shadow-xl hover:scale-105 powerup-card"
+              className="hud-panel p-6 w-72 transition-all relative hover:scale-105"
               style={{ 
-                imageRendering: 'pixelated'
+                imageRendering: 'pixelated',
+                borderColor: 'rgba(0, 200, 255, 0.5)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(0, 200, 255, 0.9)';
+                e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 200, 255, 0.4), inset 0 0 15px rgba(0, 200, 255, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(0, 200, 255, 0.5)';
+                e.currentTarget.style.boxShadow = '';
               }}
             >
+              <div className="hud-corner hud-corner-tl"></div>
+              <div className="hud-corner hud-corner-tr"></div>
+              <div className="hud-corner hud-corner-bl"></div>
+              <div className="hud-corner hud-corner-br"></div>
               <div className="text-center mb-3">
                 <div className="mb-2 flex justify-center items-center" style={{ minHeight: '48px' }}>
-                  <PixelIcon name={getPowerUpIcon(powerUp.id)} size={48} />
+                  <div style={{ filter: 'drop-shadow(0 0 3px rgba(0, 200, 255, 0.6))' }}>
+                    <PixelIcon name={getPowerUpIcon(powerUp.id)} size={48} />
+                  </div>
                 </div>
-                <div className="text-yellow-300 font-bold mb-2" style={{ fontSize: '28px' }}>
+                <div className="hud-text-warning font-bold mb-2" style={{ fontSize: '28px' }}>
                   [{index + 1}]
                 </div>
               </div>
-              <h3 className="text-white mb-4 font-bold text-center" style={{ fontSize: '18px' }}>{powerUp.name.toUpperCase()}</h3>
-              <p className="text-cyan-300 font-bold text-center" style={{ fontSize: '14px', lineHeight: '1.5' }}>{powerUp.description.toUpperCase()}</p>
+              <h3 className="hud-text mb-4 font-bold text-center" style={{ fontSize: '18px' }}>{powerUp.name.toUpperCase()}</h3>
+              <p className="hud-text-accent font-bold text-center" style={{ fontSize: '14px', lineHeight: '1.5' }}>{powerUp.description.toUpperCase()}</p>
             </button>
           ))}
         </div>
 
-        <p className="text-white text-center mt-8 font-bold" style={{ fontSize: '20px' }}>PRESS <span className="text-yellow-300">1</span>, <span className="text-yellow-300">2</span>, OR <span className="text-yellow-300">3</span> TO SELECT</p>
+        <p className="hud-text text-center mt-8 font-bold" style={{ fontSize: '20px' }}>PRESS <span className="hud-text-warning">1</span>, <span className="hud-text-warning">2</span>, OR <span className="hud-text-warning">3</span> TO SELECT</p>
       </div>
     </div>
     </>

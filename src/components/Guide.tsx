@@ -292,16 +292,16 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
         />
 
         {/* Header */}
-        <div className="relative z-10 flex justify-between items-center p-4 border-b-4 border-white" style={{ backgroundColor: 'rgba(58, 0, 0, 0.9)' }}>
+        <div className="relative z-10 flex justify-between items-center p-4 border-b-2 border-cyan-500/30 hud-panel" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="border-4 border-white py-3 px-8 text-white font-bold hover:bg-red-800 transition-all"
-              style={{ fontSize: '18px', backgroundColor: '#5a0000' }}
+              className="hud-button py-3 px-8 font-bold"
+              style={{ fontSize: '18px', borderColor: 'rgba(0, 200, 255, 0.5)' }}
             >
-              ← BACK
+              <span className="hud-text">← BACK</span>
             </button>
-            <h1 className="text-white font-bold" style={{ fontSize: '32px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+            <h1 className="hud-text-accent font-bold" style={{ fontSize: '32px' }}>
               ENCYCLOPEDIA
             </h1>
           </div>
@@ -312,10 +312,14 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-2 font-bold border-4 border-white transition-all tab-button ${activeCategory === cat ? 'active' : ''}`}
-                style={{ fontSize: '16px' }}
+                className={`hud-button px-5 py-2 font-bold transition-all ${activeCategory === cat ? '' : ''}`}
+                style={{ 
+                  fontSize: '16px',
+                  borderColor: activeCategory === cat ? 'rgba(0, 200, 255, 0.9)' : 'rgba(0, 200, 255, 0.5)',
+                  backgroundColor: activeCategory === cat ? 'rgba(0, 200, 255, 0.1)' : 'rgba(0, 0, 0, 0.85)'
+                }}
               >
-                {cat.toUpperCase()}
+                <span className={activeCategory === cat ? 'hud-text-accent' : 'hud-text'}>{cat.toUpperCase()}</span>
               </button>
             ))}
           </div>
@@ -328,21 +332,25 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
           {activeCategory === 'enemies' && (
             <>
               {/* Left Sidebar */}
-              <div className="w-80 border-r-4 border-white overflow-y-auto guide-sidebar" style={{ backgroundColor: 'rgba(26, 0, 0, 0.9)' }}>
+              <div className="w-80 border-r-2 border-cyan-500/30 overflow-y-auto guide-sidebar" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
                 <div className="p-4">
-                  <h2 className="text-gray-300 font-bold mb-4 pb-2 border-b-2 border-gray-700" style={{ fontSize: '16px' }}>SELECT ENEMY</h2>
+                  <h2 className="hud-text-accent font-bold mb-4 pb-2 border-b-2 border-cyan-500/30" style={{ fontSize: '16px' }}>SELECT ENEMY</h2>
                   {enemies.map((enemy) => {
                     const colors = getTypeColor(enemy.type);
                     return (
                       <button
                         key={enemy.id}
                         onClick={() => setSelectedEnemy(enemy.id)}
-                        className={`w-full flex items-center gap-4 p-4 mb-2 border-4 transition-all list-item ${selectedEnemy === enemy.id ? 'selected' : ''}`}
+                        className={`w-full flex items-center gap-4 p-4 mb-2 hud-panel transition-all relative hover:scale-105 ${selectedEnemy === enemy.id ? 'selected' : ''}`}
                         style={{ 
-                          borderColor: selectedEnemy === enemy.id ? colors.border : '#5a0000',
-                          backgroundColor: selectedEnemy === enemy.id ? colors.bg : undefined
+                          borderColor: selectedEnemy === enemy.id ? colors.border : 'rgba(0, 200, 255, 0.5)',
+                          backgroundColor: selectedEnemy === enemy.id ? colors.bg : 'rgba(0, 0, 0, 0.85)'
                         }}
                       >
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
                         <img 
                           src={enemy.image} 
                           alt={enemy.name}
@@ -353,16 +361,20 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                           }}
                         />
                         <div className="text-left">
-                          <div className="font-bold text-white" style={{ fontSize: '18px' }}>{enemy.name}</div>
-                          <div className="text-gray-400" style={{ fontSize: '14px' }}>{enemy.title}</div>
+                          <div className="hud-text font-bold" style={{ fontSize: '18px' }}>{enemy.name}</div>
+                          <div className="hud-text-accent" style={{ fontSize: '14px' }}>{enemy.title}</div>
                         </div>
                       </button>
                     );
                   })}
                   
                   {/* Coming Soon Message */}
-                  <div className="border-4 border-yellow-900/50 p-4 mt-4" style={{ backgroundColor: 'rgba(90, 60, 0, 0.2)' }}>
-                    <p className="text-yellow-300 text-center font-bold" style={{ fontSize: '14px' }}>
+                  <div className="hud-panel p-4 mt-4 relative" style={{ borderColor: 'rgba(255, 170, 0, 0.5)' }}>
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
+                    <p className="hud-text-warning text-center font-bold" style={{ fontSize: '14px' }}>
                       EXPECT MORE ENEMY TYPES SOON
                     </p>
                   </div>
@@ -370,7 +382,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
               </div>
 
               {/* Right Content */}
-              <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(26, 0, 0, 0.85)' }}>
+              <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
                 {selectedEnemyData && (
                   <div className="max-w-4xl w-full">
                     {/* Enemy Header */}
@@ -391,35 +403,50 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h2 className="text-white font-bold" style={{ fontSize: '32px' }}>{selectedEnemyData.name}</h2>
+                          <h2 className="hud-text font-bold" style={{ fontSize: '32px' }}>{selectedEnemyData.name}</h2>
                           <span 
-                            className="px-3 py-1 font-bold border-2"
+                            className="hud-panel px-3 py-1 font-bold relative"
                             style={{ 
                               fontSize: '14px',
                               backgroundColor: getTypeColor(selectedEnemyData.type).bg,
                               borderColor: getTypeColor(selectedEnemyData.type).border,
-                              color: getTypeColor(selectedEnemyData.type).text
                             }}
                           >
-                            {selectedEnemyData.type.toUpperCase()}
+                            <div className="hud-corner hud-corner-tl"></div>
+                            <div className="hud-corner hud-corner-tr"></div>
+                            <div className="hud-corner hud-corner-bl"></div>
+                            <div className="hud-corner hud-corner-br"></div>
+                            <span className="hud-text">{selectedEnemyData.type.toUpperCase()}</span>
                           </span>
                         </div>
-                        <div className="text-gray-400 italic mb-3" style={{ fontSize: '16px' }}>"{selectedEnemyData.title}"</div>
-                        <p className="text-gray-300 mb-4" style={{ fontSize: '16px' }}>{selectedEnemyData.description}</p>
+                        <div className="hud-text-accent italic mb-3" style={{ fontSize: '16px' }}>"{selectedEnemyData.title}"</div>
+                        <p className="hud-text mb-4" style={{ fontSize: '16px' }}>{selectedEnemyData.description}</p>
                         
                         {/* Stats */}
                         <div className="flex gap-4">
-                          <div className="border-2 border-red-900 px-4 py-2" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                            <span className="text-red-400" style={{ fontSize: '12px' }}>HP</span>
-                            <span className="text-white font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.hp}</span>
+                          <div className="hud-panel px-4 py-2 relative" style={{ borderColor: 'rgba(255, 68, 68, 0.5)' }}>
+                            <div className="hud-corner hud-corner-tl"></div>
+                            <div className="hud-corner hud-corner-tr"></div>
+                            <div className="hud-corner hud-corner-bl"></div>
+                            <div className="hud-corner hud-corner-br"></div>
+                            <span className="hud-text-danger" style={{ fontSize: '12px' }}>HP</span>
+                            <span className="hud-text font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.hp}</span>
                           </div>
-                          <div className="border-2 border-blue-900 px-4 py-2" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                            <span className="text-blue-400" style={{ fontSize: '12px' }}>SPEED</span>
-                            <span className="text-white font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.speed}</span>
+                          <div className="hud-panel px-4 py-2 relative" style={{ borderColor: 'rgba(0, 200, 255, 0.5)' }}>
+                            <div className="hud-corner hud-corner-tl"></div>
+                            <div className="hud-corner hud-corner-tr"></div>
+                            <div className="hud-corner hud-corner-bl"></div>
+                            <div className="hud-corner hud-corner-br"></div>
+                            <span className="hud-text-accent" style={{ fontSize: '12px' }}>SPEED</span>
+                            <span className="hud-text font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.speed}</span>
                           </div>
-                          <div className="border-2 border-orange-900 px-4 py-2" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                            <span className="text-orange-400" style={{ fontSize: '12px' }}>DMG</span>
-                            <span className="text-white font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.damage}</span>
+                          <div className="hud-panel px-4 py-2 relative" style={{ borderColor: 'rgba(255, 170, 0, 0.5)' }}>
+                            <div className="hud-corner hud-corner-tl"></div>
+                            <div className="hud-corner hud-corner-tr"></div>
+                            <div className="hud-corner hud-corner-bl"></div>
+                            <div className="hud-corner hud-corner-br"></div>
+                            <span className="hud-text-warning" style={{ fontSize: '12px' }}>DMG</span>
+                            <span className="hud-text font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.damage}</span>
                           </div>
                         </div>
                       </div>
@@ -427,12 +454,16 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
 
                     {/* Abilities Section */}
                     <div className="mb-6">
-                      <h3 className="text-yellow-500 font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
+                      <h3 className="hud-text-warning font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
                         <PixelIcon name="star" size={24} /> ABILITIES
                       </h3>
                       <div className="space-y-4">
                         {selectedEnemyData.abilities.map((ability, idx) => (
-                          <div key={idx} className="border-4 border-gray-700 p-5" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                          <div key={idx} className="hud-panel p-5 relative">
+                            <div className="hud-corner hud-corner-tl"></div>
+                            <div className="hud-corner hud-corner-tr"></div>
+                            <div className="hud-corner hud-corner-bl"></div>
+                            <div className="hud-corner hud-corner-br"></div>
                             <div className="flex gap-5">
                               <div className="w-48 h-48 shrink-0 border-2 border-gray-600 flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
                                 <img 
@@ -593,7 +624,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
               </div>
 
               {/* Right Content */}
-              <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(26, 0, 0, 0.85)' }}>
+              <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
                 {selectedAbilityData && (
                   <div className="max-w-4xl w-full">
                     <div className="flex gap-6 mb-6 pb-5 border-b-4 border-yellow-700">

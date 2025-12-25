@@ -79,21 +79,22 @@ const WeaponSelection = ({ onSelectWeapon, onBack, availableWeapons, loading }: 
       {onBack && (
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 border-4 border-white py-3 px-8 text-white font-bold back-button"
+          className="absolute top-6 left-6 hud-button py-3 px-8 font-bold"
           style={{ 
             fontSize: '18px',
             imageRendering: 'pixelated',
-            zIndex: 20
+            zIndex: 20,
+            borderColor: 'rgba(0, 200, 255, 0.5)'
           }}
         >
-          ← BACK
+          <span className="hud-text">← BACK</span>
         </button>
       )}
       <div className="text-center pt-24 pb-8 relative flex-shrink-0" style={{ zIndex: 10 }}>
-        <h1 className="mb-4 text-white" style={{ fontSize: '40px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
+        <h1 className="hud-text-accent mb-4 font-bold" style={{ fontSize: '40px' }}>CHOOSE A WEAPON FROM YOUR INVENTORY</h1>
         
         {loading && (
-          <div className="text-yellow-300 text-center font-bold text-2xl animate-pulse">
+          <div className="hud-text-warning text-center font-bold text-2xl animate-pulse">
             LOADING WEAPONS...
           </div>
         )}
@@ -171,13 +172,24 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
   return (
     <button
       onClick={onClick}
-      className="border-4 p-6 w-64 h-64 transition-all flex flex-col items-center justify-center weapon-card"
+      className="hud-panel p-6 w-64 h-64 transition-all flex flex-col items-center justify-center relative hover:scale-105"
       style={{ 
         imageRendering: 'pixelated',
         backgroundColor: rarityColor,
         borderColor: rarityBorderColor,
       }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = rarityBorderColor;
+        e.currentTarget.style.boxShadow = `0 0 10px ${rarityBorderColor}40, inset 0 0 10px ${rarityBorderColor}20`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = '';
+      }}
     >
+      <div className="hud-corner hud-corner-tl" style={{ borderColor: rarityBorderColor }}></div>
+      <div className="hud-corner hud-corner-tr" style={{ borderColor: rarityBorderColor }}></div>
+      <div className="hud-corner hud-corner-bl" style={{ borderColor: rarityBorderColor }}></div>
+      <div className="hud-corner hud-corner-br" style={{ borderColor: rarityBorderColor }}></div>
       <canvas
         ref={canvasRef}
         width={240}
@@ -185,7 +197,7 @@ const WeaponCard = ({ weapon, onClick, spritesLoaded }: WeaponCardProps) => {
         style={{ imageRendering: 'pixelated' }}
         className="mb-3"
       />
-      <span className="text-white font-bold" style={{ fontSize: '14px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+      <span className="hud-text font-bold" style={{ fontSize: '14px' }}>
         {weapon.name.toUpperCase()}
       </span>
     </button>

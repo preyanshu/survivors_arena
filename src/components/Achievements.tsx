@@ -112,14 +112,15 @@ const Achievements = ({ onBack }: AchievementsProps) => {
       {/* Back button */}
       <button
         onClick={onBack}
-        className="absolute top-6 left-6 border-4 border-white py-3 px-8 text-white font-bold bg-[#5a0000] hover:bg-[#7a0000] transition-all"
+        className="absolute top-6 left-6 hud-button py-3 px-8 font-bold"
         style={{ 
           fontSize: '18px',
           imageRendering: 'pixelated',
-          zIndex: 20
+          zIndex: 20,
+          borderColor: 'rgba(0, 200, 255, 0.5)'
         }}
       >
-        ← BACK
+        <span className="hud-text">← BACK</span>
       </button>
 
       {/* Wallet connection button - top right */}
@@ -158,20 +159,24 @@ const Achievements = ({ onBack }: AchievementsProps) => {
         )}
       </div>
 
-      <div className="border-4 border-white p-8 text-center relative max-w-6xl w-full mx-4 h-[80vh] flex flex-col" style={{ backgroundColor: 'rgba(58, 0, 0, 0.9)', imageRendering: 'pixelated', zIndex: 10 }}>
-        <h1 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>ACHIEVEMENTS</h1>
+      <div className="hud-panel p-8 text-center relative max-w-6xl w-full mx-4 h-[80vh] flex flex-col" style={{ imageRendering: 'pixelated', zIndex: 10 }}>
+        <div className="hud-corner hud-corner-tl"></div>
+        <div className="hud-corner hud-corner-tr"></div>
+        <div className="hud-corner hud-corner-bl"></div>
+        <div className="hud-corner hud-corner-br"></div>
+        <h1 className="hud-text-accent mb-8 font-bold" style={{ fontSize: '48px' }}>ACHIEVEMENTS</h1>
         
         {loading && (
-          <div className="text-yellow-300 text-xl font-bold mb-4 animate-pulse">LOADING ACHIEVEMENTS...</div>
+          <div className="hud-text-warning text-xl font-bold mb-4 animate-pulse">LOADING ACHIEVEMENTS...</div>
         )}
 
         {!connected && (
-          <div className="text-gray-400 text-lg font-bold mb-4">Connect your wallet to view achievements</div>
+          <div className="hud-text-accent text-lg font-bold mb-4">Connect your wallet to view achievements</div>
         )}
 
         <div className="overflow-y-auto flex-1 pr-4 custom-scrollbar">
           {displayedAchievements.length === 0 && !loading && connected && (
-            <div className="text-gray-400 text-lg font-bold text-center py-8">
+            <div className="hud-text-accent text-lg font-bold text-center py-8">
               No achievements owned yet. Play the game to unlock achievements!
             </div>
           )}
@@ -179,9 +184,18 @@ const Achievements = ({ onBack }: AchievementsProps) => {
             {displayedAchievements.map((achievement) => (
               <div 
                 key={achievement.id} 
-                className="border-2 border-yellow-500 bg-yellow-900/20 p-4 flex gap-4 text-left hover:bg-black/60 transition-colors"
+                className="hud-panel p-4 flex gap-4 text-left relative hover:scale-105 transition-all"
+                style={{ borderColor: 'rgba(255, 170, 0, 0.5)' }}
               >
-                <div className="w-24 h-24 flex-shrink-0 border-2 border-white/30 bg-black/50">
+                <div className="hud-corner hud-corner-tl"></div>
+                <div className="hud-corner hud-corner-tr"></div>
+                <div className="hud-corner hud-corner-bl"></div>
+                <div className="hud-corner hud-corner-br"></div>
+                <div className="w-24 h-24 flex-shrink-0 hud-panel p-1 relative">
+                  <div className="hud-corner hud-corner-tl"></div>
+                  <div className="hud-corner hud-corner-tr"></div>
+                  <div className="hud-corner hud-corner-bl"></div>
+                  <div className="hud-corner hud-corner-br"></div>
                   <img 
                     src={achievement.image} 
                     alt={achievement.title} 
@@ -191,17 +205,17 @@ const Achievements = ({ onBack }: AchievementsProps) => {
                 </div>
                 <div className="flex flex-col flex-1 gap-1">
                   <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-xl text-yellow-400">
+                    <h3 className="hud-text-warning font-bold text-xl">
                       {achievement.title}
                     </h3>
-                    <span className="text-gray-400 text-sm">Wave {achievement.waveRequirement}</span>
+                    <span className="hud-text-accent text-sm">Wave {achievement.waveRequirement}</span>
                   </div>
-                  <p className="text-white/80 text-sm mb-2">{achievement.description}</p>
-                  <div className="mt-auto pt-2 border-t border-white/20 flex flex-col gap-2">
+                  <p className="hud-text text-sm mb-2">{achievement.description}</p>
+                  <div className="mt-auto pt-2 border-t border-cyan-500/20 flex flex-col gap-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-green-400 text-xs font-bold">OWNED</span>
+                      <span className="hud-text-success text-xs font-bold">OWNED</span>
                     </div>
-                    <div className="text-gray-300 text-xs break-all">
+                    <div className="hud-text-accent text-xs break-all">
                       NFT ID: {achievement.nftId}
                     </div>
                   </div>

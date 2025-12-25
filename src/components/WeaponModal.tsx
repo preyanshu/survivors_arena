@@ -55,7 +55,7 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
       onClick={onClose}
     >
       <div 
-        className="border-4 p-6 max-w-lg"
+        className="hud-panel p-6 max-w-lg relative"
         style={{ 
           backgroundColor: getRarityColor(weapon.rarity), 
           borderColor: getRarityBorderColor(weapon.rarity),
@@ -63,21 +63,27 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-white text-center mb-2" style={{ fontSize: '28px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+        <div className="hud-corner hud-corner-tl"></div>
+        <div className="hud-corner hud-corner-tr"></div>
+        <div className="hud-corner hud-corner-bl"></div>
+        <div className="hud-corner hud-corner-br"></div>
+        <h2 className="hud-text text-center mb-2 font-bold" style={{ fontSize: '28px' }}>
           {weapon.name.toUpperCase()}
         </h2>
         <div className="text-center mb-3">
           <span 
-            className="font-bold px-3 py-1 border-2 inline-block"
+            className="hud-panel px-3 py-1 relative inline-block"
             style={{
               fontSize: '12px',
               backgroundColor: getRarityColor(weapon.rarity),
               borderColor: getRarityBorderColor(weapon.rarity),
-              color: '#ffffff',
-              textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
             }}
           >
-            {weapon.rarity.toUpperCase()}
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
+            <span className="hud-text font-bold">{weapon.rarity.toUpperCase()}</span>
           </span>
         </div>
 
@@ -90,19 +96,19 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
           />
         </div>
 
-        <div className="text-white mb-4" style={{ fontSize: '16px' }}>
+        <div className="hud-text mb-4" style={{ fontSize: '16px' }}>
           <div className="mb-2">
-            <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300 ml-2">{weapon.baseDamage}</span>
+            <span className="hud-text-accent">DAMAGE:</span> <span className="hud-text-warning ml-2">{weapon.baseDamage}</span>
           </div>
           <div className="mb-2">
-            <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2">{calculateFirerate(weapon.cooldown).toFixed(5)}</span>
+            <span className="hud-text-accent">FIRERATE:</span> <span className="hud-text-warning ml-2">{calculateFirerate(weapon.cooldown).toFixed(5)}</span>
           </div>
           {weapon.range && (
             <div className="mb-2">
-              <span className="text-gray-300">RANGE:</span> <span className="text-yellow-300 ml-2">{weapon.range}</span>
+              <span className="hud-text-accent">RANGE:</span> <span className="hud-text-warning ml-2">{weapon.range}</span>
             </div>
           )}
-          <div className="mt-3 text-yellow-300 font-bold text-center" style={{ fontSize: '12px', fontFamily: 'monospace' }}>
+          <div className="mt-3 hud-text-warning font-bold text-center" style={{ fontSize: '12px', fontFamily: 'monospace' }}>
             {weapon.id?.startsWith('default-') 
               ? '[DEFAULT WEAPON]' 
               : weapon.id 
@@ -114,17 +120,17 @@ const WeaponModal = ({ weapon, onConfirm, onClose }: WeaponModalProps) => {
         <div className="flex gap-4 justify-center">
           <button
             onClick={onClose}
-            className="bg-gray-700 hover:bg-gray-600 text-white border-4 border-white py-3 px-6 transition-all"
-            style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+            className="hud-button py-3 px-6 font-bold"
+            style={{ fontSize: '14px', imageRendering: 'pixelated', borderColor: 'rgba(0, 200, 255, 0.5)' }}
           >
-            CANCEL
+            <span className="hud-text">CANCEL</span>
           </button>
           <button
             onClick={onConfirm}
-            className="bg-green-700 hover:bg-green-600 text-white border-4 border-white py-3 px-6 transition-all"
-            style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+            className="hud-button py-3 px-6 font-bold"
+            style={{ fontSize: '14px', imageRendering: 'pixelated', borderColor: 'rgba(0, 255, 136, 0.5)' }}
           >
-            CONFIRM
+            <span className="hud-text-success">CONFIRM</span>
           </button>
         </div>
       </div>

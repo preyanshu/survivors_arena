@@ -426,14 +426,15 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
       <button
         onClick={handleBack}
         disabled={isOpening}
-        className="absolute top-6 left-6 border-4 border-white py-3 px-8 text-white font-bold bg-[#5a0000] hover:bg-[#7a0000] disabled:bg-gray-600 transition-all"
+        className="absolute top-6 left-6 hud-button py-3 px-8 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ 
           fontSize: '18px',
           imageRendering: 'pixelated',
-          zIndex: 20
+          zIndex: 20,
+          borderColor: 'rgba(0, 200, 255, 0.5)'
         }}
       >
-        ← BACK
+        <span className="hud-text">← BACK</span>
       </button>
 
       {/* Wallet connection button - top right */}
@@ -472,8 +473,12 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
         )}
       </div>
       
-      <div className="border-4 border-white p-5 text-center relative max-w-3xl w-full mx-4" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', zIndex: 10 }}>
-        <h1 className="text-white mb-3 font-bold" style={{ fontSize: '28px' }}>DAILY CHEST</h1>
+      <div className="hud-panel p-5 text-center relative max-w-3xl w-full mx-4" style={{ imageRendering: 'pixelated', zIndex: 10 }}>
+        <div className="hud-corner hud-corner-tl"></div>
+        <div className="hud-corner hud-corner-tr"></div>
+        <div className="hud-corner hud-corner-bl"></div>
+        <div className="hud-corner hud-corner-br"></div>
+        <h1 className="hud-text-accent mb-3 font-bold" style={{ fontSize: '28px' }}>DAILY CHEST</h1>
         
         {/* Chest Canvas Container - Relative positioning for weapon placement */}
         <div className="relative flex justify-center mb-2" style={{ zIndex: 10 }}>
@@ -501,61 +506,69 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
         
         {openedWeapon ? (
           <div className="space-y-2">
-            <div className="text-[#ffd700] mb-1 font-bold" style={{ fontSize: '20px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+            <div className="hud-text-warning mb-1 font-bold" style={{ fontSize: '20px' }}>
               YOU OBTAINED:
             </div>
             <div 
-              className="border-4 p-4 mx-auto max-w-xl"
+              className="hud-panel p-4 mx-auto max-w-xl relative"
               style={{
                 backgroundColor: getRarityColor(openedWeapon.rarity),
                 borderColor: getRarityBorderColor(openedWeapon.rarity),
               }}
             >
-              <div className="text-white font-bold mb-3" style={{ fontSize: '20px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+              <div className="hud-corner hud-corner-tl"></div>
+              <div className="hud-corner hud-corner-tr"></div>
+              <div className="hud-corner hud-corner-bl"></div>
+              <div className="hud-corner hud-corner-br"></div>
+              <div className="hud-text font-bold mb-3" style={{ fontSize: '20px' }}>
                 {openedWeapon.name.toUpperCase()}
               </div>
-              <div className="text-white text-xs space-y-2 mt-2">
-                <div>DAMAGE: <span className="text-[#ffd700] font-bold">{openedWeapon.baseDamage}</span></div>
-                <div>FIRERATE: <span className="text-[#ffd700] font-bold">{calculateFirerate(openedWeapon.cooldown).toFixed(5)}</span></div>
+              <div className="hud-text text-xs space-y-2 mt-2">
+                <div>DAMAGE: <span className="hud-text-warning font-bold">{openedWeapon.baseDamage}</span></div>
+                <div>FIRERATE: <span className="hud-text-warning font-bold">{calculateFirerate(openedWeapon.cooldown).toFixed(5)}</span></div>
                 {openedWeapon.range && (
-                  <div>RANGE: <span className="text-[#ffd700] font-bold">{openedWeapon.range}</span></div>
+                  <div>RANGE: <span className="hud-text-warning font-bold">{openedWeapon.range}</span></div>
                 )}
-                <div className="mt-4 pt-3 border-t border-white/30">
-                  <div className="text-white text-xs font-mono truncate" title={openedWeapon.id && !openedWeapon.id.startsWith('default-') ? openedWeapon.id : '0x0000000000000000000000000000000000000000000000000000000000000000'}>
+                <div className="mt-4 pt-3 border-t border-cyan-500/30">
+                  <div className="hud-text-accent text-xs font-mono truncate" title={openedWeapon.id && !openedWeapon.id.startsWith('default-') ? openedWeapon.id : '0x0000000000000000000000000000000000000000000000000000000000000000'}>
                     NFT ID: {openedWeapon.id && !openedWeapon.id.startsWith('default-') ? openedWeapon.id : '0x0000000000000000000000000000000000000000000000000000000000000000'}
                   </div>
                 </div>
               </div>
             </div>
             
-            <p className="text-[#00d4ff] font-bold mt-2 mb-6" style={{ fontSize: '14px', textShadow: '1px 1px 0px rgba(0,0,0,0.8)' }}>
+            <p className="hud-text-accent font-bold mt-2 mb-6" style={{ fontSize: '14px' }}>
               CHECK YOUR INVENTORY TO VIEW YOUR NEW WEAPON!
             </p>
             
             <button
               onClick={handleBack}
-              className="bg-green-700 hover:bg-green-600 text-white border-4 border-white py-3 px-10 transition-all font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-y-1 hover:shadow-none"
-              style={{ fontSize: '18px', imageRendering: 'pixelated' }}
+              className="hud-button py-3 px-10 font-bold"
+              style={{ fontSize: '18px', imageRendering: 'pixelated', borderColor: 'rgba(0, 255, 136, 0.5)' }}
             >
-              OK
+              <span className="hud-text-success">OK</span>
             </button>
           </div>
         ) : (
           <>
             {canOpen ? (
               <div className="space-y-3">
-                <p className="text-[#ffd700] mb-2 font-bold" style={{ fontSize: '18px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                <p className="hud-text-warning mb-2 font-bold" style={{ fontSize: '18px' }}>
                   TEST YOUR LUCK FOR A RARE WEAPON!
                 </p>
-                <p className="text-white mb-2 font-semibold" style={{ fontSize: '14px' }}>
+                <p className="hud-text mb-2 font-semibold" style={{ fontSize: '14px' }}>
                   UNLOCK THIS CHEST TO MINT AN NFT WEAPON
                 </p>
-                <p className="text-gray-300 mb-6 text-xs">
+                <p className="hud-text-accent mb-6 text-xs">
                   DISCOVER POWERFUL WEAPONS WITH UNIQUE STATS
                 </p>
                 
                 {mintError && (
-                  <div className="text-red-400 border border-red-400 p-2 mb-4 bg-red-900/50 text-xs">
+                  <div className="hud-text-danger hud-panel p-2 mb-4 text-xs relative" style={{ borderColor: 'rgba(255, 68, 68, 0.6)' }}>
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
                     {mintError}
                   </div>
                 )}
@@ -563,23 +576,23 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
                 <button
                   onClick={() => handleOpenCrate(false)}
                   disabled={isOpening}
-                  className="bg-green-700 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white border-4 border-white py-4 px-10 transition-all font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-y-1 hover:shadow-none"
-                  style={{ fontSize: '20px', imageRendering: 'pixelated' }}
+                  className="hud-button py-4 px-10 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ fontSize: '20px', imageRendering: 'pixelated', borderColor: 'rgba(0, 255, 136, 0.5)' }}
                 >
-                  {isOpening ? 'MINTING...' : 'OPEN CHEST'}
+                  <span className="hud-text-success">{isOpening ? 'MINTING...' : 'OPEN CHEST'}</span>
                 </button>
                 {!connected && (
-                  <p className="text-yellow-400 text-sm mt-2">
+                  <p className="hud-text-warning text-sm mt-2">
                     * Wallet connection required to mint
                   </p>
                 )}
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-white mb-2 font-semibold" style={{ fontSize: '16px' }}>
+                <p className="hud-text mb-2 font-semibold" style={{ fontSize: '16px' }}>
                   YOU HAVE ALREADY OPENED YOUR DAILY CHEST
                 </p>
-                <p className="text-[#ffd700] mb-3 font-bold" style={{ fontSize: '18px', textShadow: '1px 1px 0px rgba(0,0,0,0.8)' }}>
+                <p className="hud-text-warning mb-3 font-bold" style={{ fontSize: '18px' }}>
                   {!connected ? "CONNECT WALLET TO CHECK STATUS" : 
                    (isLoadingState ? "CHECKING STATUS..." : 
                     (timeRemaining ? `NEXT CHEST AVAILABLE IN: ${timeRemaining}` : "CHECKING STATUS..."))}
@@ -587,16 +600,16 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
                 
                 {feeRequired > 0 && (
                   <div className="mt-2">
-                    <p className="text-white mb-1 text-xs">OR OPEN IMMEDIATELY</p>
+                    <p className="hud-text mb-1 text-xs">OR OPEN IMMEDIATELY</p>
                     <button
                       onClick={() => handleOpenCrate(true)}
                       disabled={isOpening}
-                      className="bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white border-4 border-white py-3 px-6 transition-all font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-y-1 hover:shadow-none"
-                      style={{ fontSize: '16px', imageRendering: 'pixelated' }}
+                      className="hud-button py-3 px-6 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ fontSize: '16px', imageRendering: 'pixelated', borderColor: 'rgba(255, 170, 0, 0.5)' }}
                     >
-                      {isOpening ? 'MINTING...' : `PAY ${(feeRequired / 1_000_000_000).toFixed(4)} OCT FEE`}
+                      <span className="hud-text-warning">{isOpening ? 'MINTING...' : `PAY ${(feeRequired / 1_000_000_000).toFixed(4)} OCT FEE`}</span>
                     </button>
-                    <p className="text-gray-400 text-xs mt-1">
+                    <p className="hud-text-accent text-xs mt-1">
                       (1 OCT Base + {((feeRequired / 1_000_000_000) - 1).toFixed(4)} Time Fee)
                     </p>
                   </div>

@@ -147,14 +147,15 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
         {/* Back button */}
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 border-4 border-white py-3 px-8 text-white font-bold back-button"
+          className="absolute top-6 left-6 hud-button py-3 px-8 font-bold"
           style={{ 
             fontSize: '18px',
             imageRendering: 'pixelated',
-            zIndex: 20
+            zIndex: 20,
+            borderColor: 'rgba(0, 200, 255, 0.5)'
           }}
         >
-          ← BACK
+          <span className="hud-text">← BACK</span>
         </button>
 
         {/* Wallet connection button - top right */}
@@ -194,8 +195,8 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
         </div>
 
         {/* Left side - Weapon list */}
-        <div className="w-1/3 p-8 pt-20 border-r-4 border-white overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
-          <h1 className="text-white mb-8 text-center font-bold" style={{ fontSize: '32px' }}>INVENTORY</h1>
+        <div className="w-1/3 p-8 pt-20 border-r-2 border-cyan-500/30 overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
+          <h1 className="hud-text-accent mb-8 text-center font-bold" style={{ fontSize: '32px' }}>INVENTORY</h1>
 
           <div className="flex flex-col gap-4">
             {playerInventory.map((weapon) => {
@@ -207,16 +208,27 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                 <button
                   key={weapon.id || `${weapon.type}-${weapon.rarity}-${Math.random()}`}
                   onClick={() => setSelectedWeapon(weapon)}
-                  className={`border-4 p-4 text-left transition-all weapon-list-item ${
+                  className={`hud-panel p-4 text-left transition-all relative hover:scale-105 ${
                     isSelected ? 'selected' : ''
                   }`}
                   style={{ 
                     imageRendering: 'pixelated',
-                    backgroundColor: isSelected ? rarityColor : '#5a0000',
+                    backgroundColor: isSelected ? rarityColor : 'rgba(0, 0, 0, 0.85)',
                     borderColor: rarityBorderColor,
                   }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = rarityBorderColor;
+                    e.currentTarget.style.boxShadow = `0 0 10px ${rarityBorderColor}40, inset 0 0 10px ${rarityBorderColor}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '';
+                  }}
                 >
-                  <span className="text-white font-bold" style={{ fontSize: '20px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                  <div className="hud-corner hud-corner-tl" style={{ borderColor: rarityBorderColor }}></div>
+                  <div className="hud-corner hud-corner-tr" style={{ borderColor: rarityBorderColor }}></div>
+                  <div className="hud-corner hud-corner-bl" style={{ borderColor: rarityBorderColor }}></div>
+                  <div className="hud-corner hud-corner-br" style={{ borderColor: rarityBorderColor }}></div>
+                  <span className="hud-text font-bold" style={{ fontSize: '20px' }}>
                     {weapon.name.toUpperCase()}
                   </span>
                 </button>
@@ -225,7 +237,7 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
           </div>
           
           {loading && (
-            <div className="text-yellow-300 text-center mt-4 font-bold text-xl animate-pulse">
+            <div className="hud-text-warning text-center mt-4 font-bold text-xl animate-pulse">
               LOADING INVENTORY...
             </div>
           )}
@@ -235,13 +247,17 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
         <div className="w-2/3 p-6 pt-20 flex flex-col items-center justify-start overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
           {selectedWeapon ? (
             <>
-              <h2 className="text-white mb-2 font-bold text-center" style={{ fontSize: '32px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+              <h2 className="hud-text-accent mb-2 font-bold text-center" style={{ fontSize: '32px' }}>
                 {selectedWeapon.name.toUpperCase()}
               </h2>
               
               <div className="mb-4 mx-auto max-w-full px-4 text-center">
-                <div className="inline-block bg-black/60 border-2 border-yellow-500/50 px-4 py-2 rounded max-w-full overflow-hidden">
-                  <div className="text-yellow-300 text-xs font-bold font-mono whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ textShadow: '1px 1px 0px rgba(0,0,0,0.8)' }}>
+                <div className="hud-panel px-4 py-2 relative inline-block max-w-full overflow-hidden">
+                  <div className="hud-corner hud-corner-tl"></div>
+                  <div className="hud-corner hud-corner-tr"></div>
+                  <div className="hud-corner hud-corner-bl"></div>
+                  <div className="hud-corner hud-corner-br"></div>
+                  <div className="hud-text-warning text-xs font-bold font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
                     {selectedWeapon.id?.startsWith('default-') 
                       ? '[DEFAULT WEAPON]' 
                       : selectedWeapon.id 
@@ -253,16 +269,18 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
 
               <div className="mb-2 text-center flex justify-center items-center gap-4">
                 <span 
-                  className="font-bold px-4 py-2 border-2 inline-block"
+                  className="hud-panel px-4 py-2 relative inline-block"
                   style={{
                     fontSize: '14px',
                     backgroundColor: getRarityColor(selectedWeapon.rarity),
                     borderColor: getRarityBorderColor(selectedWeapon.rarity),
-                    color: '#ffffff',
-                    textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
                   }}
                 >
-                  {selectedWeapon.rarity.toUpperCase()}
+                  <div className="hud-corner hud-corner-tl"></div>
+                  <div className="hud-corner hud-corner-tr"></div>
+                  <div className="hud-corner hud-corner-bl"></div>
+                  <div className="hud-corner hud-corner-br"></div>
+                  <span className="hud-text font-bold">{selectedWeapon.rarity.toUpperCase()}</span>
                 </span>
                 
                 {selectedWeapon.id && !selectedWeapon.id.startsWith('default-') && (
@@ -273,10 +291,10 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                       setTransferSuccess(false);
                       setShowTransferModal(true);
                     }}
-                    className="bg-[#8b0000] hover:bg-[#a00000] text-white font-bold py-2 px-4 border-2 border-[#ff0000] shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] hover:shadow-none transition-all h-[38px] flex items-center"
-                    style={{ fontSize: '14px', imageRendering: 'pixelated' }}
+                    className="hud-button py-2 px-4 font-bold h-[38px] flex items-center"
+                    style={{ fontSize: '14px', imageRendering: 'pixelated', borderColor: 'rgba(255, 68, 68, 0.5)' }}
                   >
-                    TRANSFER
+                    <span className="hud-text-danger">TRANSFER</span>
                   </button>
                 )}
               </div>
@@ -290,27 +308,43 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                 />
               </div>
 
-              <div className="text-white w-full px-4" style={{ fontSize: '18px' }}>
-                <div className="mb-3 p-3 border-4 border-white" style={{ backgroundColor: '#3a0000' }}>
-                  <span className="text-gray-300">DAMAGE:</span> <span className="text-yellow-300 ml-2 font-bold">{selectedWeapon.baseDamage}</span>
+              <div className="w-full px-4" style={{ fontSize: '18px' }}>
+                <div className="mb-3 p-3 hud-panel relative">
+                  <div className="hud-corner hud-corner-tl"></div>
+                  <div className="hud-corner hud-corner-tr"></div>
+                  <div className="hud-corner hud-corner-bl"></div>
+                  <div className="hud-corner hud-corner-br"></div>
+                  <span className="hud-text-accent">DAMAGE:</span> <span className="hud-text-warning ml-2 font-bold">{selectedWeapon.baseDamage}</span>
                 </div>
-                <div className="mb-3 p-3 border-4 border-white" style={{ backgroundColor: '#3a0000' }}>
-                  <span className="text-gray-300">FIRERATE:</span> <span className="text-yellow-300 ml-2 font-bold">{calculateFirerate(selectedWeapon.cooldown).toFixed(5)}</span>
+                <div className="mb-3 p-3 hud-panel relative">
+                  <div className="hud-corner hud-corner-tl"></div>
+                  <div className="hud-corner hud-corner-tr"></div>
+                  <div className="hud-corner hud-corner-bl"></div>
+                  <div className="hud-corner hud-corner-br"></div>
+                  <span className="hud-text-accent">FIRERATE:</span> <span className="hud-text-warning ml-2 font-bold">{calculateFirerate(selectedWeapon.cooldown).toFixed(5)}</span>
                 </div>
                 {selectedWeapon.range && (
-                  <div className="mb-3 p-3 border-4 border-white" style={{ backgroundColor: '#3a0000' }}>
-                    <span className="text-gray-300">RANGE:</span> <span className="text-yellow-300 ml-2 font-bold">{selectedWeapon.range}</span>
+                  <div className="mb-3 p-3 hud-panel relative">
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
+                    <span className="hud-text-accent">RANGE:</span> <span className="hud-text-warning ml-2 font-bold">{selectedWeapon.range}</span>
                   </div>
                 )}
-                <div className="mt-4 p-3 border-4 border-white" style={{ backgroundColor: '#3a0000' }}>
-                  <p className="text-cyan-300 font-bold" style={{ fontSize: '16px', lineHeight: '1.5' }}>
+                <div className="mt-4 p-3 hud-panel relative">
+                  <div className="hud-corner hud-corner-tl"></div>
+                  <div className="hud-corner hud-corner-tr"></div>
+                  <div className="hud-corner hud-corner-bl"></div>
+                  <div className="hud-corner hud-corner-br"></div>
+                  <p className="hud-text-accent font-bold" style={{ fontSize: '16px', lineHeight: '1.5' }}>
                     {selectedWeapon.description.toUpperCase()}
                   </p>
                 </div>
               </div>
             </>
           ) : (
-            <div className="text-gray-400 text-center" style={{ fontSize: '24px' }}>
+            <div className="hud-text-accent text-center" style={{ fontSize: '24px' }}>
               SELECT A WEAPON TO VIEW DETAILS
             </div>
           )}
@@ -320,35 +354,44 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
       {/* Transfer Modal */}
       {showTransferModal && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 font-['Pixelify_Sans']">
-          <div className="bg-[#3a0000] border-4 border-white p-8 max-w-md w-full mx-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)]" style={{ imageRendering: 'pixelated' }}>
-            <h3 className="text-white text-3xl font-bold mb-6 text-center border-b-4 border-white pb-4">TRANSFER NFT</h3>
+          <div className="hud-panel p-8 max-w-md w-full mx-4 relative" style={{ imageRendering: 'pixelated' }}>
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
+            <h3 className="hud-text-accent text-3xl font-bold mb-6 text-center border-b-2 border-cyan-500/50 pb-4">TRANSFER NFT</h3>
             
             {transferSuccess ? (
               <div className="text-center py-4">
-                <div className="text-green-400 text-2xl mb-4 font-bold">TRANSFER SUCCESSFUL!</div>
-                <p className="text-white text-lg mb-6">The weapon has been sent to the recipient.</p>
+                <div className="hud-text-success text-2xl mb-4 font-bold">TRANSFER SUCCESSFUL!</div>
+                <p className="hud-text text-lg mb-6">The weapon has been sent to the recipient.</p>
               </div>
             ) : (
               <>
-                <p className="text-white mb-6 text-lg text-center">
+                <p className="hud-text mb-6 text-lg text-center">
                   Enter the recipient's OneChain address below. 
                   <br/>
-                  <span className="text-[#ff5555] font-bold mt-2 block">WARNING: THIS ACTION CANNOT BE UNDONE!</span>
+                  <span className="hud-text-danger font-bold mt-2 block">WARNING: THIS ACTION CANNOT BE UNDONE!</span>
                 </p>
                 
                 <div className="mb-8">
-                  <label className="block text-white text-lg font-bold mb-2">RECIPIENT ADDRESS</label>
+                  <label className="block hud-text-accent text-lg font-bold mb-2">RECIPIENT ADDRESS</label>
                   <input
                     type="text"
                     value={recipientAddress}
                     onChange={(e) => setRecipientAddress(e.target.value)}
                     placeholder="0x..."
-                    className="w-full bg-black border-4 border-white text-white p-4 focus:border-yellow-400 outline-none font-mono text-lg placeholder-gray-600"
+                    className="w-full hud-panel p-4 hud-text font-mono text-lg placeholder-gray-600 outline-none relative"
+                    style={{ borderColor: 'rgba(0, 200, 255, 0.5)' }}
                   />
                 </div>
 
                 {transferError && (
-                  <div className="mb-6 text-[#ff5555] text-lg border-4 border-[#ff5555] bg-black/50 p-4 font-bold text-center">
+                  <div className="mb-6 hud-text-danger text-lg hud-panel p-4 font-bold text-center relative" style={{ borderColor: 'rgba(255, 68, 68, 0.6)' }}>
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
                     {transferError}
                   </div>
                 )}
@@ -356,19 +399,19 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                 <div className="flex gap-6 justify-center">
                   <button
                     onClick={() => setShowTransferModal(false)}
-                    className="bg-[#5a0000] hover:bg-[#7a0000] text-white font-bold py-3 px-8 border-4 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-y-1 hover:shadow-none transition-all"
+                    className="hud-button py-3 px-8 font-bold"
                     disabled={isTransferring}
-                    style={{ fontSize: '18px' }}
+                    style={{ fontSize: '18px', borderColor: 'rgba(0, 200, 255, 0.5)' }}
                   >
-                    CANCEL
+                    <span className="hud-text">CANCEL</span>
                   </button>
                   <button
                     onClick={handleTransfer}
                     disabled={!recipientAddress || isTransferring}
-                    className="bg-green-700 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-8 border-4 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-y-1 hover:shadow-none transition-all"
-                    style={{ fontSize: '18px' }}
+                    className="hud-button py-3 px-8 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ fontSize: '18px', borderColor: 'rgba(0, 255, 136, 0.5)' }}
                   >
-                    {isTransferring ? 'SENDING...' : 'CONFIRM'}
+                    <span className="hud-text-success">{isTransferring ? 'SENDING...' : 'CONFIRM'}</span>
                   </button>
                 </div>
               </>

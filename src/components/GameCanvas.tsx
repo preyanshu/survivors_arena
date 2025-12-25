@@ -3349,10 +3349,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           background-color: #aa0000;
         }
         .pause-button {
-          background-color: #5a0000;
+          transition: all 0.2s ease;
         }
         .pause-button:hover {
-          background-color: #7a0000;
+          transform: translate(-50%, -2px) scale(1.05);
         }
       `}</style>
       <div className="relative w-screen h-screen">
@@ -3371,15 +3371,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           return shouldShowPause ? (
             <button
               onClick={() => setIsPaused(true)}
-              className="fixed top-4 left-1/2 transform -translate-x-1/2 border-4 border-white py-3 px-6 text-white font-bold pause-button z-30"
+              className="fixed top-4 left-1/2 transform -translate-x-1/2 hud-button py-3 px-6 font-bold pause-button z-30"
               style={{ 
                 fontSize: '24px',
                 imageRendering: 'pixelated',
                 pointerEvents: 'auto',
-                backgroundColor: '#5a0000'
               }}
             >
-              <span style={{ fontSize: '32px' }}>⏸</span> PAUSE
+              <span className="hud-text-accent" style={{ fontSize: '32px' }}>⏸</span> <span className="hud-text">PAUSE</span>
             </button>
           ) : null;
         })()}
@@ -3387,33 +3386,51 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         {/* Pause modal */}
         {isPaused && (
           <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-            <div className="border-4 border-white p-12 text-center shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', minWidth: '500px' }}>
-              <h2 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>
+            <div className="hud-panel p-12 text-center shadow-2xl relative" style={{ imageRendering: 'pixelated', minWidth: '500px' }}>
+              <div className="hud-corner hud-corner-tl"></div>
+              <div className="hud-corner hud-corner-tr"></div>
+              <div className="hud-corner hud-corner-bl"></div>
+              <div className="hud-corner hud-corner-br"></div>
+              <h2 className="hud-text-accent mb-8 font-bold" style={{ fontSize: '48px' }}>
                 GAME PAUSED
               </h2>
               <div className="flex gap-6 justify-center">
                 <button
                   onClick={() => setIsPaused(false)}
-                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-no"
+                  className="hud-button py-4 px-10 font-bold transition-all exit-confirm-no"
                   style={{ 
                     fontSize: '18px',
-                    imageRendering: 'pixelated'
+                    imageRendering: 'pixelated',
+                    borderColor: 'rgba(0, 255, 136, 0.5)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.9)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.5)';
                   }}
                 >
-                  RESUME
+                  <span className="hud-text-success">RESUME</span>
                 </button>
                 <button
                   onClick={() => {
                     setIsPaused(false);
                     setShowExitConfirm(true);
                   }}
-                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-yes"
+                  className="hud-button py-4 px-10 font-bold transition-all exit-confirm-yes"
                   style={{ 
                     fontSize: '18px',
-                    imageRendering: 'pixelated'
+                    imageRendering: 'pixelated',
+                    borderColor: 'rgba(255, 68, 68, 0.5)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 68, 68, 0.9)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 68, 68, 0.5)';
                   }}
                 >
-                  EXIT
+                  <span className="hud-text-danger">EXIT</span>
                 </button>
               </div>
             </div>
@@ -3474,14 +3491,18 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       {/* Show "Press E to continue" screen when wave is completed */}
       {waveManagerRef.current.isWaveCompleted() && (
         <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-40 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-          <div className="border-4 border-white p-12 text-center shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', minWidth: '500px' }}>
-            <h2 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>
+          <div className="hud-panel p-12 text-center shadow-2xl relative" style={{ imageRendering: 'pixelated', minWidth: '500px' }}>
+            <div className="hud-corner hud-corner-tl"></div>
+            <div className="hud-corner hud-corner-tr"></div>
+            <div className="hud-corner hud-corner-bl"></div>
+            <div className="hud-corner hud-corner-br"></div>
+            <h2 className="hud-text-success mb-8 font-bold" style={{ fontSize: '48px' }}>
               WAVE {waveManagerRef.current.getCurrentWave()} COMPLETE!
             </h2>
-            <div className="text-white mb-6 font-bold" style={{ fontSize: '24px' }}>
-              PRESS <span className="text-yellow-300 px-4 py-2 border-4 border-yellow-300 inline-block mx-2" style={{ backgroundColor: '#5a0000', fontSize: '32px' }}>E</span> TO CONTINUE
+            <div className="hud-text mb-6 font-bold" style={{ fontSize: '24px' }}>
+              PRESS <span className="hud-text-warning px-4 py-2 hud-button inline-block mx-2" style={{ fontSize: '32px', borderColor: 'rgba(255, 170, 0, 0.6)' }}>E</span> TO CONTINUE
             </div>
-            <p className="text-gray-300 mt-6 font-bold" style={{ fontSize: '18px' }}>TO THE NEXT WAVE</p>
+            <p className="hud-text-accent mt-6 font-bold" style={{ fontSize: '18px' }}>TO THE NEXT WAVE</p>
           </div>
         </div>
       )}
@@ -3534,10 +3555,10 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           return (
             <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
               <div className="text-center">
-                <div className="text-red-400 font-bold animate-pulse" style={{ fontSize: '120px', textShadow: '6px 6px 0px rgba(0,0,0,0.9)' }}>
+                <div className="hud-text-danger font-bold animate-pulse" style={{ fontSize: '120px' }}>
                   {expiringAbility.secondsRemaining}
                 </div>
-                <div className="text-yellow-300 font-bold mt-4" style={{ fontSize: '32px', textShadow: '4px 4px 0px rgba(0,0,0,0.8)' }}>
+                <div className="hud-text-warning font-bold mt-4" style={{ fontSize: '32px' }}>
                   {expiringAbility.name.toUpperCase()} EXPIRING
                 </div>
               </div>
@@ -3568,30 +3589,39 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
           return (
             <div
               key={ability.type}
-              className="border-4 border-white p-4 relative"
+              className="hud-panel p-4 relative"
               style={{
-                backgroundColor: isActive ? '#3a0000' : isOnCooldown ? '#1a0000' : '#5a0000',
                 imageRendering: 'pixelated',
                 opacity: isOnCooldown && !isActive ? 0.5 : 1,
+                borderColor: isActive ? 'rgba(0, 200, 255, 0.8)' : isOnCooldown ? 'rgba(100, 100, 100, 0.4)' : 'rgba(255, 170, 0, 0.5)',
               }}
             >
+              <div className="hud-corner hud-corner-tl"></div>
+              <div className="hud-corner hud-corner-tr"></div>
+              <div className="hud-corner hud-corner-bl"></div>
+              <div className="hud-corner hud-corner-br"></div>
               <div className="text-center">
                 <div className="mb-2 flex justify-center items-center" style={{ minHeight: '32px' }}>
-                  <PixelIcon name={abilityData.icon} size={32} />
+                  <div style={{ filter: isActive ? 'drop-shadow(0 0 3px rgba(0, 200, 255, 0.6))' : 'drop-shadow(0 0 2px rgba(255, 170, 0, 0.4))' }}>
+                    <PixelIcon name={abilityData.icon} size={32} />
+                  </div>
                 </div>
-                <div className="text-white font-bold mb-2" style={{ fontSize: '16px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                <div className="hud-text-accent font-bold mb-2" style={{ fontSize: '16px' }}>
                   [{index + 1}]
                 </div>
-                <div className="text-yellow-300 font-bold mb-1" style={{ fontSize: '14px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                <div className={`font-bold mb-1 ${isActive ? 'hud-text-accent' : 'hud-text-warning'}`} style={{ fontSize: '14px' }}>
                   {abilityData.name.toUpperCase()}
                 </div>
                 {isActive && !showCountdown && (
-                  <div className="text-cyan-300 font-bold" style={{ fontSize: '12px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                  <div className="hud-text-success font-bold" style={{ fontSize: '12px' }}>
                     ACTIVE
                   </div>
                 )}
                 {showCountdown && (
-                  <div className="text-red-400 font-bold animate-pulse" style={{ fontSize: '24px', textShadow: '3px 3px 0px rgba(0,0,0,0.9)' }}>
+                  <div 
+                    className="hud-text-danger font-bold animate-pulse" 
+                    style={{ fontSize: '24px' }}
+                  >
                     {secondsRemaining}
                   </div>
                 )}
@@ -3600,10 +3630,14 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               {/* Cooldown overlay */}
               {isOnCooldown && !isActive && (
                 <div
-                  className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 flex items-center justify-center"
-                  style={{ height: `${cooldownPercent}%` }}
+                  className="absolute bottom-0 left-0 right-0 flex items-center justify-center"
+                  style={{ 
+                    height: `${cooldownPercent}%`,
+                    background: 'linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(30, 30, 40, 0.6) 100%)',
+                    borderTop: '1px solid rgba(100, 100, 100, 0.4)'
+                  }}
                 >
-                  <span className="text-white font-bold" style={{ fontSize: '16px', textShadow: '2px 2px 0px rgba(0,0,0,0.8)' }}>
+                  <span className="hud-text font-bold" style={{ fontSize: '16px' }}>
                     {Math.ceil(cooldownRemaining / 1000)}s
                   </span>
                 </div>
@@ -3611,10 +3645,20 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               
               {/* Active duration indicator */}
               {isActive && (
-                <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-400" style={{ height: '4px' }}>
+                <div 
+                  className="absolute top-0 left-0 right-0 transition-all"
+                  style={{ 
+                    height: '3px',
+                    background: 'rgba(0, 200, 255, 0.2)',
+                  }}
+                >
                   <div
-                    className="h-full bg-yellow-400 transition-all"
-                    style={{ width: `${durationPercent}%` }}
+                    className="h-full transition-all"
+                    style={{ 
+                      width: `${durationPercent}%`,
+                      background: 'linear-gradient(90deg, #00ff88 0%, #00c8ff 100%)',
+                      boxShadow: '0 0 3px rgba(0, 200, 255, 0.6)'
+                    }}
                   />
                 </div>
               )}
