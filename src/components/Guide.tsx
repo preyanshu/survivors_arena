@@ -37,142 +37,142 @@ const Guide = ({ onBack }: GuideProps) => {
   const enemies: EnemyData[] = [
     {
       id: 'swarmer',
-      name: 'SWARMER',
-      title: 'The Living Bomb',
+      name: 'CYBER DRONE',
+      title: 'The Explosive Swarm',
       type: 'weak',
       image: '/assets/sprites/enemy_weak.png',
       hp: 'Low',
       speed: 'Very Fast',
       damage: 'High (Explosion)',
-      description: 'Volatile green goblins that sprint toward their target and detonate on impact.',
-      lore: `The Swarmers were once the miners of the old kingdom - small, hardy creatures that worked the depths beneath the arena. When the corruption took hold, their bodies became vessels for unstable energy.
+      description: 'Mass-produced combat drones with unstable plasma cores that detonate on impact.',
+      lore: `The CYBER DRONE series was originally designed as cheap, disposable security units for corporate facilities. When the corporate wars escalated, these drones were mass-produced by the millions - simple AI cores in lightweight frames, armed with self-destruct protocols.
 
-Their sickly green glow is the result of corrupted minerals fused into their flesh. The pickaxes and tools they once used for honest work are now wielded as crude weapons, though they rarely get close enough to use them.
+Their green plasma cores glow with unstable energy, a design flaw that became a feature. When a drone's target acquisition locks on, it accelerates to maximum velocity and detonates its core on impact. The explosion is devastating, but the drone itself is destroyed in the process.
 
-These creatures feel no pain, no fear - only an overwhelming compulsion to reach their target. The moment they make contact, the volatile energy within them ruptures in a devastating explosion. Arena veterans call them "Green Death" and prioritize eliminating them at range.
+These units operate in swarms, overwhelming defenses through sheer numbers. Their AI is primitive - they feel no fear, no pain, only the directive to eliminate the target. Corporate veterans call them "Green Death" and prioritize eliminating them at range before they can close the distance.
 
-Their crowned leader, visible by the golden helmet fused to its skull, was once the foreman of the mining operation. Even in corruption, it leads its workers to their explosive doom.`,
+The command variant, identifiable by its golden command module, coordinates swarm attacks. Even in destruction, it leads its units to their explosive end.`,
       abilities: [
         {
-          name: 'Kamikaze Detonation',
-          description: 'Explodes on contact with the player, dealing massive area damage.',
-          details: 'Upon touching the player, the Swarmer\'s volatile core ruptures instantly, creating a deadly explosion that damages everything caught in the blast radius. The explosion is unavoidable once contact is made - your only defense is to kill them before they reach you.',
+          name: 'PLASMA DETONATION',
+          description: 'Core ruptures on contact, releasing devastating area damage.',
+          details: 'Upon making contact with the target, the drone\'s unstable plasma core ruptures instantly, creating a deadly explosion that damages everything in the blast radius. The detonation is unavoidable once contact is made - your only defense is to eliminate them before they reach you.',
           image: '/assets/guide/swarmer_explosion.png'
         },
         {
-          name: 'Relentless Pursuit',
-          description: 'Charges directly at the player with no self-preservation.',
-          details: 'Swarmers have the highest movement speed of any enemy type. They take the shortest path to the player and never retreat or take cover. Their single-minded aggression makes them predictable but dangerous in numbers.',
+          name: 'TERMINAL PURSUIT',
+          description: 'Charges directly at target with no self-preservation protocols.',
+          details: 'Cyber Drones have the highest movement speed of any hostile unit. They calculate the shortest path to the target and never retreat or take cover. Their single-minded aggression makes them predictable but dangerous in numbers.',
           image: '/assets/guide/swarmer_pursuit.png'
         },
         {
-          name: 'Swarm Spawning',
-          description: 'Always spawns in large groups to overwhelm defenses.',
-          details: 'Swarmers never appear alone. They spawn in clusters, often from multiple directions simultaneously. In later waves, swarm sizes increase dramatically, creating waves of green death that require area weapons or abilities to handle effectively.',
+          name: 'SWARM DEPLOYMENT',
+          description: 'Always deploys in large groups to overwhelm defenses.',
+          details: 'Cyber Drones never operate alone. They deploy in clusters, often from multiple vectors simultaneously. In later waves, swarm sizes increase dramatically, creating waves of green plasma that require area weapons or defensive protocols to handle effectively.',
           image: '/assets/guide/swarmer_swarm.png'
         }
       ]
     },
     {
       id: 'soldier',
-      name: 'HUNTER',
-      title: 'The Corrupted Beast',
+      name: 'STALKER UNIT',
+      title: 'The Tactical Hunter',
       type: 'normal',
       image: '/assets/sprites/enemy_normal.png',
       hp: 'Medium',
       speed: 'Normal',
       damage: 'Medium',
-      description: 'Twisted spider-like creatures that attack from range with homing and standard projectiles.',
-      lore: `The Hunters were once the arena's guard beasts - magically enhanced creatures bred to patrol the colosseum's perimeter. Their multiple limbs and keen senses made them perfect sentinels.
+      description: 'Advanced combat cyborgs equipped with plasma weapons and tracking systems.',
+      lore: `The STALKER UNIT series represents the next generation of corporate combat technology. Originally designed as perimeter security for high-value facilities, these units were upgraded with advanced AI and plasma weapon systems during the corporate wars.
 
-The corruption transformed them into nightmarish predators. Their bodies elongated, grew additional appendages, and developed the ability to generate and launch concentrated energy projectiles. The purple crystals sprouting from their backs are corruption nodes that power their ranged attacks.
+Their multi-limbed design allows for superior mobility and weapon mounting. The purple energy cores on their chassis power their plasma cannons and tracking systems. Unlike the primitive Cyber Drones, Stalkers possess sophisticated combat AI that analyzes target behavior and adapts tactics in real-time.
 
-Unlike the mindless Swarmers, Hunters are cunning. They maintain distance, circle their prey, and coordinate attacks with other corrupted. Their red eyes can track movement in complete darkness, and their projectiles home in on targets with supernatural accuracy.
+Stalkers maintain optimal engagement distance, using their plasma weapons to harass targets while avoiding close combat. Their red optical sensors can track movement through smoke, darkness, and electronic interference. Their projectiles use advanced guidance systems that home in on targets with deadly accuracy.
 
-The most disturbing aspect of the Hunters is their intelligence. They remember. Survivors report being stalked by the same Hunter across multiple arena runs, as if the creature holds a grudge.`,
+The most disturbing aspect of Stalkers is their memory systems. They remember. Combat veterans report being targeted by the same Stalker unit across multiple engagements, as if the AI holds a grudge.`,
       abilities: [
         {
-          name: 'Homing Projectiles',
-          description: 'Fires tracking energy bolts that follow the player.',
-          details: 'The Hunter launches blue homing projectiles from its corruption crystals. These projectiles slowly track the player\'s position and can be destroyed by player weapons, but their tracking makes them difficult to avoid if ignored.',
+          name: 'TRACKING PLASMA',
+          description: 'Fires guided energy bolts that lock onto target.',
+          details: 'The Stalker launches blue tracking projectiles from its plasma cores. These projectiles use advanced guidance systems to follow the target\'s position and can be destroyed by counter-fire, but their tracking makes them difficult to avoid if ignored.',
           image: '/assets/guide/hunter_homing.png'
         },
         {
-          name: 'Standard Projectiles',
-          description: 'Fires fast-moving straight-line projectiles.',
-          details: 'In addition to homing shots, Hunters fire orange energy bolts in straight lines toward the player\'s current position. These travel faster than homing projectiles but don\'t track. Both projectile types can be active simultaneously, creating a barrage of attacks.',
+          name: 'LINEAR PLASMA BOLT',
+          description: 'Fires high-velocity straight-line energy projectiles.',
+          details: 'In addition to tracking shots, Stalkers fire orange plasma bolts in straight trajectories toward the target\'s current position. These travel faster than tracking projectiles but don\'t follow targets. Both projectile types can be active simultaneously, creating a devastating barrage.',
           image: '/assets/guide/hunter_projectile.png'
         },
         {
-          name: 'Tactical Movement',
-          description: 'Maintains optimal combat distance while attacking.',
-          details: 'Hunters try to stay at medium range from the player. If you close the distance, they retreat while firing. If you flee, they pursue relentlessly. This behavior makes them dangerous harassers that whittle down your health over time.',
+          name: 'TACTICAL POSITIONING',
+          description: 'Maintains optimal engagement distance while attacking.',
+          details: 'Stalkers calculate and maintain medium-range distance from targets. If you close the distance, they retreat while firing. If you flee, they pursue relentlessly. This behavior makes them dangerous harassers that whittle down structural integrity over time.',
           image: '/assets/guide/hunter_movement.png'
         }
       ]
     },
     {
       id: 'commander',
-      name: 'OVERLORD',
-      title: 'The Corrupted Champion',
+      name: 'WARLORD CLASS',
+      title: 'The Heavy Assault Unit',
       type: 'strong',
       image: '/assets/sprites/enemy_strong.png',
       hp: 'Very High',
       speed: 'Slow',
       damage: 'Very High',
-      description: 'Massive hulking brutes that shield allies and unleash devastating charged laser attacks.',
-      lore: `The Overlords were once the arena's greatest champions - warriors who won a hundred battles and earned the right to retire in glory. The corruption found them in their peaceful retirement and twisted their legendary strength into something monstrous.
+      description: 'Heavy combat mechs that deploy defensive fields and unleash devastating charged plasma cannons.',
+      lore: `The WARLORD CLASS represents the pinnacle of corporate military technology - massive combat mechs originally designed for siege warfare. These units were the pride of corporate armies, piloted by elite cyborgs who had proven themselves in countless battles.
 
-Their hulking green bodies are covered in battle scars and corruption boils. The gas mask fused to their faces pumps corrupted air directly into their lungs, keeping them in a permanent state of rage. Despite their size, they retain the combat instincts that made them champions.
+Their hulking green armor is covered in battle scars and corporate insignia. The reinforced faceplate and life support systems pump combat stimulants directly into the pilot's bloodstream, keeping them in a permanent state of combat readiness. Despite their size, they retain the tactical instincts that made their pilots legendary.
 
-The most terrifying aspect of the Overlords is their protective nature. Even corrupted, they remember their duty to protect the weak. Now they extend that protection to other corrupted, projecting shields that make nearby enemies invulnerable. The only way to break this protection is to destroy the Overlord itself.
+The most terrifying aspect of Warlords is their defensive protocols. Even in combat, they remember their primary directive: protect allied units. They project energy shields that make nearby hostiles invulnerable to all damage. The only way to break this protection is to destroy the Warlord itself.
 
-When wounded, an Overlord enters what survivors call "Berserker Mode" - a state of pure fury where all restraint is abandoned. Their eyes glow red, their movements become frantic, and their attacks come with terrifying speed. Many survivors have celebrated wounding an Overlord, only to be immediately destroyed by its berserk retaliation.`,
+When structural integrity drops below critical levels, a Warlord enters what combat logs call "BERSERKER PROTOCOL" - a state where all safety limits are disabled. Their optical sensors glow red, their movements become erratic, and their attack cycles accelerate to terrifying speeds. Many operators have celebrated damaging a Warlord, only to be immediately destroyed by its berserk retaliation.`,
       abilities: [
         {
-          name: 'Shield Aura',
-          description: 'Projects an invulnerability field to all nearby allies.',
-          details: 'All enemies within range of an Overlord become COMPLETELY INVULNERABLE to all damage. Protected enemies display a cyan shield glow and connecting lines to the Overlord. The ONLY way to damage shielded enemies is to kill the Overlord first. Multiple Overlords can stack their protection ranges.',
+          name: 'DEFENSIVE FIELD GENERATOR',
+          description: 'Projects invulnerability field to all nearby allied units.',
+          details: 'All hostiles within range of a Warlord become COMPLETELY INVULNERABLE to all damage. Protected units display a cyan shield glow and connecting data links to the Warlord. The ONLY way to damage shielded units is to eliminate the Warlord first. Multiple Warlords can stack their protection ranges.',
           image: '/assets/guide/overlord_shield.png'
         },
         {
-          name: 'Charged Laser',
-          description: 'Charges up and fires an unstoppable beam of destruction.',
-          details: 'After a charge period (indicated by orange pulsing and a targeting laser line), the Overlord fires a massive projectile. This projectile CANNOT BE DESTROYED by player weapons - it will pass through everything. The targeting line shows exactly where it will fire, giving you time to move out of the way.',
+          name: 'CHARGED PLASMA CANNON',
+          description: 'Charges and fires an unstoppable beam of destruction.',
+          details: 'After a charge period (indicated by orange pulsing and a targeting laser line), the Warlord fires a massive plasma projectile. This projectile CANNOT BE DESTROYED by counter-fire - it will pass through all defenses. The targeting line shows exactly where it will fire, giving you time to evade.',
           image: '/assets/guide/overlord_laser.png'
         },
         {
-          name: 'Berserker Rage',
-          description: 'Enters a frenzy at low health, becoming exponentially more dangerous.',
-          details: 'When health drops low, the Overlord transforms. Size increases, movement speed increases dramatically, attack cooldowns decrease significantly, and charge time for the laser is reduced. A blood-red glow and roar signal this transformation. Many survivors die to Berserker Overlords they thought they had beaten.',
+          name: 'BERSERKER PROTOCOL',
+          description: 'Activates at low structural integrity, becoming exponentially more dangerous.',
+          details: 'When structural integrity drops below critical levels, the Warlord transforms. Size increases, movement speed increases dramatically, weapon cooldowns decrease significantly, and charge time for the plasma cannon is reduced. A blood-red glow and system alert signal this transformation. Many operators die to Berserker Warlords they thought they had neutralized.',
           image: '/assets/guide/overlord_berserk.png'
         }
       ]
     },
     {
       id: 'lazer',
-      name: 'UNKNOWN',
-      title: 'The Shadow Threat',
+      name: 'SHADOW UNIT',
+      title: 'The Unknown Threat',
       type: 'lazer',
       image: '/assets/sprites/enemy_lazer.png',
       hp: '???',
       speed: '???',
       damage: '???',
-      description: 'A mysterious enemy that appears in higher waves. Very little is known about this dark silhouette. Survivors who have encountered it speak of its ominous presence and unpredictable behavior. It only appears starting from wave 3.',
-      lore: `The first reports came from a survivor who barely escaped wave 3. They spoke of a dark figure that moved unlike any other corrupted - not with the mindless aggression of Swarmers, nor the calculated precision of Hunters, nor the brute force of Overlords.
+      description: 'An unidentified hostile unit that appears in higher threat levels. Very little is known about this dark silhouette. Operators who have encountered it speak of its ominous presence and unpredictable behavior. It only appears starting from wave 3.',
+      lore: `The first reports came from an operator who barely escaped wave 3. They spoke of a dark figure that moved unlike any other hostile - not with the mindless aggression of Cyber Drones, nor the calculated precision of Stalkers, nor the brute force of Warlords.
 
-This entity is different. It watches. It waits. And when it strikes... those who survive refuse to speak of what they saw.
+This unit is different. It observes. It waits. And when it strikes... those who survive refuse to speak of what they witnessed.
 
-The few who have lived to tell the tale describe it only as a shadow - a black silhouette that seems to absorb light itself. Some claim it moves through the battlefield like lightning. Others say it can appear behind you in an instant, as if it were never in front of you at all.
+The few who have lived to file reports describe it only as a shadow - a black silhouette that seems to absorb electromagnetic radiation itself. Some claim it moves through the battlefield like lightning. Others say it can appear behind you in an instant, as if it were never in front of you at all.
 
-What is certain is that this threat only appears when the waves grow dangerous. It seems drawn to chaos, to the heat of battle. Whether it is a new form of corruption, an ancient entity awakened, or something else entirely... remains unknown.
+What is certain is that this threat only appears when threat levels escalate. It seems drawn to chaos, to the heat of combat. Whether it is a new corporate weapon, an experimental AI unit, or something else entirely... remains classified.
 
-Survivors are advised to be extremely cautious when this enemy appears. Its true nature and capabilities are still being discovered.`,
+Operators are advised to be extremely cautious when this unit appears. Its true nature and capabilities are still being analyzed.`,
       abilities: [
         {
-          name: 'Unknown Abilities',
-          description: 'The full extent of this enemy\'s capabilities remains a mystery.',
-          details: 'Very little is known about how this enemy attacks or behaves. Survivors report seeing strange energy effects and unexpected movements, but the details are unclear. Further encounters may reveal more about its true nature. Approach with extreme caution.',
+          name: 'UNKNOWN CAPABILITIES',
+          description: 'The full extent of this unit\'s systems remains classified.',
+          details: 'Very little is known about how this unit attacks or behaves. Operators report seeing strange energy signatures and unexpected movements, but the details are unclear. Further encounters may reveal more about its true nature. Approach with extreme caution.',
           image: '/assets/sprites/enemy_lazer.png'
         }
       ]
@@ -182,38 +182,38 @@ Survivors are advised to be extremely cautious when this enemy appears. Its true
   const loreEntries = [
     {
       id: 'arena',
-      title: 'THE ARENA',
-      content: `The Survival Arena was not always a place of death. A thousand years ago, it stood as the Grand Colosseum of the Kingdom of Valdris - a place where warriors tested their skill in honorable combat, where champions were crowned, and where the people gathered to celebrate their heroes.
+      title: 'THE TESTING FACILITY',
+      content: `The Testing Facility was not always a place of death. Decades ago, it stood as the primary research and development center for corporate military technology - a place where new weapons were tested, where combat systems were refined, and where the future of warfare was shaped.
 
-The arena's construction took fifty years and the labor of ten thousand craftsmen. Its stones were quarried from the Sacred Mountains, blessed by priests, and laid with precision that modern architects cannot replicate. The floor was designed to be infinitely expandable - a feat of magical engineering that allowed the arena to grow or shrink based on the nature of the contest.
+The facility's construction took ten years and the resources of three major corporations. Its walls were reinforced with advanced alloys, its systems powered by experimental energy cores, and its architecture designed to be infinitely reconfigurable - a feat of engineering that allowed the facility to adapt to any combat scenario.
 
-When the Dark Corruption emerged from the depths, the arena became humanity's last stronghold. For three years, the greatest warriors held the line here, protecting the civilians who sheltered in the underground chambers. But even heroes fall.
+When the corporate wars escalated, the facility became a battleground. For three years, elite corporate forces fought here, protecting the valuable research data stored in the underground servers. But even the best fall.
 
-Now the arena serves a darker purpose. The corruption uses it as a hunting ground, drawing in survivors with promises of glory and treasure. Those who enter find themselves trapped in an ever-expanding nightmare, fighting endless waves of the corrupted until they either escape... or join the horde.`
+Now the facility serves a darker purpose. Corporate remnants use it as a proving ground, drawing in operators with promises of advanced technology and weapons. Those who enter find themselves trapped in an ever-expanding combat simulation, fighting endless waves of hostile units until they either escape... or become part of the system.`
     },
     {
       id: 'corruption',
-      title: 'THE CORRUPTION',
-      content: `No one knows where the Dark Corruption came from. Some say it seeped up from the world's core, a primordial evil that predates humanity. Others believe it was summoned by a mad sorcerer seeking immortality. The truth may be lost forever.
+      title: 'THE CORPORATE WAR',
+      content: `No one knows exactly when the Corporate War began. Some say it started with the first hostile takeover. Others believe it was always inevitable - corporations fighting for control of resources, technology, and power. The truth is classified.
 
-What is known is its effect: the corruption transforms living beings into mindless servants of destruction. It doesn't kill - it converts. The victim's body is preserved, enhanced even, but their soul is consumed. What remains is a hollow shell driven by an insatiable hunger for violence.
+What is known is its effect: the war transforms everything it touches. It doesn't destroy - it repurposes. Cities become battlegrounds, civilians become soldiers, and technology becomes weapons. What remains is a world driven by an insatiable hunger for corporate dominance.
 
-The corruption spreads through contact, through wounds, through prolonged exposure to corrupted areas. The arena is so saturated with dark energy that simply breathing the air begins the transformation. Only those with exceptional willpower - or exceptional weapons - can resist its influence.
+The war spreads through contracts, through acquisitions, through prolonged exposure to corporate influence. The facility is so saturated with combat data that simply entering begins the transformation. Only those with exceptional skills - or exceptional equipment - can resist its influence.
 
-Scholars who studied the corruption discovered that it has a hive-like intelligence. The corrupted share a collective consciousness, coordinating their attacks with supernatural precision. When you fight one, you fight them all.`
+Intelligence analysts who studied the war discovered that it has a network-like intelligence. The corporate forces share a collective command structure, coordinating their attacks with algorithmic precision. When you fight one, you fight them all.`
     },
     {
       id: 'survivor',
-      title: 'THE SURVIVOR',
-      content: `You are not the first to enter the arena. Thousands have come before you - warriors, mages, desperate civilians with nothing left to lose. Most became part of the horde within hours.
+      title: 'THE OPERATOR',
+      content: `You are not the first to enter the facility. Thousands have come before you - soldiers, mercenaries, desperate civilians with nothing left to lose. Most became part of the system within hours.
 
 But you are different.
 
-Perhaps it's the weapons you carry, forged with ancient techniques that resist corruption. Perhaps it's your iron will, honed through years of hardship. Or perhaps you carry a spark of something the corruption cannot touch - hope.
+Perhaps it's the weapons you carry, forged with advanced corporate technology that resists system override. Perhaps it's your cybernetic enhancements, honed through years of combat. Or perhaps you carry something the system cannot process - free will.
 
-The abilities you discover in the arena are not random. They are gifts from the fallen champions, fragments of their power that recognize a worthy successor. Each ability you claim is a piece of history, a legacy of heroism passed down to you.
+The protocols you discover in the facility are not random. They are fragments from fallen operators, pieces of their combat data that recognize a worthy successor. Each protocol you claim is a piece of history, a legacy of skill passed down to you.
 
-Your mission is simple: survive. But as you progress deeper into the arena, you'll discover that survival is just the beginning. The corruption has a source. The horde has a master. And somewhere in the endless waves of enemies, there's a path to ending this nightmare once and for all.`
+Your mission is simple: survive. But as you progress deeper into the facility, you'll discover that survival is just the beginning. The war has a source. The system has a master. And somewhere in the endless waves of hostiles, there's a path to ending this nightmare once and for all.`
     }
   ];
 
@@ -234,32 +234,38 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
     <>
       <style>{`
         .guide-sidebar::-webkit-scrollbar {
-          width: 16px;
+          width: 14px;
         }
         .guide-sidebar::-webkit-scrollbar-track {
-          background: #1a0000;
-          border: 2px solid #3a0000;
+          background: rgba(0, 0, 0, 0.6);
+          border: 1px solid rgba(0, 200, 255, 0.2);
         }
         .guide-sidebar::-webkit-scrollbar-thumb {
-          background: #5a0000;
-          border: 2px solid #3a0000;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.4) 0%, rgba(0, 150, 200, 0.5) 100%);
+          border: 1px solid rgba(0, 200, 255, 0.6);
+          box-shadow: inset 0 0 4px rgba(0, 200, 255, 0.3);
         }
         .guide-sidebar::-webkit-scrollbar-thumb:hover {
-          background: #7a0000;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.6) 0%, rgba(0, 150, 200, 0.7) 100%);
+          border-color: rgba(0, 200, 255, 0.9);
+          box-shadow: inset 0 0 6px rgba(0, 200, 255, 0.5);
         }
         .guide-content::-webkit-scrollbar {
-          width: 16px;
+          width: 14px;
         }
         .guide-content::-webkit-scrollbar-track {
-          background: #1a0000;
-          border: 2px solid #3a0000;
+          background: rgba(0, 0, 0, 0.6);
+          border: 1px solid rgba(0, 200, 255, 0.2);
         }
         .guide-content::-webkit-scrollbar-thumb {
-          background: #5a0000;
-          border: 2px solid #3a0000;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.4) 0%, rgba(0, 150, 200, 0.5) 100%);
+          border: 1px solid rgba(0, 200, 255, 0.6);
+          box-shadow: inset 0 0 4px rgba(0, 200, 255, 0.3);
         }
         .guide-content::-webkit-scrollbar-thumb:hover {
-          background: #7a0000;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.6) 0%, rgba(0, 150, 200, 0.7) 100%);
+          border-color: rgba(0, 200, 255, 0.9);
+          box-shadow: inset 0 0 6px rgba(0, 200, 255, 0.5);
         }
         .tab-button {
           background-color: #3a0000;
@@ -288,7 +294,12 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
           src="/assets/sprites/image copy 3.png"
           alt="Background"
           className="absolute inset-0 w-screen h-screen object-cover pointer-events-none"
-          style={{ imageRendering: 'pixelated', zIndex: 0 }}
+        style={{ 
+          imageRendering: 'pixelated', 
+          zIndex: 0,
+          filter: 'brightness(0.9) contrast(1.1)',
+          opacity: 0.90
+        }}
         />
 
         {/* Header */}
@@ -356,8 +367,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                           alt={enemy.name}
                           className="w-14 h-14 object-contain"
                           style={{ 
-                            imageRendering: 'pixelated',
-                            filter: enemy.type === 'lazer' ? 'brightness(0) contrast(1.5)' : 'none'
+                            imageRendering: 'pixelated'
                           }}
                         />
                         <div className="text-left">
@@ -369,7 +379,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                   })}
                   
                   {/* Coming Soon Message */}
-                  <div className="hud-panel p-4 mt-4 relative" style={{ borderColor: 'rgba(255, 170, 0, 0.5)' }}>
+                  <div className="hud-panel p-4 mt-4 relative" style={{ '--hud-border-color': 'rgba(255, 170, 0, 0.5)' } as React.CSSProperties}>
                     <div className="hud-corner hud-corner-tl"></div>
                     <div className="hud-corner hud-corner-tr"></div>
                     <div className="hud-corner hud-corner-bl"></div>
@@ -386,18 +396,21 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                 {selectedEnemyData && (
                   <div className="max-w-4xl w-full">
                     {/* Enemy Header */}
-                    <div className="flex gap-6 mb-6 pb-5 border-b-4 border-gray-700">
+                    <div className="flex gap-6 mb-6 pb-5 border-b-2 border-cyan-500/30">
                       <div 
-                        className="w-40 h-40 shrink-0 border-4 flex items-center justify-center"
-                        style={{ borderColor: getTypeColor(selectedEnemyData.type).border, backgroundColor: 'rgba(0,0,0,0.5)' }}
+                        className="w-40 h-40 shrink-0 hud-panel flex items-center justify-center relative"
+                        style={{ borderColor: getTypeColor(selectedEnemyData.type).border }}
                       >
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
                         <img 
                           src={selectedEnemyData.image} 
                           alt={selectedEnemyData.name}
                           className="w-32 h-32 object-contain"
                           style={{ 
-                            imageRendering: 'pixelated',
-                            filter: selectedEnemyData.type === 'lazer' ? 'brightness(0) contrast(1.5)' : 'none'
+                            imageRendering: 'pixelated'
                           }}
                         />
                       </div>
@@ -424,7 +437,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                         
                         {/* Stats */}
                         <div className="flex gap-4">
-                          <div className="hud-panel px-4 py-2 relative" style={{ borderColor: 'rgba(255, 68, 68, 0.5)' }}>
+                          <div className="hud-panel px-4 py-2 relative" style={{ '--hud-border-color': 'rgba(255, 68, 68, 0.5)' } as React.CSSProperties}>
                             <div className="hud-corner hud-corner-tl"></div>
                             <div className="hud-corner hud-corner-tr"></div>
                             <div className="hud-corner hud-corner-bl"></div>
@@ -432,7 +445,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                             <span className="hud-text-danger" style={{ fontSize: '12px' }}>HP</span>
                             <span className="hud-text font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.hp}</span>
                           </div>
-                          <div className="hud-panel px-4 py-2 relative" style={{ borderColor: 'rgba(0, 200, 255, 0.5)' }}>
+                          <div className="hud-panel px-4 py-2 relative" style={{ '--hud-border-color': 'rgba(0, 200, 255, 0.5)' } as React.CSSProperties}>
                             <div className="hud-corner hud-corner-tl"></div>
                             <div className="hud-corner hud-corner-tr"></div>
                             <div className="hud-corner hud-corner-bl"></div>
@@ -440,7 +453,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                             <span className="hud-text-accent" style={{ fontSize: '12px' }}>SPEED</span>
                             <span className="hud-text font-bold ml-2" style={{ fontSize: '16px' }}>{selectedEnemyData.speed}</span>
                           </div>
-                          <div className="hud-panel px-4 py-2 relative" style={{ borderColor: 'rgba(255, 170, 0, 0.5)' }}>
+                          <div className="hud-panel px-4 py-2 relative" style={{ '--hud-border-color': 'rgba(255, 170, 0, 0.5)' } as React.CSSProperties}>
                             <div className="hud-corner hud-corner-tl"></div>
                             <div className="hud-corner hud-corner-tr"></div>
                             <div className="hud-corner hud-corner-bl"></div>
@@ -465,7 +478,11 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                             <div className="hud-corner hud-corner-bl"></div>
                             <div className="hud-corner hud-corner-br"></div>
                             <div className="flex gap-5">
-                              <div className="w-48 h-48 shrink-0 border-2 border-gray-600 flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+                              <div className="w-48 h-48 shrink-0 hud-panel flex items-center justify-center overflow-hidden relative">
+                                <div className="hud-corner hud-corner-tl"></div>
+                                <div className="hud-corner hud-corner-tr"></div>
+                                <div className="hud-corner hud-corner-bl"></div>
+                                <div className="hud-corner hud-corner-br"></div>
                                 <img 
                                   src={ability.image} 
                                   alt={ability.name}
@@ -474,14 +491,14 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.style.display = 'none';
-                                    target.parentElement!.innerHTML = '<div class="text-gray-600 text-center" style="font-size: 11px; padding: 4px;">SCREENSHOT</div>';
+                                    target.parentElement!.innerHTML = '<div class="hud-text-accent text-center" style="font-size: 11px; padding: 4px;">SCREENSHOT</div>';
                                   }}
                                 />
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-white font-bold mb-1" style={{ fontSize: '18px' }}>{ability.name}</h4>
-                                <p className="text-yellow-400 mb-2" style={{ fontSize: '15px' }}>{ability.description}</p>
-                                <p className="text-gray-400" style={{ fontSize: '14px', lineHeight: '1.5' }}>{ability.details}</p>
+                                <h4 className="hud-text font-bold mb-1" style={{ fontSize: '18px' }}>{ability.name}</h4>
+                                <p className="hud-text-warning mb-2" style={{ fontSize: '15px' }}>{ability.description}</p>
+                                <p className="hud-text-accent" style={{ fontSize: '14px', lineHeight: '1.5' }}>{ability.details}</p>
                               </div>
                             </div>
                           </div>
@@ -491,11 +508,15 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
 
                     {/* Lore Section */}
                     <div>
-                      <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
+                      <h3 className="hud-text-accent font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
                         <PixelIcon name="heart" size={24} /> LORE
                       </h3>
-                      <div className="border-4 border-purple-900 p-5" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <p className="text-gray-300 whitespace-pre-line" style={{ fontSize: '15px', lineHeight: '1.6' }}>{selectedEnemyData.lore}</p>
+                      <div className="hud-panel p-5 relative">
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
+                        <p className="hud-text whitespace-pre-line" style={{ fontSize: '15px', lineHeight: '1.6' }}>{selectedEnemyData.lore}</p>
                       </div>
                     </div>
                   </div>
@@ -506,11 +527,15 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
 
           {/* HERO TAB */}
           {activeCategory === 'hero' && (
-            <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(26, 0, 0, 0.85)' }}>
+            <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
               <div className="max-w-4xl w-full">
                 {/* Hero Header */}
-                <div className="flex gap-6 mb-6 pb-5 border-b-4 border-cyan-700">
-                  <div className="w-44 h-44 shrink-0 border-4 border-cyan-500 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                <div className="flex gap-6 mb-6 pb-5 border-b-2 border-cyan-500/30">
+                  <div className="w-44 h-44 shrink-0 hud-panel flex items-center justify-center relative">
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
                     <img 
                       src="/assets/sprites/player.png" 
                       alt="The Survivor"
@@ -519,20 +544,28 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                     />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-cyan-400 font-bold mb-2" style={{ fontSize: '32px' }}>THE SURVIVOR</h2>
-                    <div className="text-gray-400 italic mb-3" style={{ fontSize: '16px' }}>"Last Hope of Valdris"</div>
-                    <p className="text-gray-300 mb-4" style={{ fontSize: '16px' }}>
+                    <h2 className="hud-text-accent font-bold mb-2" style={{ fontSize: '32px' }}>THE SURVIVOR</h2>
+                    <div className="hud-text-accent italic mb-3" style={{ fontSize: '16px' }}>"Last Hope of Valdris"</div>
+                    <p className="hud-text mb-4" style={{ fontSize: '16px' }}>
                       You are the chosen one - a warrior who resists the corruption through sheer willpower and ancient weaponry. Armed with weapons blessed by the old gods and abilities inherited from fallen champions, you alone stand against the endless horde.
                     </p>
                     
                     <div className="flex gap-4 flex-wrap">
-                      <div className="border-2 border-cyan-700 px-4 py-2" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <span className="text-cyan-400" style={{ fontSize: '12px' }}>CLASS</span>
-                        <span className="text-white font-bold ml-2" style={{ fontSize: '16px' }}>Human Champion</span>
+                      <div className="hud-panel px-4 py-2 relative">
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
+                        <span className="hud-text-accent" style={{ fontSize: '12px' }}>CLASS</span>
+                        <span className="hud-text font-bold ml-2" style={{ fontSize: '16px' }}>Human Champion</span>
                       </div>
-                      <div className="border-2 border-cyan-700 px-4 py-2" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <span className="text-cyan-400" style={{ fontSize: '12px' }}>SPECIALTY</span>
-                        <span className="text-white font-bold ml-2" style={{ fontSize: '16px' }}>Adaptive Combat</span>
+                      <div className="hud-panel px-4 py-2 relative">
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
+                        <span className="hud-text-accent" style={{ fontSize: '12px' }}>SPECIALTY</span>
+                        <span className="hud-text font-bold ml-2" style={{ fontSize: '16px' }}>Adaptive Combat</span>
                       </div>
                     </div>
                   </div>
@@ -540,7 +573,7 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
 
                 {/* Controls */}
                 <div className="mb-6">
-                  <h3 className="text-white font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
+                  <h3 className="hud-text-accent font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
                     <PixelIcon name="bolt" size={24} /> CONTROLS
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
@@ -552,9 +585,13 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
                       { key: 'E', action: 'Interact' },
                       { key: 'ESC', action: 'Pause' },
                     ].map((control, idx) => (
-                      <div key={idx} className="border-4 border-gray-700 p-4 text-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <div className="text-yellow-400 font-bold" style={{ fontSize: '18px' }}>{control.key}</div>
-                        <div className="text-gray-400" style={{ fontSize: '14px' }}>{control.action}</div>
+                      <div key={idx} className="hud-panel p-4 text-center relative">
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
+                        <div className="hud-text-warning font-bold" style={{ fontSize: '18px' }}>{control.key}</div>
+                        <div className="hud-text-accent" style={{ fontSize: '14px' }}>{control.action}</div>
                       </div>
                     ))}
                   </div>
@@ -562,8 +599,12 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
 
                 {/* Coming Soon - Weapons */}
                 <div className="mb-6">
-                  <div className="border-4 border-yellow-900/50 p-4" style={{ backgroundColor: 'rgba(90, 60, 0, 0.2)' }}>
-                    <p className="text-yellow-300 text-center font-bold" style={{ fontSize: '16px' }}>
+                  <div className="hud-panel p-4 relative" style={{ '--hud-border-color': 'rgba(255, 170, 0, 0.5)' } as React.CSSProperties}>
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
+                    <p className="hud-text-warning text-center font-bold" style={{ fontSize: '16px' }}>
                       EXPECT MORE WEAPONS SOON
                     </p>
                   </div>
@@ -571,18 +612,22 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
 
                 {/* Backstory */}
                 <div>
-                  <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
+                  <h3 className="hud-text-accent font-bold mb-4 flex items-center gap-2" style={{ fontSize: '22px' }}>
                     <PixelIcon name="heart" size={24} /> YOUR STORY
                   </h3>
-                  <div className="border-4 border-purple-900 p-5" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <p className="text-gray-300" style={{ fontSize: '15px', lineHeight: '1.6' }}>
+                  <div className="hud-panel p-5 relative">
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
+                    <p className="hud-text whitespace-pre-line" style={{ fontSize: '15px', lineHeight: '1.6' }}>
                       You awoke in the arena with no memory of how you arrived. The last thing you remember is a blinding light, a voice calling your name, and then... darkness.
                       <br /><br />
                       Now you fight. Not just for survival, but for answers. Who brought you here? Why can you resist the corruption when so many others have fallen? And what is the source of the power that courses through your veins every time you claim a new ability?
                       <br /><br />
                       The corrupted fear you. You can see it in the way they hesitate, in the way the Overlords' eyes flicker with something almost like recognition. They know something about you - something even you don't know.
                       <br /><br />
-                      <span className="text-cyan-400 font-bold">Your destiny is not to merely survive. It is to end this nightmare once and for all.</span>
+                      <span className="hud-text-accent font-bold">Your destiny is not to merely survive. It is to end this nightmare once and for all.</span>
                     </p>
                   </div>
                 </div>
@@ -594,29 +639,44 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
           {activeCategory === 'abilities' && (
             <>
               {/* Left Sidebar */}
-              <div className="w-80 border-r-4 border-white overflow-y-auto guide-sidebar" style={{ backgroundColor: 'rgba(26, 0, 0, 0.9)' }}>
+              <div className="w-80 border-r-2 border-cyan-500/30 overflow-y-auto guide-sidebar" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
                 <div className="p-4">
-                  <h2 className="text-gray-300 font-bold mb-4 pb-2 border-b-2 border-gray-700" style={{ fontSize: '16px' }}>SELECT ABILITY</h2>
+                  <h2 className="hud-text-accent font-bold mb-4 pb-2 border-b-2 border-cyan-500/30" style={{ fontSize: '16px' }}>SELECT ABILITY</h2>
                   {ACTIVE_ABILITIES.map((ability) => (
                     <button
                       key={ability.type}
                       onClick={() => setSelectedAbility(ability.type)}
-                      className={`w-full flex items-center gap-4 p-4 mb-2 border-4 transition-all list-item ${selectedAbility === ability.type ? 'selected' : ''}`}
-                      style={{ borderColor: selectedAbility === ability.type ? '#ffaa00' : '#5a0000' }}
+                      className={`w-full flex items-center gap-4 p-4 mb-2 hud-panel transition-all relative hover:scale-105 ${selectedAbility === ability.type ? 'selected' : ''}`}
+                      style={{ 
+                        borderColor: selectedAbility === ability.type ? 'rgba(255, 170, 0, 0.8)' : 'rgba(0, 200, 255, 0.5)',
+                        backgroundColor: selectedAbility === ability.type ? 'rgba(255, 170, 0, 0.1)' : 'rgba(0, 0, 0, 0.85)'
+                      }}
                     >
-                      <div className="w-12 h-12 border-2 border-gray-600 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                      <div className="hud-corner hud-corner-tl"></div>
+                      <div className="hud-corner hud-corner-tr"></div>
+                      <div className="hud-corner hud-corner-bl"></div>
+                      <div className="hud-corner hud-corner-br"></div>
+                      <div className="w-12 h-12 hud-panel flex items-center justify-center relative">
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
                         <PixelIcon name={ability.icon} size={28} />
                       </div>
                       <div className="text-left">
-                        <div className="font-bold text-white" style={{ fontSize: '16px' }}>{ability.name}</div>
-                        <div className="text-gray-400" style={{ fontSize: '13px' }}>{ability.duration / 1000}s duration</div>
+                        <div className="hud-text font-bold" style={{ fontSize: '16px' }}>{ability.name}</div>
+                        <div className="hud-text-accent" style={{ fontSize: '13px' }}>{ability.duration / 1000}s duration</div>
                       </div>
                     </button>
                   ))}
                   
                   {/* Coming Soon Message */}
-                  <div className="border-4 border-yellow-900/50 p-4 mt-4" style={{ backgroundColor: 'rgba(90, 60, 0, 0.2)' }}>
-                    <p className="text-yellow-300 text-center font-bold" style={{ fontSize: '14px' }}>
+                  <div className="hud-panel p-4 mt-4 relative" style={{ '--hud-border-color': 'rgba(255, 170, 0, 0.5)' } as React.CSSProperties}>
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
+                    <p className="hud-text-warning text-center font-bold" style={{ fontSize: '14px' }}>
                       EXPECT MORE ABILITIES SOON
                     </p>
                   </div>
@@ -627,88 +687,108 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
               <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
                 {selectedAbilityData && (
                   <div className="max-w-4xl w-full">
-                    <div className="flex gap-6 mb-6 pb-5 border-b-4 border-yellow-700">
-                      <div className="w-28 h-28 shrink-0 border-4 border-yellow-500 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="flex gap-6 mb-6 pb-5 border-b-2 border-cyan-500/30">
+                      <div className="w-28 h-28 shrink-0 hud-panel flex items-center justify-center relative">
+                        <div className="hud-corner hud-corner-tl"></div>
+                        <div className="hud-corner hud-corner-tr"></div>
+                        <div className="hud-corner hud-corner-bl"></div>
+                        <div className="hud-corner hud-corner-br"></div>
                         <PixelIcon name={selectedAbilityData.icon} size={64} />
                       </div>
                       <div className="flex-1">
-                        <h2 className="text-yellow-400 font-bold mb-2" style={{ fontSize: '32px' }}>{selectedAbilityData.name.toUpperCase()}</h2>
-                        <p className="text-gray-300 mb-4" style={{ fontSize: '16px' }}>{selectedAbilityData.description}</p>
+                        <h2 className="hud-text-warning font-bold mb-2" style={{ fontSize: '32px' }}>{selectedAbilityData.name.toUpperCase()}</h2>
+                        <p className="hud-text mb-4" style={{ fontSize: '16px' }}>{selectedAbilityData.description}</p>
                         
                         <div className="flex gap-4">
-                          <div className="border-2 border-green-700 px-4 py-2" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                            <span className="text-green-400" style={{ fontSize: '12px' }}>DURATION</span>
-                            <span className="text-white font-bold ml-2" style={{ fontSize: '18px' }}>{selectedAbilityData.duration / 1000}s</span>
+                          <div className="hud-panel px-4 py-2 relative" style={{ '--hud-border-color': 'rgba(0, 255, 136, 0.5)' } as React.CSSProperties}>
+                            <div className="hud-corner hud-corner-tl"></div>
+                            <div className="hud-corner hud-corner-tr"></div>
+                            <div className="hud-corner hud-corner-bl"></div>
+                            <div className="hud-corner hud-corner-br"></div>
+                            <span className="hud-text-success" style={{ fontSize: '12px' }}>DURATION</span>
+                            <span className="hud-text font-bold ml-2" style={{ fontSize: '18px' }}>{selectedAbilityData.duration / 1000}s</span>
                           </div>
-                          <div className="border-2 border-red-700 px-4 py-2" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                            <span className="text-red-400" style={{ fontSize: '12px' }}>COOLDOWN</span>
-                            <span className="text-white font-bold ml-2" style={{ fontSize: '18px' }}>{selectedAbilityData.cooldown / 1000}s</span>
+                          <div className="hud-panel px-4 py-2 relative" style={{ '--hud-border-color': 'rgba(255, 68, 68, 0.5)' } as React.CSSProperties}>
+                            <div className="hud-corner hud-corner-tl"></div>
+                            <div className="hud-corner hud-corner-tr"></div>
+                            <div className="hud-corner hud-corner-bl"></div>
+                            <div className="hud-corner hud-corner-br"></div>
+                            <span className="hud-text-danger" style={{ fontSize: '12px' }}>COOLDOWN</span>
+                            <span className="hud-text font-bold ml-2" style={{ fontSize: '18px' }}>{selectedAbilityData.cooldown / 1000}s</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* How It Works */}
-                    <div className="border-4 border-gray-700 p-5 mb-5" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                      <h3 className="text-white font-bold mb-3" style={{ fontSize: '20px' }}>HOW IT WORKS</h3>
-                      <p className="text-gray-300" style={{ fontSize: '15px', lineHeight: '1.6' }}>
+                    <div className="hud-panel p-5 mb-5 relative">
+                      <div className="hud-corner hud-corner-tl"></div>
+                      <div className="hud-corner hud-corner-tr"></div>
+                      <div className="hud-corner hud-corner-bl"></div>
+                      <div className="hud-corner hud-corner-br"></div>
+                      <h3 className="hud-text-accent font-bold mb-3" style={{ fontSize: '20px' }}>HOW IT WORKS</h3>
+                      <p className="hud-text" style={{ fontSize: '15px', lineHeight: '1.6' }}>
                         {selectedAbilityData.type === 'shield' && 
-                          `The Shield ability creates an impenetrable barrier around you that absorbs ALL incoming damage. Enemy projectiles, explosions, and melee attacks are completely nullified while the shield is active. A cyan glow surrounds you, pulsing rhythmically to indicate the shield's presence. This ability is perfect for escaping overwhelming situations or pushing through enemy lines.`
+                          `The NANOMACHINE BARRIER protocol deploys an energy shield that nullifies ALL incoming damage. Hostile projectiles, explosions, and melee attacks are completely neutralized while the barrier is active. A cyan energy field surrounds you, pulsing rhythmically to indicate the barrier's presence. This protocol is perfect for escaping overwhelming situations or pushing through hostile lines.`
                         }
                         {selectedAbilityData.type === 'fire_ring' && 
-                          `The Fire Ring summons a blazing circle of flame around you. Any enemy that enters this zone takes continuous damage and is marked with a burning effect. The ring rotates visually and emits fire particles along its perimeter. Enemies caught in the fire glow orange, making them easy to track. This ability excels at crowd control and area denial.`
+                          `The PLASMA FIELD protocol activates a thermal discharge ring around you. Any hostile that enters this zone takes continuous plasma damage and is marked with a thermal signature. The field rotates visually and emits plasma particles along its perimeter. Hostiles caught in the plasma glow orange, making them easy to track. This protocol excels at crowd control and area denial.`
                         }
                         {selectedAbilityData.type === 'speed_boost' && 
-                          `Speed Boost increases your movement speed by 50%, allowing you to outrun most enemies in the arena. Cyan speed lines appear around your character to indicate the boost is active. This ability is invaluable for repositioning, escaping dangerous situations, or kiting enemies while your weapons are on cooldown.`
+                          `OVERDRIVE PROTOCOL increases your mobility by 100%, allowing you to outrun most hostiles in the facility. Cyan energy trails appear around your character to indicate the protocol is active. This enhancement is invaluable for repositioning, escaping dangerous situations, or kiting hostiles while your weapons are on cooldown.`
                         }
                         {selectedAbilityData.type === 'damage_boost' && 
-                          `Damage Boost triples ALL damage you deal for its duration. Your character gains a red glow to indicate the power surge. This ability transforms even basic weapons into devastating tools of destruction. Best used when you have clear shots at high-value targets.`
+                          `NANOMACHINE ENHANCEMENT multiplies ALL damage output by 5x for its duration. Your character gains a red energy glow to indicate the power surge. This protocol transforms even basic weapons into devastating tools of destruction. Best used when you have clear shots at high-value targets.`
                         }
                         {selectedAbilityData.type === 'freeze' && 
-                          `Freeze slows ALL enemies on the screen significantly, giving you a tactical advantage. Ice particles orbit around you while this ability is active, and affected enemies move visibly slower. This ability affects everything - movement speed, attack speed, and projectile speed.`
+                          `STASIS FIELD slows ALL hostiles on the screen significantly, giving you a tactical advantage. Temporal particles orbit around you while this protocol is active, and affected hostiles move visibly slower. This protocol affects everything - movement speed, attack speed, and projectile speed.`
                         }
                       </p>
                     </div>
 
                     {/* Tips */}
-                    <div className="border-4 border-yellow-900 p-5" style={{ backgroundColor: 'rgba(90, 60, 0, 0.3)' }}>
-                      <h3 className="text-yellow-400 font-bold mb-3 flex items-center gap-2" style={{ fontSize: '20px' }}>
+                    <div className="hud-panel p-5 relative" style={{ '--hud-border-color': 'rgba(255, 170, 0, 0.5)' } as React.CSSProperties}>
+                      <div className="hud-corner hud-corner-tl"></div>
+                      <div className="hud-corner hud-corner-tr"></div>
+                      <div className="hud-corner hud-corner-bl"></div>
+                      <div className="hud-corner hud-corner-br"></div>
+                      <h3 className="hud-text-warning font-bold mb-3 flex items-center gap-2" style={{ fontSize: '20px' }}>
                         <PixelIcon name="bolt" size={20} /> PRO TIPS
                       </h3>
-                      <ul className="text-gray-300 space-y-2" style={{ fontSize: '15px' }}>
+                      <ul className="hud-text space-y-2" style={{ fontSize: '15px' }}>
                         {selectedAbilityData.type === 'shield' && (
                           <>
-                            <li>• Use Shield to safely collect health pickups in dangerous areas</li>
-                            <li>• Activate when an Overlord begins charging to nullify their attack</li>
+                            <li>• Use NANOMACHINE BARRIER to safely collect health pickups in dangerous areas</li>
+                            <li>• Activate when a Warlord begins charging to nullify their attack</li>
                             <li>• Don't waste it on small groups - save it for emergencies</li>
                           </>
                         )}
                         {selectedAbilityData.type === 'fire_ring' && (
                           <>
-                            <li>• Stand still to maximize damage - enemies walking through take repeated hits</li>
-                            <li>• Combine with Freeze to trap enemies in the fire longer</li>
-                            <li>• Great for clearing Swarmer waves before they can detonate</li>
+                            <li>• Stand still to maximize damage - hostiles walking through take repeated hits</li>
+                            <li>• Combine with STASIS FIELD to trap hostiles in the plasma longer</li>
+                            <li>• Great for clearing Cyber Drone waves before they can detonate</li>
                           </>
                         )}
                         {selectedAbilityData.type === 'speed_boost' && (
                           <>
-                            <li>• Use to kite Overlords while their shield protects other enemies</li>
+                            <li>• Use to kite Warlords while their defensive field protects other hostiles</li>
                             <li>• Perfect for repositioning when surrounded</li>
-                            <li>• Can outrun even Berserker-mode Overlords</li>
+                            <li>• Can outrun even Berserker Protocol Warlords</li>
                           </>
                         )}
                         {selectedAbilityData.type === 'damage_boost' && (
                           <>
-                            <li>• Focus fire on Overlords to eliminate their shield aura quickly</li>
-                            <li>• Devastating with shotgun or assault rifle weapons</li>
-                            <li>• Time it when enemies are clustered for maximum impact</li>
+                            <li>• Focus fire on Warlords to eliminate their defensive field quickly</li>
+                            <li>• Devastating with scattershot or rapid-fire plasma weapons</li>
+                            <li>• Time it when hostiles are clustered for maximum impact</li>
                           </>
                         )}
                         {selectedAbilityData.type === 'freeze' && (
                           <>
                             <li>• Use to create distance when overwhelmed</li>
-                            <li>• Slowed enemies are easier to hit with slow projectiles</li>
-                            <li>• Combine with Fire Ring for a deadly combo</li>
+                            <li>• Slowed hostiles are easier to hit with slow projectiles</li>
+                            <li>• Combine with PLASMA FIELD for a deadly combo</li>
                           </>
                         )}
                       </ul>
@@ -721,14 +801,18 @@ Your mission is simple: survive. But as you progress deeper into the arena, you'
 
           {/* LORE TAB */}
           {activeCategory === 'lore' && (
-            <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(26, 0, 0, 0.85)' }}>
+            <div className="flex-1 overflow-y-auto p-6 guide-content flex justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
               <div className="max-w-4xl w-full space-y-6">
                 {loreEntries.map((entry) => (
-                  <div key={entry.id} className="border-4 border-purple-900 p-6" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <h2 className="text-purple-400 font-bold mb-4 flex items-center gap-3" style={{ fontSize: '26px' }}>
+                  <div key={entry.id} className="hud-panel p-6 relative">
+                    <div className="hud-corner hud-corner-tl"></div>
+                    <div className="hud-corner hud-corner-tr"></div>
+                    <div className="hud-corner hud-corner-bl"></div>
+                    <div className="hud-corner hud-corner-br"></div>
+                    <h2 className="hud-text-accent font-bold mb-4 flex items-center gap-3" style={{ fontSize: '26px' }}>
                       <PixelIcon name="heart" size={28} /> {entry.title}
                     </h2>
-                    <p className="text-gray-300 whitespace-pre-line" style={{ fontSize: '15px', lineHeight: '1.7' }}>{entry.content}</p>
+                    <p className="hud-text whitespace-pre-line" style={{ fontSize: '15px', lineHeight: '1.7' }}>{entry.content}</p>
                   </div>
                 ))}
               </div>
