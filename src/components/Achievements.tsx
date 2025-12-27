@@ -106,7 +106,12 @@ const Achievements = ({ onBack }: AchievementsProps) => {
         src="/assets/sprites/image copy 3.png"
         alt="Background"
         className="absolute inset-0 w-screen h-screen object-cover pointer-events-none"
-        style={{ imageRendering: 'pixelated', zIndex: 0 }}
+        style={{ 
+          imageRendering: 'pixelated', 
+          zIndex: 0,
+          filter: 'brightness(0.7) contrast(1.15)',
+          opacity: 0.9
+        }}
       />
       
       {/* Back button */}
@@ -228,17 +233,21 @@ const Achievements = ({ onBack }: AchievementsProps) => {
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 10px;
+          width: 14px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.3);
+          background: rgba(0, 0, 0, 0.6);
+          border: 1px solid rgba(0, 200, 255, 0.2);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #5a0000;
-          border: 1px solid white;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.4) 0%, rgba(0, 150, 200, 0.5) 100%);
+          border: 1px solid rgba(0, 200, 255, 0.6);
+          box-shadow: inset 0 0 4px rgba(0, 200, 255, 0.3);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #7a0000;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.6) 0%, rgba(0, 150, 200, 0.7) 100%);
+          border-color: rgba(0, 200, 255, 0.9);
+          box-shadow: inset 0 0 6px rgba(0, 200, 255, 0.5);
         }
       `}</style>
     </div>

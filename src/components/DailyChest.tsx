@@ -66,7 +66,8 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
     const sprite = spriteManager.getSprite(chestSpriteName);
     
     if (sprite) {
-      const size = 320;
+      // Make opened chest bigger
+      const size = openedWeapon ? 450 : 400;
       const x = canvas.width / 2;
       const y = canvas.height / 2;
       
@@ -101,7 +102,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
     const sprite = spriteManager.getSprite(spriteName);
     
     if (sprite) {
-      const size = 200;
+      const size = 160; // Reduced from 200 to make it smaller
       const x = canvas.width / 2;
       const y = canvas.height / 2;
       
@@ -110,6 +111,30 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
       let drawWidth = size;
       let drawHeight = size / spriteAspect;
       
+      // Draw glow effect behind the weapon (yellow)
+      ctx.save();
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = 'rgba(255, 255, 0, 0.8)';
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      // Draw multiple glow layers for stronger effect
+      for (let i = 0; i < 3; i++) {
+        ctx.globalAlpha = 0.3 - (i * 0.1);
+        ctx.shadowBlur = 40 - (i * 10);
+        ctx.shadowColor = `rgba(255, 255, ${100 - i * 20}, ${0.8 - i * 0.2})`;
+        ctx.drawImage(
+          sprite,
+          x - drawWidth / 2,
+          y - drawHeight / 2,
+          drawWidth,
+          drawHeight
+        );
+      }
+      
+      ctx.restore();
+      
+      // Draw the actual weapon sprite on top
       ctx.drawImage(
         sprite,
         x - drawWidth / 2,
@@ -256,9 +281,15 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
   const handleOpenCrate = async (payFee: boolean = false) => {
     if ((!canOpen && !payFee) || isOpening) return;
     
-    if (!connected || !client) {
-      setMintError("Please connect your OneChain wallet first!");
-      return;
+    // Check for debug flag from environment
+    const isDebugMode = import.meta.env.VITE_DEBUG_WEAPONS === 'true';
+    
+    // In debug mode, skip wallet check and contract call
+    if (!isDebugMode) {
+      if (!connected || !client) {
+        setMintError("Please connect your OneChain wallet first!");
+        return;
+      }
     }
 
     setMintError(null);
@@ -267,6 +298,29 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
     try {
       // Generate random weapon stats for minting
       const randomWeapon = getRandomWeapon();
+      
+      // Debug mode: Mock the contract call
+      if (isDebugMode) {
+        // Simulate a small delay for realism
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Generate a mock object ID for debug mode
+        const mockObjectId = `debug-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Create weapon with mock ID
+        const mockWeapon: Weapon = {
+          ...randomWeapon,
+          id: mockObjectId
+        };
+        
+        console.log("DEBUG MODE: Mock minting weapon", mockWeapon);
+        
+        setOpenedWeapon(mockWeapon);
+        onWeaponObtained(mockWeapon);
+        setCanOpen(false);
+        setIsOpening(false);
+        return;
+      }
       const tx = new Transaction();
       const amountToPay = payFee ? feeRequired : 0;
       
@@ -344,6 +398,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
             const objId = created.reference.objectId;
             // Verify it's a WeaponNFT by checking its type
             try {
+              if (!client) break;
               const obj = await client.getObject({
                 id: objId,
                 options: { showType: true, showContent: true }
@@ -360,7 +415,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
       }
 
       // If we found the weapon object, fetch its full data
-      if (weaponObjectId && client) {
+      if (weaponObjectId && client && !isDebugMode) {
         try {
           const weaponObj = await client.getObject({
             id: weaponObjectId,
@@ -419,7 +474,12 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
         src="/assets/sprites/image copy 3.png"
         alt="Background"
         className="absolute inset-0 w-screen h-screen object-cover pointer-events-none"
-        style={{ imageRendering: 'pixelated', zIndex: 0 }}
+        style={{ 
+          imageRendering: 'pixelated', 
+          zIndex: 0,
+          filter: 'brightness(0.7) contrast(1.15)',
+          opacity: 0.9
+        }}
       />
       
       {/* Back button */}
@@ -478,18 +538,23 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
         <div className="hud-corner hud-corner-tr"></div>
         <div className="hud-corner hud-corner-bl"></div>
         <div className="hud-corner hud-corner-br"></div>
-        <h1 className="hud-text-accent mb-3 font-bold" style={{ fontSize: '28px' }}>DAILY CHEST</h1>
+        <h1 className="hud-text-accent mb-3 font-bold" style={{ fontSize: '28px' }}>SUPPLY CACHE</h1>
         
         {/* Chest Canvas Container - Relative positioning for weapon placement */}
         <div className="relative flex justify-center mb-2" style={{ zIndex: 10 }}>
           {/* Weapon Canvas - Display above chest when opened, touching it */}
           {openedWeapon && (
-            <div className="absolute flex justify-center" style={{ bottom: '130px', zIndex: 15, left: '50%', transform: 'translateX(-50%)' }}>
+            <div className="absolute flex justify-center" style={{ bottom: '160px', zIndex: 15, left: '50%', transform: 'translateX(-50%)' }}>
               <canvas
                 ref={weaponCanvasRef}
-                width={250}
-                height={250}
-                style={{ imageRendering: 'pixelated', maxWidth: '100%', height: 'auto' }}
+                width={200}
+                height={200}
+                style={{ 
+                  imageRendering: 'pixelated', 
+                  maxWidth: '100%', 
+                  height: 'auto',
+                  filter: 'drop-shadow(0 0 20px rgba(255, 255, 0, 0.8)) drop-shadow(0 0 40px rgba(255, 255, 0, 0.5))'
+                }}
               />
             </div>
           )}
@@ -497,8 +562,8 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
           {/* Chest Canvas - Centerpiece */}
           <canvas
             ref={chestCanvasRef}
-            width={350}
-            height={350}
+            width={openedWeapon ? 450 : 350}
+            height={openedWeapon ? 450 : 350}
             style={{ imageRendering: 'pixelated', maxWidth: '100%', height: 'auto' }}
             className={isOpening ? 'animate-pulse' : ''}
           />
@@ -554,17 +619,17 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
             {canOpen ? (
               <div className="space-y-3">
                 <p className="hud-text-warning mb-2 font-bold" style={{ fontSize: '18px' }}>
-                  TEST YOUR LUCK FOR A RARE WEAPON!
+                  TEST YOUR LUCK FOR AN ELITE WEAPON!
                 </p>
                 <p className="hud-text mb-2 font-semibold" style={{ fontSize: '14px' }}>
-                  UNLOCK THIS CHEST TO MINT AN NFT WEAPON
+                  ACCESS THIS CACHE TO MINT AN NFT WEAPON
                 </p>
                 <p className="hud-text-accent mb-6 text-xs">
-                  DISCOVER POWERFUL WEAPONS WITH UNIQUE STATS
+                  DISCOVER ADVANCED WEAPONS WITH UNIQUE STATS
                 </p>
                 
                 {mintError && (
-                  <div className="hud-text-danger hud-panel p-2 mb-4 text-xs relative" style={{ borderColor: 'rgba(255, 68, 68, 0.6)' }}>
+                  <div className="hud-text-danger hud-panel p-2 mb-4 text-xs relative" style={{ '--hud-border-color': 'rgba(255, 68, 68, 0.6)' } as React.CSSProperties}>
                     <div className="hud-corner hud-corner-tl"></div>
                     <div className="hud-corner hud-corner-tr"></div>
                     <div className="hud-corner hud-corner-bl"></div>
@@ -579,7 +644,7 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
                   className="hud-button py-4 px-10 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ fontSize: '20px', imageRendering: 'pixelated', borderColor: 'rgba(0, 255, 136, 0.5)' }}
                 >
-                  <span className="hud-text-success">{isOpening ? 'MINTING...' : 'OPEN CHEST'}</span>
+                  <span className="hud-text-success">{isOpening ? 'MINTING...' : 'ACCESS CACHE'}</span>
                 </button>
                 {!connected && (
                   <p className="hud-text-warning text-sm mt-2">
@@ -590,17 +655,17 @@ const DailyChest = ({ onBack, onWeaponObtained }: DailyChestProps) => {
             ) : (
               <div className="space-y-2">
                 <p className="hud-text mb-2 font-semibold" style={{ fontSize: '16px' }}>
-                  YOU HAVE ALREADY OPENED YOUR DAILY CHEST
+                  YOU HAVE ALREADY ACCESSED YOUR SUPPLY CACHE
                 </p>
                 <p className="hud-text-warning mb-3 font-bold" style={{ fontSize: '18px' }}>
                   {!connected ? "CONNECT WALLET TO CHECK STATUS" : 
                    (isLoadingState ? "CHECKING STATUS..." : 
-                    (timeRemaining ? `NEXT CHEST AVAILABLE IN: ${timeRemaining}` : "CHECKING STATUS..."))}
+                    (timeRemaining ? `NEXT CACHE AVAILABLE IN: ${timeRemaining}` : "CHECKING STATUS..."))}
                 </p>
                 
                 {feeRequired > 0 && (
                   <div className="mt-2">
-                    <p className="hud-text mb-1 text-xs">OR OPEN IMMEDIATELY</p>
+                    <p className="hud-text mb-1 text-xs">OR ACCESS IMMEDIATELY</p>
                     <button
                       onClick={() => handleOpenCrate(true)}
                       disabled={isOpening}

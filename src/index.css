@@ -25,35 +25,48 @@ body {
   font-size: 8px;
 }
 
-/* Custom scrollbar styling for dark theme */
+/* Custom scrollbar styling for HUD theme */
 ::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a0000;
-  border: 2px solid #3a0000;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #5a0000;
-  border: 2px solid #3a0000;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 200, 255, 0.2);
   border-radius: 0;
 }
 
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.4) 0%, rgba(0, 150, 200, 0.5) 100%);
+  border: 1px solid rgba(0, 200, 255, 0.6);
+  border-radius: 0;
+  box-shadow: 
+    inset 0 0 4px rgba(0, 200, 255, 0.3),
+    0 0 2px rgba(0, 200, 255, 0.2);
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #7a0000;
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.6) 0%, rgba(0, 150, 200, 0.7) 100%);
+  border-color: rgba(0, 200, 255, 0.9);
+  box-shadow: 
+    inset 0 0 6px rgba(0, 200, 255, 0.5),
+    0 0 4px rgba(0, 200, 255, 0.4);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.8) 0%, rgba(0, 150, 200, 0.9) 100%);
 }
 
 ::-webkit-scrollbar-corner {
-  background: #1a0000;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 200, 255, 0.2);
 }
 
 /* Firefox scrollbar styling */
 * {
-  scrollbar-width: thick;
-  scrollbar-color: #5a0000 #1a0000;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 200, 255, 0.5) rgba(0, 0, 0, 0.6);
 }
 
 /* Futuristic Robot HUD UI Styles */
@@ -84,24 +97,15 @@ body {
   }
 }
 
-/* Angular HUD Panel with cut corners */
+/* Angular HUD Panel with cut corners - border follows clip-path */
 .hud-panel {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(10, 10, 20, 0.9) 100%);
-  border: 2px solid rgba(0, 200, 255, 0.4);
+  background: transparent;
+  border: none;
   position: relative;
   overflow: hidden;
-  clip-path: polygon(
-    12px 0%,
-    calc(100% - 12px) 0%,
-    100% 12px,
-    100% calc(100% - 12px),
-    calc(100% - 12px) 100%,
-    12px 100%,
-    0% calc(100% - 12px),
-    0% 12px
-  );
 }
 
+/* Border layer that follows the clip-path */
 .hud-panel::before {
   content: '';
   position: absolute;
@@ -109,7 +113,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  border: 1px solid rgba(0, 200, 255, 0.6);
+  background: var(--hud-border-color, rgba(0, 200, 255, 0.4));
   clip-path: polygon(
     12px 0%,
     calc(100% - 12px) 0%,
@@ -120,23 +124,46 @@ body {
     0% calc(100% - 12px),
     0% 12px
   );
+  z-index: 0;
   pointer-events: none;
 }
 
+/* Inner background layer with scanline animation */
 .hud-panel::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 200, 255, 0.05),
-    transparent
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(10, 10, 20, 0.9) 100%);
+  clip-path: polygon(
+    10px 0%,
+    calc(100% - 10px) 0%,
+    100% 10px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0% calc(100% - 10px),
+    0% 10px
   );
-  animation: scanline 4s linear infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Scanline animation overlay */
+.hud-panel {
+  position: relative;
+}
+
+.hud-panel > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Allow custom border colors via style attribute */
+.hud-panel[style*="borderColor"]::before {
+  background: var(--border-color, rgba(0, 200, 255, 0.4));
 }
 
 /* Corner brackets */
@@ -318,4 +345,64 @@ body {
   box-shadow: 
     0 0 8px rgba(0, 200, 255, 0.4),
     inset 0 0 8px rgba(0, 200, 255, 0.1);
+}
+
+/* Main menu button style - clipped from top-left and bottom-right */
+.menu-main-button {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* Border layer that follows the clip-path */
+.menu-main-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 200, 255, 0.6);
+  clip-path: polygon(
+    20px 0%,
+    100% 0%,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0% 100%,
+    0% 20px
+  );
+  z-index: 0;
+}
+
+/* Inner background layer */
+.menu-main-button::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 20, 0.98) 100%);
+  clip-path: polygon(
+    18px 0%,
+    100% 0%,
+    100% calc(100% - 18px),
+    calc(100% - 18px) 100%,
+    0% 100%,
+    0% 18px
+  );
+  z-index: 1;
+}
+
+.menu-main-button:hover::before {
+  background: rgba(0, 200, 255, 1);
+  box-shadow: 
+    0 0 15px rgba(0, 200, 255, 0.5),
+    0 0 30px rgba(0, 200, 255, 0.3);
+}
+
+.menu-main-button:hover::after {
+  background: linear-gradient(135deg, rgba(0, 20, 40, 0.98) 0%, rgba(10, 30, 50, 0.98) 100%);
 }

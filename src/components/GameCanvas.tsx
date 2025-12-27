@@ -170,6 +170,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
   // Energy beam sprite sheet animation frame counter
   const energyBeamFrameRef = useRef<number>(0);
   const pistolSoundRef = useRef<HTMLAudioElement | null>(null);
+  const assaultRifleSoundRef = useRef<HTMLAudioElement | null>(null);
   const swordSoundRef = useRef<HTMLAudioElement | null>(null);
   const rifleSoundRef = useRef<HTMLAudioElement | null>(null);
   const shotgunSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -332,18 +333,23 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
     });
 
     // Initialize pistol sound
-    const pistolSound = new Audio('/assets/pistol-shot-233473.mp3');
-    pistolSound.volume = 0.1; // Set volume to 15% (reduced from 30%)
+    const pistolSound = new Audio('/assets/laser-312360.mp3');
+    pistolSound.volume = 1; // Set volume to 15% (reduced from 30%)
     pistolSoundRef.current = pistolSound;
 
+    // Initialize assault rifle and machine gun sound
+    const assaultRifleSound = new Audio('/assets/laser-shot-ingame-230500.mp3');
+    assaultRifleSound.volume = 0.1; // Set volume to 10%
+    assaultRifleSoundRef.current = assaultRifleSound;
+
     // Initialize sword sound
-    const swordSound = new Audio('/assets/sword-slice-393847.mp3');
-    swordSound.volume = 0.3; // Set volume to 30%
+    const swordSound = new Audio('/assets/laser-zap-90575 (1).mp3');
+    swordSound.volume = 0.05; // Set volume to 30%
     swordSoundRef.current = swordSound;
 
     // Initialize rifle sound
-    const rifleSound = new Audio('/assets/powerful-cannon-shot-352459.mp3');
-    rifleSound.volume = 0.3; // Set volume to 30%
+    const rifleSound = new Audio('/assets/laser-zap-90575.mp3');
+    rifleSound.volume = 0.15; // Set volume to 15%
     rifleSoundRef.current = rifleSound;
 
     // Initialize shotgun sound
@@ -657,10 +663,19 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         currentAmmoRef.current = newAmmo;
       }
       
-      // Play pistol sound effect when pistol, assault rifle, or machine gun is fired
-      if (isSfxEnabled && (weapon.type === 'pistol' || weapon.type === 'assault_rifle' || weapon.type === 'machine_gun') && pistolSoundRef.current) {
+      // Play pistol sound effect when pistol is fired
+      if (isSfxEnabled && weapon.type === 'pistol' && pistolSoundRef.current) {
         const sound = pistolSoundRef.current.cloneNode() as HTMLAudioElement;
         sound.volume = 0.1; // Reduced from 0.3 to 0.15 (15%)
+        sound.play().catch(() => {
+          // Ignore autoplay errors
+        });
+      }
+      
+      // Play assault rifle sound effect when assault rifle or machine gun is fired
+      if (isSfxEnabled && (weapon.type === 'assault_rifle' || weapon.type === 'machine_gun') && assaultRifleSoundRef.current) {
+        const sound = assaultRifleSoundRef.current.cloneNode() as HTMLAudioElement;
+        sound.volume = 0.1; // Set volume to 10%
         sound.play().catch(() => {
           // Ignore autoplay errors
         });
@@ -669,7 +684,7 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
       // Play rifle sound effect when rifle is fired
       if (isSfxEnabled && weapon.type === 'rifle' && rifleSoundRef.current) {
         const sound = rifleSoundRef.current.cloneNode() as HTMLAudioElement;
-        sound.volume = 0.3;
+        sound.volume = 0.1;
         sound.play().catch(() => {
           // Ignore autoplay errors
         });
@@ -2016,18 +2031,182 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         }
       }
 
-      // Draw player projectiles with sprites
+      // Draw player projectiles with sprites (or custom colors for pistol, assault rifle, and shotgun)
       projectilesRef.current.forEach((proj) => {
         const angle = Math.atan2(proj.velocity.y, proj.velocity.x);
-        spriteManager.drawSprite(
-          ctx,
-          'projectile',
-          proj.position.x,
-          proj.position.y,
-          proj.size,
-          proj.size,
-          angle
-        );
+        
+        // Draw pistol bullets as thin cylindrical laser lines (purple-blue)
+        if (weapon.type === 'pistol') {
+          ctx.save();
+          ctx.translate(proj.position.x, proj.position.y);
+          ctx.rotate(angle);
+          
+          const laserLength = proj.size * 2.5; // Length of the laser beam
+          const laserWidth = proj.size * 0.3; // Thin width
+          
+          // Outer glow (wider, more transparent)
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#9d4edd'; // Purple glow
+          ctx.fillStyle = 'rgba(123, 44, 191, 0.4)'; // Purple-blue base with transparency
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2, laserLength, laserWidth);
+          
+          // Main laser body
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = '#7b2cbf';
+          ctx.fillStyle = '#c77dff'; // Bright purple-blue
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.7, laserLength, laserWidth * 0.7);
+          
+          // Bright center core
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#e0aaff';
+          ctx.fillStyle = '#e0aaff'; // Light purple
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.4, laserLength, laserWidth * 0.4);
+          
+          // Bright tip at the front
+          ctx.fillStyle = '#ffffff'; // White hot tip
+          ctx.fillRect(laserLength / 2 - laserWidth * 0.6, -laserWidth / 2 * 0.3, laserWidth * 0.6, laserWidth * 0.6);
+          
+          ctx.restore();
+        } else if (weapon.type === 'assault_rifle') {
+          // Draw assault rifle bullets as thin cylindrical laser lines (red)
+          ctx.save();
+          ctx.translate(proj.position.x, proj.position.y);
+          ctx.rotate(angle);
+          
+          const laserLength = proj.size * 2.5; // Length of the laser beam
+          const laserWidth = proj.size * 0.3; // Thin width
+          
+          // Outer glow (wider, more transparent)
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#ff4444'; // Red glow
+          ctx.fillStyle = 'rgba(220, 38, 38, 0.4)'; // Red base with transparency
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2, laserLength, laserWidth);
+          
+          // Main laser body
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = '#dc2626';
+          ctx.fillStyle = '#ff6b6b'; // Bright red
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.7, laserLength, laserWidth * 0.7);
+          
+          // Bright center core
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#ff9999';
+          ctx.fillStyle = '#ff9999'; // Light red
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.4, laserLength, laserWidth * 0.4);
+          
+          // Bright tip at the front
+          ctx.fillStyle = '#ffffff'; // White hot tip
+          ctx.fillRect(laserLength / 2 - laserWidth * 0.6, -laserWidth / 2 * 0.3, laserWidth * 0.6, laserWidth * 0.6);
+          
+          ctx.restore();
+        } else if (weapon.type === 'shotgun') {
+          // Draw shotgun bullets as thin cylindrical laser lines (green neon and yellowish)
+          ctx.save();
+          ctx.translate(proj.position.x, proj.position.y);
+          ctx.rotate(angle);
+          
+          const laserLength = proj.size * 2.5; // Length of the laser beam
+          const laserWidth = proj.size * 0.3; // Thin width
+          
+          // Outer glow (wider, more transparent) - green
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#39ff14'; // Neon green glow
+          ctx.fillStyle = 'rgba(57, 255, 20, 0.4)'; // Neon green base with transparency
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2, laserLength, laserWidth);
+          
+          // Main laser body - green to yellow gradient effect
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = '#32cd32';
+          ctx.fillStyle = '#7fff00'; // Bright neon green
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.7, laserLength, laserWidth * 0.7);
+          
+          // Bright center core - yellowish
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#ffff00';
+          ctx.fillStyle = '#adff2f'; // Yellow-green
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.4, laserLength, laserWidth * 0.4);
+          
+          // Bright yellow tip at the front
+          ctx.fillStyle = '#ffff00'; // Bright yellow tip
+          ctx.fillRect(laserLength / 2 - laserWidth * 0.6, -laserWidth / 2 * 0.3, laserWidth * 0.6, laserWidth * 0.6);
+          
+          ctx.restore();
+        } else if (weapon.type === 'rifle') {
+          // Draw rifle bullets as thin cylindrical laser lines (blue neon)
+          ctx.save();
+          ctx.translate(proj.position.x, proj.position.y);
+          ctx.rotate(angle);
+          
+          const laserLength = proj.size * 2.5; // Length of the laser beam
+          const laserWidth = proj.size * 0.3; // Thin width
+          
+          // Outer glow (wider, more transparent) - blue
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#00ffff'; // Cyan/blue neon glow
+          ctx.fillStyle = 'rgba(0, 191, 255, 0.4)'; // Blue neon base with transparency
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2, laserLength, laserWidth);
+          
+          // Main laser body
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = '#0099ff';
+          ctx.fillStyle = '#00bfff'; // Bright neon blue
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.7, laserLength, laserWidth * 0.7);
+          
+          // Bright center core
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#00ffff';
+          ctx.fillStyle = '#40e0d0'; // Bright cyan-blue
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.4, laserLength, laserWidth * 0.4);
+          
+          // Bright cyan tip at the front
+          ctx.fillStyle = '#00ffff'; // Bright cyan tip
+          ctx.fillRect(laserLength / 2 - laserWidth * 0.6, -laserWidth / 2 * 0.3, laserWidth * 0.6, laserWidth * 0.6);
+          
+          ctx.restore();
+        } else if (weapon.type === 'machine_gun') {
+          // Draw machine gun bullets as thin cylindrical laser lines (blackish neon)
+          ctx.save();
+          ctx.translate(proj.position.x, proj.position.y);
+          ctx.rotate(angle);
+          
+          const laserLength = proj.size * 2.5; // Length of the laser beam
+          const laserWidth = proj.size * 0.3; // Thin width
+          
+          // Outer glow (wider, more transparent) - dark purple/black with neon edge
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#4a0080'; // Dark purple neon glow
+          ctx.fillStyle = 'rgba(20, 0, 40, 0.5)'; // Very dark purple/black base with transparency
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2, laserLength, laserWidth);
+          
+          // Main laser body - dark with neon edge
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = '#6a00a0';
+          ctx.fillStyle = '#2d0047'; // Dark purple-black
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.7, laserLength, laserWidth * 0.7);
+          
+          // Bright center core - dark with subtle neon
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#8a00c0';
+          ctx.fillStyle = '#4a0080'; // Dark purple with neon hint
+          ctx.fillRect(-laserLength / 2, -laserWidth / 2 * 0.4, laserLength, laserWidth * 0.4);
+          
+          // Bright neon purple tip at the front
+          ctx.fillStyle = '#aa00ff'; // Bright neon purple tip
+          ctx.fillRect(laserLength / 2 - laserWidth * 0.6, -laserWidth / 2 * 0.3, laserWidth * 0.6, laserWidth * 0.6);
+          
+          ctx.restore();
+        } else {
+          // Use sprite for other weapons
+          spriteManager.drawSprite(
+            ctx,
+            'projectile',
+            proj.position.x,
+            proj.position.y,
+            proj.size,
+            proj.size,
+            angle
+          );
+        }
       });
 
       // Draw lightning beams (zigzag between enemies)
@@ -3336,18 +3515,6 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         .exit-button:hover {
           background-color: #7a0000;
         }
-        .exit-confirm-no {
-          background-color: #5a0000;
-        }
-        .exit-confirm-no:hover {
-          background-color: #7a0000;
-        }
-        .exit-confirm-yes {
-          background-color: #8b0000;
-        }
-        .exit-confirm-yes:hover {
-          background-color: #aa0000;
-        }
         .pause-button {
           transition: all 0.2s ease;
         }
@@ -3441,36 +3608,42 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
         {/* Exit confirmation modal */}
         {showExitConfirm && (
           <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 pointer-events-auto" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
-            <div className="border-4 border-white p-12 text-center shadow-2xl" style={{ backgroundColor: '#3a0000', imageRendering: 'pixelated', minWidth: '500px' }}>
-              <h2 className="text-white mb-8 font-bold" style={{ fontSize: '48px', textShadow: '4px 4px 0px rgba(0,0,0,0.5)' }}>
+            <div className="hud-panel p-12 text-center shadow-2xl relative" style={{ imageRendering: 'pixelated', minWidth: '500px' }}>
+              <div className="hud-corner hud-corner-tl"></div>
+              <div className="hud-corner hud-corner-tr"></div>
+              <div className="hud-corner hud-corner-bl"></div>
+              <div className="hud-corner hud-corner-br"></div>
+              <h2 className="hud-text-danger mb-8 font-bold" style={{ fontSize: '48px' }}>
                 EXIT TO MAIN MENU?
               </h2>
-              <p className="text-gray-300 mb-10 font-bold" style={{ fontSize: '20px' }}>
+              <p className="hud-text-warning mb-10 font-bold" style={{ fontSize: '20px' }}>
                 YOUR PROGRESS WILL BE LOST
               </p>
               <div className="flex gap-6 justify-center">
                 <button
                   onClick={() => setShowExitConfirm(false)}
-                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-no"
+                  className="hud-button py-4 px-10 font-bold transition-all"
                   style={{ 
                     fontSize: '18px',
-                    imageRendering: 'pixelated'
+                    imageRendering: 'pixelated',
+                    borderColor: 'rgba(0, 200, 255, 0.5)'
                   }}
                 >
-                  NO
+                  <span className="hud-text">NO</span>
                 </button>
                 <button
                   onClick={() => {
                     cleanupAllSounds();
                     onReturnToMenu();
                   }}
-                  className="border-4 border-white py-4 px-10 text-white font-bold transition-all exit-confirm-yes"
+                  className="hud-button py-4 px-10 font-bold transition-all"
                   style={{ 
                     fontSize: '18px',
-                    imageRendering: 'pixelated'
+                    imageRendering: 'pixelated',
+                    borderColor: 'rgba(255, 68, 68, 0.5)'
                   }}
                 >
-                  YES
+                  <span className="hud-text-danger">YES</span>
                 </button>
               </div>
             </div>
@@ -3603,8 +3776,8 @@ const GameCanvas = ({ weapon, onReturnToMenu }: GameCanvasProps) => {
               <div className="text-center">
                 <div className="mb-2 flex justify-center items-center" style={{ minHeight: '32px' }}>
                   <div style={{ filter: isActive ? 'drop-shadow(0 0 3px rgba(0, 200, 255, 0.6))' : 'drop-shadow(0 0 2px rgba(255, 170, 0, 0.4))' }}>
-                    <PixelIcon name={abilityData.icon} size={32} />
-                  </div>
+                  <PixelIcon name={abilityData.icon} size={32} />
+                </div>
                 </div>
                 <div className="hud-text-accent font-bold mb-2" style={{ fontSize: '16px' }}>
                   [{index + 1}]

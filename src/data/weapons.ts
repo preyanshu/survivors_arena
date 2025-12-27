@@ -42,31 +42,31 @@ export const WEAPON_TYPE_WEIGHTS = {
 
 // Rarity names
 const RARITY_NAMES = {
-  [WeaponRarity.COMMON]: 'Common',
-  [WeaponRarity.UNCOMMON]: 'Uncommon',
-  [WeaponRarity.RARE]: 'Rare',
-  [WeaponRarity.EPIC]: 'Epic',
-  [WeaponRarity.LEGENDARY]: 'Legendary',
+  [WeaponRarity.COMMON]: 'Standard',
+  [WeaponRarity.UNCOMMON]: 'Advanced',
+  [WeaponRarity.RARE]: 'Elite',
+  [WeaponRarity.EPIC]: 'Superior',
+  [WeaponRarity.LEGENDARY]: 'Prototype',
 };
 
 // Weapon type names
 const WEAPON_TYPE_NAMES: Partial<Record<WeaponType, string>> = {
-  [WeaponType.PISTOL]: 'Pistol',
-  [WeaponType.SHOTGUN]: 'Shotgun',
-  [WeaponType.SWORD]: 'Sword',
-  [WeaponType.ASSAULT_RIFLE]: 'Assault Rifle',
-  [WeaponType.RIFLE]: 'Rifle',
-  [WeaponType.MACHINE_GUN]: 'Machine Gun',
+  [WeaponType.PISTOL]: 'Plasma Sidearm',
+  [WeaponType.SHOTGUN]: 'Scattershot Launcher',
+  [WeaponType.SWORD]: 'HF Blade',
+  [WeaponType.ASSAULT_RIFLE]: 'Plasma Rifle',
+  [WeaponType.RIFLE]: 'Plasma Sniper',
+  [WeaponType.MACHINE_GUN]: 'Plasma Cannon',
 };
 
 // Descriptions for each weapon type
 const WEAPON_DESCRIPTIONS: Partial<Record<WeaponType, string>> = {
-  [WeaponType.PISTOL]: 'Shoots single bullets with good accuracy',
-  [WeaponType.SHOTGUN]: 'Spreads 3 projectiles in a cone',
-  [WeaponType.SWORD]: 'Melee slash attack with high damage',
-  [WeaponType.ASSAULT_RIFLE]: 'Fast-firing automatic weapon with good damage',
-  [WeaponType.RIFLE]: 'High-damage precision weapon with long range',
-  [WeaponType.MACHINE_GUN]: 'Full auto machine gun with extremely high fire rate',
+  [WeaponType.PISTOL]: 'Plasma sidearm with precise targeting systems',
+  [WeaponType.SHOTGUN]: 'Scattershot plasma launcher - spreads 3 projectiles in a cone',
+  [WeaponType.SWORD]: 'High-frequency blade - melee attack with devastating damage',
+  [WeaponType.ASSAULT_RIFLE]: 'Rapid-fire plasma rifle with sustained damage output',
+  [WeaponType.RIFLE]: 'Precision plasma sniper - high damage with extended range',
+  [WeaponType.MACHINE_GUN]: 'Full-auto plasma cannon with extreme fire rate',
 };
 
 // Generate all weapons (5 types × 5 rarities = 25 weapons)
@@ -145,7 +145,7 @@ export const getRarityBorderColor = (rarity: WeaponRarity): string => {
   }
 };
 
-// Get default player inventory (Common Sword and Common Pistol only)
+// Get default player inventory (Standard HF Blade and Standard Plasma Sidearm only)
 export const getDefaultPlayerInventory = (): Weapon[] => {
   return WEAPONS.filter(
     (weapon) =>
@@ -159,6 +159,39 @@ export const getDefaultPlayerInventory = (): Weapon[] => {
 export const calculateFirerate = (cooldown: number): number => {
   if (cooldown <= 0) return 0;
   return 1000 / cooldown; // Convert milliseconds to shots per second
+};
+
+// Generate debug weapons - one of each weapon type (with RARE rarity for visibility)
+export const getDebugWeapons = (): Weapon[] => {
+  const debugWeapons: Weapon[] = [];
+  
+  WEAPON_TYPES_TO_GENERATE.forEach((weaponType) => {
+    // Use RARE rarity for all debug weapons (good visibility)
+    const rarity = weaponType === WeaponType.MACHINE_GUN 
+      ? WeaponRarity.LEGENDARY // Machine gun only exists as Legendary
+      : WeaponRarity.RARE;
+    
+    const baseStats = BASE_STATS[weaponType];
+    const weaponName = WEAPON_TYPE_NAMES[weaponType];
+    const weaponDescription = WEAPON_DESCRIPTIONS[weaponType];
+    
+    if (!baseStats || !weaponName || !weaponDescription) return;
+    
+    const multipliers = RARITY_MULTIPLIERS[rarity];
+    
+    debugWeapons.push({
+      id: `debug-${weaponType}`, // Debug ID prefix
+      type: weaponType,
+      rarity: rarity,
+      name: `${RARITY_NAMES[rarity]} ${weaponName}`,
+      description: weaponDescription,
+      baseDamage: Math.round(baseStats.damage * multipliers.damage),
+      cooldown: Math.round(baseStats.cooldown * multipliers.cooldown),
+      range: baseStats.range,
+    });
+  });
+  
+  return debugWeapons;
 };
 
 // Generate a weapon with randomized stats within the range for its type and rarity

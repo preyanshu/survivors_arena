@@ -18,8 +18,8 @@ const DEFAULT_WEAPONS: Weapon[] = [
     id: 'default-pistol',
     type: WeaponType.PISTOL,
     rarity: WeaponRarity.COMMON,
-    name: 'Common Pistol',
-    description: 'A reliable standard-issue sidearm. Low damage but consistent fire rate. Good for beginners.',
+    name: 'Standard Plasma Sidearm',
+    description: 'Standard-issue plasma sidearm. Reliable targeting systems with consistent fire rate. Basic operator equipment.',
     baseDamage: 25,
     cooldown: 500,
     range: 400
@@ -28,8 +28,8 @@ const DEFAULT_WEAPONS: Weapon[] = [
     id: 'default-sword',
     type: WeaponType.SWORD,
     rarity: WeaponRarity.COMMON,
-    name: 'Common Sword',
-    description: 'A basic forged iron sword. High damage but low range.',
+    name: 'Standard HF Blade',
+    description: 'Standard high-frequency blade. High damage output but limited range. Basic melee weapon.',
     baseDamage: 25,
     cooldown: 400,
     range: 100

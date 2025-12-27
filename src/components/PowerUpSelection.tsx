@@ -90,7 +90,7 @@ const PowerUpSelection = ({ powerUps, onSelectPowerUp, wave }: PowerUpSelectionP
               <div className="text-center mb-3">
                 <div className="mb-2 flex justify-center items-center" style={{ minHeight: '48px' }}>
                   <div style={{ filter: 'drop-shadow(0 0 3px rgba(0, 200, 255, 0.6))' }}>
-                    <PixelIcon name={getPowerUpIcon(powerUp.id)} size={48} />
+                  <PixelIcon name={getPowerUpIcon(powerUp.id)} size={48} />
                   </div>
                 </div>
                 <div className="hud-text-warning font-bold mb-2" style={{ fontSize: '28px' }}>

@@ -30,6 +30,13 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
   // News entries
   const newsEntries = [
     {
+      id: 'ui_theme_update',
+      title: 'FACILITY HUD SYSTEM UPGRADE',
+      date: 'Dec 3, 2025',
+      image: '/assets/sprites/image copy 3.png',
+      description: 'The Testing Facility interface has been completely overhauled with a new futuristic robot HUD aesthetic. Angular panels, neon accents, and improved readability now match the cyberpunk dystopian theme. All UI elements including menus, inventory, weapon selection, and in-game displays have been updated to reflect the corporate military facility atmosphere. The new design features clipped angular shapes, dynamic border colors based on weapon rarity, and enhanced visual feedback throughout the entire system.'
+    },
+    {
       id: 'mysterious_lazer_enemy',
       title: 'MYSTERIOUS THREAT DETECTED',
       date: 'Dec 2, 2025',
@@ -41,7 +48,7 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
       title: 'LEGENDARY MACHINE GUN',
       date: 'Dec 1, 2025',
       image: '/assets/pngegg (2).png',
-      description: 'A new Legendary weapon has been discovered! The Machine Gun is now available exclusively from Daily Chests. This ultra-rare weapon features an extremely high fire rate and can only be obtained as a Legendary rarity. Good luck finding one!'
+      description: 'A new Prototype weapon has been discovered! The Plasma Cannon is now available exclusively from Supply Caches. This ultra-rare weapon features an extremely high fire rate and can only be obtained as a Prototype rarity. Good luck finding one!'
     },
     {
       id: 'vest_system',
@@ -67,7 +74,7 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
   ];
 
   // Track if user has seen the latest news (stored in localStorage)
-  const LATEST_NEWS_ID = 'mysterious_lazer_enemy';
+  const LATEST_NEWS_ID = 'ui_theme_update';
   const [hasUnreadNews, setHasUnreadNews] = useState(() => {
     if (typeof window === 'undefined') return true;
     const lastSeenNews = localStorage.getItem('lastSeenNewsId');
@@ -125,10 +132,26 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
       >
       {/* Background image covering full screen */}
       <img
-        src="/assets/sprites/image copy 2.png"
+        src="/assets/sprites/image copy 3.png"
         alt="Background"
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ imageRendering: 'pixelated' }}
+        style={{ 
+          imageRendering: 'pixelated',
+          filter: 'brightness(0.7) contrast(1.15)',
+          opacity: 0.9
+        }}
+      />
+      
+      {/* Strong enemy image on the right side */}
+      <img
+        src="/assets/sprites/image (1) (1).png"
+        alt="Strong Enemy"
+        className="absolute right-52 top-[55%] -translate-y-1/2 z-10 pointer-events-none"
+        style={{ 
+          imageRendering: 'pixelated',
+          width: '700px',
+          height: 'auto'
+        }}
       />
       
       {/* Audio controls and Guide - top left */}
@@ -257,10 +280,10 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
                 <div className="hud-corner hud-corner-bl"></div>
                 <div className="hud-corner hud-corner-br"></div>
                 <div className="hud-text text-sm font-bold flex items-center gap-2">
-                  {formatAddress(address)}
-                  {!isCorrectChain && (
+                {formatAddress(address)}
+                {!isCorrectChain && (
                     <span className="hud-text-danger text-xs font-bold" title="Wrong network">!</span>
-                  )}
+                )}
                 </div>
               </div>
               <button
@@ -293,19 +316,25 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
       </div>
       
       {/* Game title at the top */}
-      <div className="absolute top-8 left-0 right-0 text-center z-10">
+      <div className="absolute top-12 left-0 right-0 text-center z-10 pointer-events-none">
         <h1 
-          className="font-bold"
+          className="font-bold hud-text-accent"
           style={{ 
-            fontSize: '72px',
-            background: 'linear-gradient(135deg, #8b0000, #ff4500, #ff8c00, #8b0000, #4a0000)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            textShadow: '4px 4px 0px rgba(0,0,0,0.9), 0 0 20px rgba(255, 69, 0, 0.8), 0 0 40px rgba(139, 0, 0, 0.6)',
+            fontSize: '96px',
             imageRendering: 'pixelated',
-            filter: 'drop-shadow(0 0 15px rgba(255, 69, 0, 0.7))'
-          }}
+            letterSpacing: '12px',
+            lineHeight: '1.2',
+            fontWeight: '900',
+            WebkitTextStroke: '4px #000000',
+            textShadow: 
+              '4px 4px 0px rgba(0, 0, 0, 1), ' +
+              '-4px -4px 0px rgba(0, 0, 0, 1), ' +
+              '4px -4px 0px rgba(0, 0, 0, 1), ' +
+              '-4px 4px 0px rgba(0, 0, 0, 1), ' +
+              '0 0 15px rgba(0, 200, 255, 0.9), ' +
+              '0 0 30px rgba(0, 200, 255, 0.7), ' +
+              '0 0 45px rgba(0, 200, 255, 0.5)'
+          } as React.CSSProperties}
         >
           SURVIVAL ARENA
         </h1>
@@ -316,14 +345,13 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
         <div className="relative">
           <button
             onClick={() => handleMenuClick(onPlay)}
-            className="hud-button py-6 px-12 w-80 font-bold menu-button"
+            className="menu-main-button py-6 px-12 w-80 font-bold"
             style={{ 
               fontSize: '24px',
-              imageRendering: 'pixelated',
-              borderColor: 'rgba(0, 200, 255, 0.6)'
+              imageRendering: 'pixelated'
             }}
           >
-            <span className="hud-text-accent">PLAY</span>
+            <span className="hud-text-accent relative z-10">PLAY</span>
           </button>
           
           {/* Trophy icon button - positioned to the right, slightly upward */}
@@ -352,38 +380,35 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
 
         <button
           onClick={() => handleMenuClick(onInventory)}
-          className="hud-button py-6 px-12 w-80 font-bold menu-button"
+          className="menu-main-button py-6 px-12 w-80 font-bold"
           style={{ 
             fontSize: '24px',
-            imageRendering: 'pixelated',
-            borderColor: 'rgba(0, 200, 255, 0.6)'
+            imageRendering: 'pixelated'
           }}
         >
-          <span className="hud-text">INVENTORY</span>
+          <span className="hud-text relative z-10">INVENTORY</span>
         </button>
 
         <button
           onClick={() => handleMenuClick(onDailyChest)}
-          className="hud-button py-6 px-12 w-80 font-bold menu-button"
+          className="menu-main-button py-6 px-12 w-80 font-bold"
           style={{ 
             fontSize: '24px',
-            imageRendering: 'pixelated',
-            borderColor: 'rgba(0, 200, 255, 0.6)'
+            imageRendering: 'pixelated'
           }}
         >
-          <span className="hud-text">DAILY CHEST</span>
+          <span className="hud-text relative z-10">SUPPLY CACHE</span>
         </button>
 
         <button
           onClick={() => setShowComingSoon(true)}
-          className="hud-button py-6 px-12 w-80 font-bold menu-button"
+          className="menu-main-button py-6 px-12 w-80 font-bold"
           style={{ 
             fontSize: '24px',
-            imageRendering: 'pixelated',
-            borderColor: 'rgba(0, 200, 255, 0.6)'
+            imageRendering: 'pixelated'
           }}
         >
-          <span className="hud-text">MARKETPLACE</span>
+          <span className="hud-text relative z-10">MARKETPLACE</span>
         </button>
       </div>
 
@@ -493,9 +518,9 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
           onClick={() => setShowNews(false)}
         >
           <div 
-            className="hud-panel p-6 max-w-xl w-full mx-4 relative max-h-[80vh] overflow-y-auto"
+            className="hud-panel max-w-xl w-full mx-4 relative max-h-[80vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
-            style={{ fontFamily: "'Pixelify Sans', sans-serif" }}
+            style={{ fontFamily: "'Pixelify Sans', sans-serif", overflow: 'hidden' }}
           >
             <div className="hud-corner hud-corner-tl"></div>
             <div className="hud-corner hud-corner-tr"></div>
@@ -504,20 +529,23 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
             {/* Close button */}
             <button
               onClick={() => setShowNews(false)}
-              className="absolute top-4 right-4 hud-text hover:hud-text-danger transition-colors font-bold"
+              className="absolute top-4 right-4 hud-text hover:hud-text-danger transition-colors font-bold z-10"
               style={{ fontSize: '24px', imageRendering: 'pixelated' }}
             >
               ✕
             </button>
 
+            <div className="p-6 pb-4 flex-shrink-0">
             <h2 
-              className="hud-text-accent text-2xl font-bold mb-6 text-center border-b-2 border-cyan-500/50 pb-4"
+                className="hud-text-accent text-2xl font-bold mb-6 text-center border-b-2 border-cyan-500/50 pb-4"
               style={{ imageRendering: 'pixelated' }}
             >
               LATEST NEWS
             </h2>
+            </div>
             
-            {/* News Entries */}
+            {/* News Entries - Scrollable area */}
+            <div className="flex-1 overflow-y-auto px-6 pb-6" style={{ minHeight: 0 }}>
             <div className="space-y-4">
               {newsEntries.map((news) => (
                 <div key={news.id} className="hud-panel p-4 relative">
@@ -558,6 +586,7 @@ const MainMenu = ({ onPlay, onInventory, onDailyChest, onAchievements, onGuide }
                   </p>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </div>

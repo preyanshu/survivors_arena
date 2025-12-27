@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Weapon } from '../types/game';
-import { getRarityColor, getRarityBorderColor, calculateFirerate } from '../data/weapons';
+import { getRarityColor, getRarityBorderColor, calculateFirerate, getDebugWeapons } from '../data/weapons';
 import { spriteManager } from '../utils/spriteManager';
 import { useOneWallet } from '../hooks/useOneWallet';
 import { Transaction } from '@onelabs/sui/transactions';
@@ -14,11 +14,27 @@ interface InventoryProps {
 const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
   const { executeTransaction, connected, address, connect, disconnect, installWallet, isWalletInstalled, isCorrectChain } = useOneWallet();
   
+  // Check for debug flag from environment
+  const isDebugMode = import.meta.env.VITE_DEBUG_WEAPONS === 'true';
+
+  console.log('isDebugMode', isDebugMode);
+  
+  // Use debug weapons if flag is enabled, otherwise use player inventory
+  const displayInventory = isDebugMode ? getDebugWeapons() : playerInventory;
+  
   const formatAddress = (addr: string | null) => {
     if (!addr) return '';
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
-  const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(playerInventory[0] || null);
+  const [selectedWeapon, setSelectedWeapon] = useState<Weapon | null>(displayInventory[0] || null);
+  
+  // Update selected weapon when inventory changes
+  useEffect(() => {
+    if (displayInventory.length > 0 && (!selectedWeapon || !displayInventory.find(w => w.id === selectedWeapon.id))) {
+      setSelectedWeapon(displayInventory[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayInventory.length, isDebugMode]);
   const [spritesLoaded, setSpritesLoaded] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [recipientAddress, setRecipientAddress] = useState('');
@@ -120,19 +136,21 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
           background-color: #7a0000;
         }
         .weapons-scrollable::-webkit-scrollbar {
-          width: 16px;
+          width: 14px;
         }
         .weapons-scrollable::-webkit-scrollbar-track {
-          background: #1a0000;
-          border: 2px solid #3a0000;
+          background: rgba(0, 0, 0, 0.6);
+          border: 1px solid rgba(0, 200, 255, 0.2);
         }
         .weapons-scrollable::-webkit-scrollbar-thumb {
-          background: #5a0000;
-          border: 2px solid #3a0000;
-          border-radius: 0;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.4) 0%, rgba(0, 150, 200, 0.5) 100%);
+          border: 1px solid rgba(0, 200, 255, 0.6);
+          box-shadow: inset 0 0 4px rgba(0, 200, 255, 0.3);
         }
         .weapons-scrollable::-webkit-scrollbar-thumb:hover {
-          background: #7a0000;
+          background: linear-gradient(135deg, rgba(0, 200, 255, 0.6) 0%, rgba(0, 150, 200, 0.7) 100%);
+          border-color: rgba(0, 200, 255, 0.9);
+          box-shadow: inset 0 0 6px rgba(0, 200, 255, 0.5);
         }
       `}</style>
       <div className="h-screen w-screen bg-black text-white flex overflow-hidden relative" style={{ fontFamily: "'Pixelify Sans', sans-serif" }}>
@@ -141,7 +159,12 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
           src="/assets/sprites/image copy 3.png"
           alt="Background"
           className="absolute inset-0 w-screen h-screen object-cover pointer-events-none"
-          style={{ imageRendering: 'pixelated', zIndex: 0 }}
+        style={{ 
+          imageRendering: 'pixelated', 
+          zIndex: 0,
+          filter: 'brightness(0.7) contrast(1.15)',
+          opacity: 0.9
+        }}
         />
         
         {/* Back button */}
@@ -196,10 +219,12 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
 
         {/* Left side - Weapon list */}
         <div className="w-1/3 p-8 pt-20 border-r-2 border-cyan-500/30 overflow-y-auto flex-shrink-0 relative weapons-scrollable" style={{ zIndex: 10 }}>
-          <h1 className="hud-text-accent mb-8 text-center font-bold" style={{ fontSize: '32px' }}>INVENTORY</h1>
+          <h1 className="hud-text-accent mb-8 text-center font-bold" style={{ fontSize: '32px' }}>
+            INVENTORY
+          </h1>
 
           <div className="flex flex-col gap-4">
-            {playerInventory.map((weapon) => {
+            {displayInventory.map((weapon) => {
               const rarityColor = getRarityColor(weapon.rarity);
               const rarityBorderColor = getRarityBorderColor(weapon.rarity);
               const isSelected = selectedWeapon?.type === weapon.type && selectedWeapon?.rarity === weapon.rarity;
@@ -214,10 +239,10 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                   style={{ 
                     imageRendering: 'pixelated',
                     backgroundColor: isSelected ? rarityColor : 'rgba(0, 0, 0, 0.85)',
-                    borderColor: rarityBorderColor,
-                  }}
+                    '--hud-border-color': rarityBorderColor,
+                  } as React.CSSProperties}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = rarityBorderColor;
+                    e.currentTarget.style.setProperty('--hud-border-color', rarityBorderColor);
                     e.currentTarget.style.boxShadow = `0 0 10px ${rarityBorderColor}40, inset 0 0 10px ${rarityBorderColor}20`;
                   }}
                   onMouseLeave={(e) => {
@@ -273,8 +298,8 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                   style={{
                     fontSize: '14px',
                     backgroundColor: getRarityColor(selectedWeapon.rarity),
-                    borderColor: getRarityBorderColor(selectedWeapon.rarity),
-                  }}
+                    '--hud-border-color': getRarityBorderColor(selectedWeapon.rarity),
+                  } as React.CSSProperties}
                 >
                   <div className="hud-corner hud-corner-tl"></div>
                   <div className="hud-corner hud-corner-tr"></div>
@@ -283,7 +308,7 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                   <span className="hud-text font-bold">{selectedWeapon.rarity.toUpperCase()}</span>
                 </span>
                 
-                {selectedWeapon.id && !selectedWeapon.id.startsWith('default-') && (
+                {selectedWeapon.id && !selectedWeapon.id.startsWith('default-') && !selectedWeapon.id.startsWith('debug-') && (
                   <button
                     onClick={() => {
                       setRecipientAddress('');
@@ -387,7 +412,7 @@ const Inventory = ({ onBack, playerInventory, loading }: InventoryProps) => {
                 </div>
 
                 {transferError && (
-                  <div className="mb-6 hud-text-danger text-lg hud-panel p-4 font-bold text-center relative" style={{ borderColor: 'rgba(255, 68, 68, 0.6)' }}>
+                  <div className="mb-6 hud-text-danger text-lg hud-panel p-4 font-bold text-center relative" style={{ '--hud-border-color': 'rgba(255, 68, 68, 0.6)' } as React.CSSProperties}>
                     <div className="hud-corner hud-corner-tl"></div>
                     <div className="hud-corner hud-corner-tr"></div>
                     <div className="hud-corner hud-corner-bl"></div>

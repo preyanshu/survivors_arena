@@ -170,12 +170,12 @@ const GameOver = ({ wave, onReturnToMenu }: GameOverProps) => {
                    <div className="hud-corner hud-corner-tr"></div>
                    <div className="hud-corner hud-corner-bl"></div>
                    <div className="hud-corner hud-corner-br"></div>
-                   <img 
-                     src={newAchievement.image} 
-                     alt={newAchievement.title}
+                 <img 
+                   src={newAchievement.image} 
+                   alt={newAchievement.title}
                      className="w-32 h-32 object-cover"
-                     style={{ imageRendering: 'pixelated' }}
-                   />
+                   style={{ imageRendering: 'pixelated' }}
+                 />
                  </div>
               )}
               <div className="text-center">
@@ -206,7 +206,7 @@ const GameOver = ({ wave, onReturnToMenu }: GameOverProps) => {
                 }}
               >
                 <span className={minting ? 'hud-text' : 'hud-text-warning'}>
-                  {minting ? 'MINTING...' : 'MINT ACHIEVEMENT NFT'}
+                {minting ? 'MINTING...' : 'MINT ACHIEVEMENT NFT'}
                 </span>
               </button>
               {error && <div className="hud-text-danger text-base font-bold mt-1">{error}</div>}
