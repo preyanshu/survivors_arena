@@ -1,8 +1,8 @@
 
 
-<!-- <img width="317" height="305" alt="image" src="https://github.com/user-attachments/assets/84557968-0d02-4496-ac9a-5aafb66e6beb" /> -->
+<img width="317" height="305" alt="image" src="https://github.com/user-attachments/assets/84557968-0d02-4496-ac9a-5aafb66e6beb" />
 
-
+---
 
 # SURVIVAL ARENA
 
@@ -32,10 +32,8 @@ Fight through endless waves of hostile corporate units in a futuristic dystopian
 **Your skill. Your loot. Your facility.**
 
 
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/95cad6f9-541b-4cc6-bce7-1c5f0986f611" />
-
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/4bf41513-4d0b-44f0-a027-79afb8e23ad8" />
-
+<img width="1861" height="995" alt="Screenshot from 2025-11-26 23-37-40" src="https://github.com/user-attachments/assets/17397224-4add-433b-ac1e-462ae238acf0" />
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/184b0adc-3eab-4d9a-96f0-0dc72f0e1b64" />
 
 
 
@@ -49,11 +47,9 @@ Plasma Sidearms. Scattershot Launchers. Plasma Snipers. HF Blades. Plasma Cannon
 
 *Some weapons are Standard. Some are Prototype. Some are so rare that most operators will never see them.*
 
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/cae7a86d-3c07-4c86-982f-dc59b540fcc3" />
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/a3063b0d-c6d3-47d6-bb30-e641e4e77bc3" />
 
-
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/07e04007-c3d6-4216-b8e5-fc7e31f2eeaf" />
-
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/5c10c1e6-9fe0-4dd7-8a23-82c4d9de4eac" />
 
 
 ### Five Rarity Tiers
@@ -68,8 +64,7 @@ Every 24 hours, access a Supply Cache and mint a random weapon NFT. You might ge
 
 **Test your luck. Every. Single. Day.**
 
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/7ee47dba-d1fb-4ca0-bbc3-f0099a8e3662" />
-
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/293031b4-49e5-49de-8dcb-037054e35e41" />
 
 
 ### The Corporate Hostiles
@@ -78,14 +73,9 @@ The facility is filled with hostile corporate units — each with their own mech
 
 *The deeper you go, the more you'll encounter.*
 
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/2ad3f8b2-d202-40ad-86dd-d7fbaaf7d8b8" />
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/acd57d10-ed10-4fde-84cf-06f34f27bc31" />
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/533f5b96-43fe-4a8c-a167-769aba77f6a6" />
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/15f5e3e0-eebe-47ed-b72d-6110440d6f59" />
-
-
-
-
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/1175a047-8076-4e71-8f36-dcba7d9097b3" />
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/5aef0e9c-0fc4-4f16-b8d4-d6568b5042ca" />
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/3bc62a2c-1c1c-40a5-ad09-e6643dc8c8bd" />
 
 
 
@@ -99,8 +89,7 @@ Nanomachine Barriers that block everything. Plasma Fields that burn all around y
 
 *Each protocol is a legacy. Each legacy has a story.*
 
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/9251878a-edd6-4c13-81ff-7bafe541d100" />
-
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/ff90a169-0bb1-42d1-812d-19d7dd7be810" />
 
 
 ### Loot Drops
@@ -113,14 +102,14 @@ Every weapon is an NFT on OneChain. Mint it. Own it. Transfer it. Trade it.
 
 Your inventory lives in your wallet — not on our servers.
 
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/04bcaf94-b31c-472a-989a-b89472b194f9" />
-
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/acda7ba6-122f-48f2-872d-ea2c0e17f567" />
 
 
 ### Achievement Badges
 
 Hit milestones. Mint proof. Show off your operator credentials with on-chain achievement NFTs.
 
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/6eb444f9-ff52-449b-bda1-7412f359c514" />
 
 
 ### Weekly Updates
@@ -129,8 +118,7 @@ New hostile units. New weapons. New mechanics. The facility evolves every week w
 
 **Expect new enemy types, weapons, and mechanics regularly.**
 
-<img width="1857" height="992" alt="image" src="https://github.com/user-attachments/assets/b27629a5-88cd-4b3f-9aba-d93cdffcb6f7" />
-
+<img width="1858" height="991" alt="image" src="https://github.com/user-attachments/assets/8b27cd3d-31fd-4de5-8cc9-5372eed74827" />
 
 
 ### Marketplace *(Coming Soon)*
